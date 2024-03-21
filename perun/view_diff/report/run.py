@@ -11,7 +11,7 @@ import jinja2
 
 # Perun Imports
 from perun.utils import log
-from perun.utils.common import diff_kit
+from perun.utils.common import diff_kit, traces_kit
 from perun.profile.factory import Profile
 from perun.profile import convert
 from perun.view_diff.flamegraph import run as flamegraph_run
@@ -31,7 +31,15 @@ class TableRecord:
     :ivar rel_amount: relative value of the uid
     """
 
-    __slots__ = ["uid", "trace", "short_trace", "trace_list", "abs_amount", "rel_amount"]
+    __slots__ = [
+        "uid",
+        "trace",
+        "short_trace",
+        "trace_list",
+        "abs_amount",
+        "rel_amount",
+        "aggregation_key",
+    ]
 
     uid: str
     trace: str
@@ -39,6 +47,7 @@ class TableRecord:
     trace_list: list[str]
     abs_amount: float
     rel_amount: float
+    aggregation_key: str
 
 
 def to_short_trace(trace: str) -> str:
@@ -61,19 +70,34 @@ def profile_to_data(profile: Profile) -> list[TableRecord]:
     """
     df = convert.resources_to_pandas_dataframe(profile)
 
-    grouped_df = df.groupby(["uid", "trace"]).agg({"amount": "sum"}).reset_index()
-    sorted_df = grouped_df.sort_values(by="amount", ascending=False)
-    amount_sum = df["amount"].sum()
+    aggregation_key = None
+    candidate_keys = ["amount", "Total Inclusive T [ms]"]
+    for key in candidate_keys:
+        if key in df.columns:
+            aggregation_key = key
+            break
+    else:
+        log.error(
+            f"No suitable key for aggregation of data in profile: has to be one of {', '.join(candidate_keys)}"
+        )
+
+    grouped_df = df.groupby(["uid", "trace"]).agg({aggregation_key: "sum"}).reset_index()
+    sorted_df = grouped_df.sort_values(by=aggregation_key, ascending=False)
+    amount_sum = df[aggregation_key].sum()
     data = []
     for _, row in sorted_df.iterrows():
+        trace = ",".join(
+            traces_kit.fold_recursive_calls_in_trace(row["trace"].split(","), generalize=True)
+        )
         data.append(
             TableRecord(
                 row["uid"],
-                row["trace"],
-                to_short_trace(row["trace"]),
-                table_run.generate_trace_list(row["trace"], row["uid"]),
-                row["amount"],
-                round(100 * row["amount"] / amount_sum, PRECISION),
+                trace,
+                to_short_trace(trace),
+                table_run.generate_trace_list(trace, row["uid"]),
+                row[aggregation_key],
+                round(100 * row[aggregation_key] / amount_sum, PRECISION),
+                aggregation_key,
             )
         )
     return data
@@ -91,12 +115,13 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
     log.minor_success("Baseline data", "generated")
     rhs_data = profile_to_data(rhs_profile)
     log.minor_success("Target data", "generated")
+    # TODO: Remake this somehow
+    unit = lhs_profile["header"]["units"].get(
+        lhs_profile["header"]["type"], list(lhs_profile["header"]["units"].values())[0]
+    )
     columns = [
         ("uid", "The measured symbol (click [+] for full trace)."),
-        (
-            f"[{lhs_profile['header']['units'][lhs_profile['header']['type']]}]",
-            "The absolute measured value.",
-        ),
+        (f"[{unit}]", "The absolute measured value."),
         ("[%]", "The relative measured value (in percents overall)."),
     ]
 
