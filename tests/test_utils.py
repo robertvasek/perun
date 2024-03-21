@@ -462,6 +462,18 @@ def test_trace_manager():
     assert traces_kit.fast_compute_distance(trace_a, trace_b, cache={}, threshold=1) == 2
     assert int(traces_kit.fast_compute_distance(trace_a, trace_b, cache={}, threshold=3)) == 3
 
+    assert traces_kit.fold_recursive_calls_in_trace(["a", "a", "b", "c"]) == ["a^2", "b", "c"]
+    assert traces_kit.fold_recursive_calls_in_trace(["a", "a", "b", "c"], generalize=True) == [
+        "a^*",
+        "b",
+        "c",
+    ]
+    assert traces_kit.fold_recursive_calls_in_trace(["a", "a", "a", "b", "c"], generalize=True) == [
+        "a^*",
+        "b",
+        "c",
+    ]
+
 
 def test_machine_info(monkeypatch):
     # Test that we can obtain some information about kernel
