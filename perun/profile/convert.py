@@ -102,7 +102,7 @@ def models_to_pandas_dataframe(profile: Profile) -> pandas.DataFrame:
     return pandas.DataFrame(values)
 
 
-def to_flame_graph_format(profile: Profile) -> list[str]:
+def to_flame_graph_format(profile: Profile, profile_key="amount") -> list[str]:
     """Transforms the **memory** profile w.r.t. :ref:`profile-spec` into the
     format supported by perl script of Brendan Gregg.
 
@@ -127,6 +127,7 @@ def to_flame_graph_format(profile: Profile) -> list[str]:
     identifiers joined using ``;`` character).
 
     :param Profile profile: the memory profile
+    :param profile_key: key that is used to obtain the data
     :returns: list of lines, each representing one allocation call stack
     """
     stacks = []
@@ -139,7 +140,7 @@ def to_flame_graph_format(profile: Profile) -> list[str]:
                     stack_str += line + ";"
                 if stack_str and stack_str.endswith(";"):
                     final = stack_str[:-1]
-                    final += " " + str(alloc["amount"]) + "\n"
+                    final += " " + str(alloc[profile_key]) + "\n"
                     stacks.append(final)
 
     return stacks
@@ -157,13 +158,17 @@ def to_uid(record: dict[str, Any] | str) -> str:
         return to_string_line(record)
 
 
-def to_string_line(frame: dict[str, Any]) -> str:
+def to_string_line(frame: dict[str, Any] | str) -> str:
     """Create string representing call stack's frame
+
+    TODO: remake
 
     :param dict frame: call stack's frame
     :returns str: line representing call stack's frame
     """
-    if "function" in frame.keys() and "source" in frame.keys() and "line" in frame.keys():
+    if isinstance(frame, str):
+        return frame
+    elif "function" in frame.keys() and "source" in frame.keys() and "line" in frame.keys():
         return f"{frame['function']}()~{frame['source']}~{frame['line']}"
     else:
         assert "func" in frame.keys()

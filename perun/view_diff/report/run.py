@@ -38,16 +38,16 @@ class TableRecord:
         "trace_list",
         "abs_amount",
         "rel_amount",
-        "aggregation_key",
+        "type",
     ]
 
     uid: str
     trace: str
     short_trace: str
-    trace_list: list[str]
+    trace_list: [str]
     abs_amount: float
     rel_amount: float
-    aggregation_key: str
+    type: str
 
 
 def to_short_trace(trace: str) -> str:
@@ -62,45 +62,54 @@ def to_short_trace(trace: str) -> str:
     return " -> ".join([split_trace[0], "...", split_trace[-1]])
 
 
-def profile_to_data(profile: Profile) -> list[TableRecord]:
+def profile_to_data(profile: Profile) -> tuple[list[TableRecord], list[str]]:
     """Converts profile to list of columns and list of list of values
 
     :param profile: converted profile
-    :return: list of columns and list of rows
+    :return: list of columns and list of rows and list of selectable types
     """
     df = convert.resources_to_pandas_dataframe(profile)
 
-    aggregation_key = None
-    candidate_keys = ["amount", "Total Inclusive T [ms]"]
-    for key in candidate_keys:
-        if key in df.columns:
-            aggregation_key = key
-            break
-    else:
-        log.error(
-            f"No suitable key for aggregation of data in profile: has to be one of {', '.join(candidate_keys)}"
-        )
+    allowed_keys = [
+        "Total Exclusive T [ms]",
+        # "I Mean",
+        "Total Inclusive T [ms]",
+        "amount",
+        # "E Min",
+        # "E Max",
+        "ncalls",
+        # "I Min",
+        # "Callees Mean [#]",
+        # "Callees [#]",
+        # "I Max",
+        # "Total Inclusive T [%]",
+        # "Total Exclusive T [%]",
+        # "E Mean",
+    ]
+    aggregation_keys = [col for col in df.columns if col in allowed_keys]
 
-    grouped_df = df.groupby(["uid", "trace"]).agg({aggregation_key: "sum"}).reset_index()
-    sorted_df = grouped_df.sort_values(by=aggregation_key, ascending=False)
-    amount_sum = df[aggregation_key].sum()
+    # TODO: This could be more effective
     data = []
-    for _, row in sorted_df.iterrows():
-        trace = ",".join(
-            traces_kit.fold_recursive_calls_in_trace(row["trace"].split(","), generalize=True)
-        )
-        data.append(
-            TableRecord(
-                row["uid"],
-                trace,
-                to_short_trace(trace),
-                table_run.generate_trace_list(trace, row["uid"]),
-                row[aggregation_key],
-                round(100 * row[aggregation_key] / amount_sum, PRECISION),
-                aggregation_key,
+    for aggregation_key in aggregation_keys:
+        grouped_df = df.groupby(["uid", "trace"]).agg({aggregation_key: "sum"}).reset_index()
+        sorted_df = grouped_df.sort_values(by=aggregation_key, ascending=False)
+        amount_sum = df[aggregation_key].sum()
+        for _, row in sorted_df.iterrows():
+            trace = ",".join(
+                traces_kit.fold_recursive_calls_in_trace(row["trace"].split(","), generalize=True)
             )
-        )
-    return data
+            data.append(
+                TableRecord(
+                    row["uid"],
+                    trace,
+                    to_short_trace(trace),
+                    table_run.generate_trace_list(trace, row["uid"]),
+                    row[aggregation_key],
+                    round(100 * row[aggregation_key] / amount_sum, PRECISION),
+                    aggregation_key,
+                )
+            )
+    return data, aggregation_keys
 
 
 def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -> None:
@@ -111,17 +120,15 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
     :param kwargs: other parameters
     """
     log.major_info("Generating HTML Report", no_title=True)
-    lhs_data = profile_to_data(lhs_profile)
+    lhs_data, lhs_types = profile_to_data(lhs_profile)
     log.minor_success("Baseline data", "generated")
-    rhs_data = profile_to_data(rhs_profile)
+    rhs_data, rhs_types = profile_to_data(rhs_profile)
     log.minor_success("Target data", "generated")
-    # TODO: Remake this somehow
-    unit = lhs_profile["header"]["units"].get(
-        lhs_profile["header"]["type"], list(lhs_profile["header"]["units"].values())[0]
-    )
+    # TODO: Remake obtaining of the unit somehow
+    data_types = set(lhs_types).union(set(rhs_types))
     columns = [
         ("uid", "The measured symbol (click [+] for full trace)."),
-        (f"[{unit}]", "The absolute measured value."),
+        (f"[unit]", "The absolute measured value."),
         ("[%]", "The relative measured value (in percents overall)."),
     ]
 
@@ -136,6 +143,7 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
         rhs_columns=columns,
         rhs_data=rhs_data,
         rhs_header=flamegraph_run.generate_header(rhs_profile),
+        data_types=data_types,
         title="Difference of profiles (with tables)",
     )
     log.minor_success("HTML report ", "generated")
