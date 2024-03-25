@@ -174,10 +174,20 @@
                 { data: "uid" },
                 {
                     data: "abs",
+                    className: "dt-body-right",
                     render: function (data, type) {
                         if (type === 'display') {
-                            var formatted_number = parseInt(data, 10).toLocaleString();
-                            return `${formatted_number}`;
+                            const floatValue = parseFloat(data);
+                            const intValue = parseInt(data);
+                            if (!isNaN(intValue) && intValue.toString() === data) {
+                                var formatted_int= intValue.toLocaleString();
+                                return `${formatted_int}`;
+                            } else if(!isNaN(floatValue) && floatValue.toString() === data) {
+                                var formatted_float = floatValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                return `${formatted_float}`;
+                            } else {
+                                return data;
+                            }
                         }
 
                         return data;
@@ -208,6 +218,24 @@
                 { data: "uid" },
                 {
                     data: "abs",
+                    className: "dt-body-right",
+                    render: function (data, type) {
+                        if (type === 'display') {
+                            const floatValue = parseFloat(data);
+                            const intValue = parseInt(data);
+                            if (!isNaN(intValue) && intValue.toString() === data) {
+                                var formatted_int= intValue.toLocaleString();
+                                return `${formatted_int}`;
+                            } else if(!isNaN(floatValue) && floatValue.toString() === data) {
+                                var formatted_float = floatValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                return `${formatted_float}`;
+                            } else {
+                                return data;
+                            }
+                        }
+
+                        return data;
+                    },
                 },
                 { data: "rel" },
                 { data: "type", visible: false}
