@@ -171,6 +171,28 @@
 {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
 {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
 {{ accordion.script("table-row") }}
+
+function switch_type() {
+    const selected_type = document.querySelector("#type_selector").value
+
+    var selectedDiv = document.getElementById(selected_type);
+    var allDivs = document.getElementsByClassName("flamegraphs");
+
+    for (var i = 0; i < allDivs.length; i++) {
+        allDivs.item(i).style.visibility = "collapse";
+        allDivs.item(i).style.display = "none";
+    }
+    selectedDiv.style.visibility = "visible";
+    selectedDiv.style.display = "block";
+}
+document.querySelectorAll('select.filter').forEach((el) => {
+    el.addEventListener('change', () => {
+        switch_type()
+    })
+});
+
+switch_type()
+
 </script>
 
 </body>
