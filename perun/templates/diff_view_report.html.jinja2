@@ -95,8 +95,8 @@
     <table>
         <tbody>
             <tr>
-                <td class="key" title="Allows searching across both tables.">Resource Type:</td>
-                <td class="value" title="Allows searching across both tables.">
+                <td class="key" title="Displays resources for different type.">Resource Type:</td>
+                <td class="value" title="Displays resources for different type.">
                     <select class="filter" id="type_selector">
                     {% for data_type in data_types %}
                         <option value="{{ data_type }}">{{ data_type }}</option>
@@ -125,6 +125,12 @@
         <tfoot>
             <tr>
                 <th></th>
+                {% for _ in lhs_columns %}
+                    <th></th>
+                {%- endfor %}
+            </tr>
+            <tr>
+                <th></th>
                 {% for (column, title) in lhs_columns %}
                     <th title="{{ title }}">{{ column }}</th>
                 {%- endfor %}
@@ -144,12 +150,18 @@
         </tr>
         </thead>
         <tfoot>
-        <tr>
-            <th></th>
-            {% for (column, title) in rhs_columns %}
-                <th title="{{ title }}">{{ column }}</th>
-            {%- endfor %}
-        </tr>
+            <tr>
+                <th></th>
+                {% for _ in rhs_columns %}
+                    <th></th>
+                {%- endfor %}
+            </tr>
+            <tr>
+                <th></th>
+                {% for (column, title) in rhs_columns %}
+                    <th title="{{ title }}">{{ column }}</th>
+                {%- endfor %}
+            </tr>
         </tfoot>
     </table>
 </div>
@@ -201,6 +213,32 @@
             },
             order: [[3, "desc"]],
             iDisplayLength: 50,
+            footerCallback: function (row, data, start, end, display) {
+                let api = this.api();
+
+                // Remove the formatting to get integer data for summation
+                let intVal = function (i) {
+                    const floatValue = parseFloat(i);
+                    const intValue = parseInt(i);
+                    const isFloatStr = typeof i === 'string' && (i.includes('.') || i.includes(','));
+                    if (!isNaN(floatValue) && isFloatStr) {
+                        return floatValue;
+                    } else if(!isNaN(intValue)) {
+                        return intValue;
+                    } else {
+                        return 0;
+                    }
+                };
+
+                // Total over all pages
+                total = api
+                    .column(2, {page: 'current'})
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                // Update footer
+                api.column(2).footer().innerHTML = total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
         });
         var rhs  = $("#table2").DataTable({
             data: rhs_data.data,
@@ -245,6 +283,32 @@
             },
             order: [[3, "desc"]],
             iDisplayLength: 50,
+            footerCallback: function (row, data, start, end, display) {
+                let api = this.api();
+
+                // Remove the formatting to get integer data for summation
+                let intVal = function (i) {
+                    const floatValue = parseFloat(i);
+                    const intValue = parseInt(i);
+                    const isFloatStr = typeof i === 'string' && (i.includes('.') || i.includes(','));
+                    if (!isNaN(floatValue) && isFloatStr) {
+                        return floatValue;
+                    } else if(!isNaN(intValue)) {
+                        return intValue;
+                    } else {
+                        return 0;
+                    }
+                };
+
+                // Total over all pages
+                total = api
+                    .column(2, {page: 'current'})
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                // Update footer
+                api.column(2).footer().innerHTML = total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
         });
 
         $('#table1 tbody').on('click', 'td.details-control', function() {

@@ -70,26 +70,9 @@ def profile_to_data(profile: Profile) -> tuple[list[TableRecord], list[str]]:
     """
     df = convert.resources_to_pandas_dataframe(profile)
 
-    allowed_keys = [
-        "Total Exclusive T [ms]",
-        # "I Mean",
-        "Total Inclusive T [ms]",
-        "amount",
-        # "E Min",
-        # "E Max",
-        "ncalls",
-        # "I Min",
-        # "Callees Mean [#]",
-        # "Callees [#]",
-        # "I Max",
-        # "Total Inclusive T [%]",
-        # "Total Exclusive T [%]",
-        # "E Mean",
-    ]
-    aggregation_keys = [col for col in df.columns if col in allowed_keys]
-
     # TODO: This could be more effective
     data = []
+    aggregation_keys = diff_kit.get_candidate_keys(df.columns)
     for aggregation_key in aggregation_keys:
         grouped_df = df.groupby(["uid", "trace"]).agg({aggregation_key: "sum"}).reset_index()
         sorted_df = grouped_df.sort_values(by=aggregation_key, ascending=False)
@@ -125,7 +108,7 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
     rhs_data, rhs_types = profile_to_data(rhs_profile)
     log.minor_success("Target data", "generated")
     # TODO: Remake obtaining of the unit somehow
-    data_types = set(lhs_types).union(set(rhs_types))
+    data_types = diff_kit.get_candidate_keys(set(lhs_types).union(set(rhs_types)))
     columns = [
         ("uid", "The measured symbol (click [+] for full trace)."),
         (f"[unit]", "The absolute measured value."),

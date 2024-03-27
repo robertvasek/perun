@@ -134,6 +134,9 @@ def to_flame_graph_format(profile: Profile, profile_key="amount") -> list[str]:
     for _, snapshot in profile.all_snapshots():
         for alloc in snapshot:
             if "subtype" not in alloc.keys() or alloc["subtype"] != "free":
+                # Workaround for total time used in some collectors, so it is not outputted
+                if alloc["uid"] == "%TOTAL_TIME%":
+                    continue
                 stack_str = to_uid(alloc["uid"]) + ";"
                 for frame in alloc["trace"][::-1]:
                     line = to_string_line(frame)

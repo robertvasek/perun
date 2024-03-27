@@ -18,18 +18,27 @@ if TYPE_CHECKING:
 
 
 def draw_flame_graph_difference(
-    lhs_profile: Profile, rhs_profile: Profile, height: int, width: int = 1200, title: str = ""
+    lhs_profile: Profile,
+    rhs_profile: Profile,
+    height: int,
+    width: int = 1200,
+    title: str = "",
+    profile_key: str = "amount",
 ) -> str:
     """Draws difference of two flame graphs from two profiles
 
     :param lhs_profile: baseline profile
     :param rhs_profile: target_profile
+    :param width: width of the graph
+    :param height: graphs height
+    :param profile_key: key for which we are constructing profile
+    :param title: if set to empty, then title will be generated
     """
     # First we create two flamegraph formats
-    lhs_flame = convert.to_flame_graph_format(lhs_profile)
+    lhs_flame = convert.to_flame_graph_format(lhs_profile, profile_key=profile_key)
     with open("lhs.flame", "w") as lhs_handle:
         lhs_handle.write("".join(lhs_flame))
-    rhs_flame = convert.to_flame_graph_format(rhs_profile)
+    rhs_flame = convert.to_flame_graph_format(rhs_profile, profile_key=profile_key)
     with open("rhs.flame", "w") as rhs_handle:
         rhs_handle.write("".join(rhs_flame))
 
@@ -37,7 +46,8 @@ def draw_flame_graph_difference(
     profile_type = header["type"]
     cmd, workload = (header["cmd"], header["workload"])
     title = title if title != "" else f"{profile_type} consumption of {cmd} {workload}"
-    units = header["units"][profile_type]
+    # TODO: Make better
+    units = header["units"].get(profile_type, "samples")
 
     diff_script = script_kit.get_script("difffolded.pl")
     flame_script = script_kit.get_script("flamegraph.pl")
@@ -53,7 +63,9 @@ def draw_flame_graph_difference(
     return out.decode("utf-8")
 
 
-def draw_flame_graph(profile: Profile, height: int, width: int = 1200, title: str = "") -> str:
+def draw_flame_graph(
+    profile: Profile, height: int, width: int = 1200, title: str = "", profile_key: str = "amount"
+) -> str:
     """Draw Flame graph from profile.
 
         To create Flame graphs we use perl script created by Brendan Gregg.
@@ -62,16 +74,18 @@ def draw_flame_graph(profile: Profile, height: int, width: int = 1200, title: st
     :param profile: the memory profile
     :param width: width of the graph
     :param height: graphs height
+    :param profile_key: key for which we are constructing profile
     :param title: if set to empty, then title will be generated
     """
     # converting profile format to format suitable to Flame graph visualization
-    flame = convert.to_flame_graph_format(profile)
+    flame = convert.to_flame_graph_format(profile, profile_key=profile_key)
 
     header = profile["header"]
     profile_type = header["type"]
     cmd, workload = (header["cmd"], header["workload"])
     title = title if title != "" else f"{profile_type} consumption of {cmd} {workload}"
-    units = header["units"][profile_type]
+    # TODO: Make better
+    units = header["units"].get(profile_type, "samples")
 
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp.write("".join(flame).encode("utf-8"))
