@@ -412,17 +412,17 @@ def test_trace_manager():
     classifier = traces_kit.TraceClassifier(stratification_strategy=lambda x: ",".join(x[:3]))
     classification = classifier.classify_trace(trace_a)
     assert (
-        classification.as_str
+        classification.pivot.as_str
         == "unmap_vmas,unmap_single_vma,unmap_page_range,zap_pte_range,page_remove_rmap,__mod_lruvec_page_state,__mod_lruvec_state,__mod_memcg_lruvec_state"
     )
     classification = classifier.classify_trace(trace_b)
     assert (
-        classification.as_str
+        classification.pivot.as_str
         == "unmap_vmas,unmap_single_vma,unmap_page_range,zap_pte_range,page_remove_rmap,__mod_lruvec_page_state,__mod_lruvec_state,__mod_memcg_lruvec_state"
     )
     classification = classifier.classify_trace(trace_c)
     assert (
-        classification.as_str
+        classification.pivot.as_str
         == "exit_mmap,unmap_page_range,zap_pte_range,page_remove_rmap,__mod_lruvec_page_state,__mod_lruvec_state,__mod_memcg_lruvec_state"
     )
 
@@ -437,27 +437,27 @@ def test_trace_manager():
     )
     classifier = traces_kit.TraceClassifier(threshold=1)
     classification = classifier_best.classify_trace(trace_a)
-    assert classification.as_str == "main,a_a,b_a"
+    assert classification.pivot.as_str == "main,a_a,b_a"
     classification = classifier.classify_trace(trace_a)
-    assert classification.as_str == "main,a_a,b_a"
+    assert classification.pivot.as_str == "main,a_a,b_a"
 
     classification = classifier_best.classify_trace(trace_b)
-    assert classification.as_str == "main,a_a,b_b,c_a,d_a,e_a"
+    assert classification.pivot.as_str == "main,a_a,b_b,c_a,d_a,e_a"
     classification = classifier.classify_trace(trace_b)
-    assert classification.as_str == "main,a_a,b_b,c_a,d_a,e_a"
+    assert classification.pivot.as_str == "main,a_a,b_b,c_a,d_a,e_a"
 
     classification = classifier_best.classify_trace(trace_e)
-    assert classification.as_str == "main,a_a,b_b,c_a"
+    assert classification.pivot.as_str == "main,a_a,b_b,c_a"
     classification = classifier_best.classify_trace(trace_c)
-    assert classification.as_str == "main,a_a,b_b,c_a"
+    assert classification.pivot.as_str == "main,a_a,b_b,c_a"
     classification = classifier.classify_trace(trace_c)
-    assert classification.as_str == "main,a_a,b_a"
+    assert classification.pivot.as_str == "main,a_a,b_a"
     # Returns the same cluster again
     classification = classifier.classify_trace(trace_c)
-    assert classification.as_str == "main,a_a,b_a"
+    assert classification.pivot.as_str == "main,a_a,b_a"
 
     classification = classifier_best.classify_trace(trace_d)
-    assert classification.as_str == "main,a_a,b_b,c_a,d_a,e_a"
+    assert classification.pivot.as_str == "main,a_a,b_b,c_a,d_a,e_a"
 
     assert traces_kit.fast_compute_distance(trace_a, trace_b, cache={}, threshold=1) == 2
     assert int(traces_kit.fast_compute_distance(trace_a, trace_b, cache={}, threshold=3)) == 3
