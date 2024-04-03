@@ -167,7 +167,9 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
     :param rhs_profile: target profile
     :param kwargs: other parameters
     """
-    classifier = traces_kit.TraceClassifier()
+    classifier = traces_kit.TraceClassifier(
+        strategy=traces_kit.ClassificationStrategy.BEST_FIT, threshold=0.5
+    )
     log.major_info("Generating HTML Report", no_title=True)
     lhs_data, lhs_types = profile_to_data(lhs_profile, classifier)
     log.minor_success("Baseline data", "generated")
@@ -193,7 +195,7 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
         rhs_data=rhs_data,
         rhs_header=flamegraph_run.generate_header(rhs_profile),
         data_types=data_types,
-        cluster_types=sorted(traces_kit.TraceCluster.cluster_dict.keys()),
+        cluster_types=sorted(list(traces_kit.TraceCluster.id_set)),
         title="Difference of profiles (with tables)",
     )
     log.minor_success("HTML report ", "generated")

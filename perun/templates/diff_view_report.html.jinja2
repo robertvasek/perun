@@ -311,6 +311,17 @@
             },
             order: [[3, "desc"]],
             iDisplayLength: 50,
+            columnDefs: [
+                {
+                    "targets": "_all",
+                    "render": function(data, type, row, meta) {
+                        if (type !== "display") {
+                            return data;
+                        }
+                        return '<span title="' + row.cluster + '">' + data + '</span';
+                    }
+                }
+            ],
             footerCallback: function (row, data, start, end, display) {
                 let api = this.api();
 
@@ -384,6 +395,7 @@
                 filterGlobal(rhs);
                 highlightGlobal(lhs);
                 highlightGlobal(rhs);
+                updateSelect();
             })
         });
 
@@ -433,6 +445,41 @@
                 $(this.node()).removeClass("aboveThreshold");
             }
         })
+    }
+
+    function updateSelect() {
+        var uniqueValues = [];
+        $('#table1').DataTable().rows().every(function() {
+           var data = this.data();
+           var value = data[5];
+           if (!uniqueValues.includes(value)) {
+               uniqueValues.push(value);
+           }
+        });
+
+        $('#table2').DataTable().rows().every(function() {
+            var data = this.data();
+            var value = data[5];
+            if (!uniqueValues.includes(value)) {
+                uniqueValues.push(value);
+            }
+        });
+
+        uniqueValues.sort();
+
+        var select = document.getElementById("cluster_selector");
+        select.innerHTML = '';
+        uniqueValues.forEach(function(value) {
+            var option = document.createElement('option');
+            option.text = value;
+            option.value = value;
+            select.add(option);
+        })
+
+        var option = document.createElement('option');
+        option.text = "All";
+        option.value = "all";
+        select.add(option);
     }
 
     const lhs_data = {

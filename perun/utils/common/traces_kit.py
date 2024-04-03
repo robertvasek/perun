@@ -44,6 +44,7 @@ class TraceCluster:
 
     __slots__ = ["members", "pivot", "id"]
     cluster_dict: dict[str, int] = defaultdict(int)
+    id_set: set[str] = set()
 
     def __init__(self, pivot: TraceClusterMember):
         """Creates empty cluster with single element
@@ -56,6 +57,7 @@ class TraceCluster:
             else pivot.as_str
         )
         self.id: str = f"{trace_key}#{TraceCluster.cluster_dict[trace_key]}"
+        TraceCluster.id_set.add(self.id)
         self.pivot: TraceClusterMember = pivot
         self.members: list[TraceClusterMember] = [pivot]
 
