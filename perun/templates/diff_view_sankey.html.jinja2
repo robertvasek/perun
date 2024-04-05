@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src='https://cdn.plot.ly/plotly-2.30.0.min.js'></script>
     <style>
         html {
             font-family: "Courier New", Courier, monospace;
@@ -20,10 +21,33 @@
         .right {
             float: right;
         }
+        .middle {
+            width: 98%;
+            float: left;
+            margin: 0 1%;
+            justify-content: center;
+        }
         .column-head {
             border-bottom: 1px solid #ddd;
             border-top: 1px solid #ddd;
             text-align: center;
+        }
+
+        div.tools table {
+            border-collapse: collapse;
+            border-bottom: 1px solid #ddd;
+            margin: 0 auto 2em auto;
+        }
+
+        div.tools td.value {
+            padding: 1em 0.5em;
+            text-align: left;
+        }
+
+        div.tools td.key {
+            padding: 1em 0.5em;
+            text-align: right;
+            font-weight: bold;
         }
         {{ profile_overview.css_style() }}
     </style>
@@ -42,9 +66,88 @@
     <div style="margin: 0 10px;">&nbsp;</div>
 </div>
 
+<div class="middle">
+    <div class="tools">
+        <table>
+            <tbody>
+            <tr>
+                <td class="key" title="Displays resources for different uid.">Function:</td>
+                <td class="value" title="Displays resources for different uid.">
+                    <select class="filter" id="uid_selector">
+                        {% for uid in uids %}
+                            <option value="{{ loop.index0 }}">{{ uid }}</option>
+                        {%- endfor %}
+                    </select>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+   <div id="sankey_graph"><!-- DO NOT CHANGE: SANKEY GRAPH IS RENDERED HERE--></div>
+</div>
+
 <script>
     {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
     {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
+
+    function getData(index) {
+        var data = {
+            type: "sankey",
+            orientation: "h",
+            node: {
+                pad: 15,
+                thickness: 30,
+                line: {
+                    color: "black",
+                    width: 0.5
+                },
+                label: graphs[index].label,
+            },
+            link: {
+                source: graphs[index].source,
+                target: graphs[index].target,
+                value: graphs[index].value,
+                color: graphs[index].color
+            }
+        }
+        return [data]
+    }
+    function render() {
+        const selected_uid = document.querySelector("#uid_selector").value
+        data = getData(selected_uid);
+
+        var layout = {
+            title: "{{ title }}",
+            font: {
+                size: 10
+            },
+            height: 200 + graphs[selected_uid].height * 100,
+        };
+
+        Plotly.react('sankey_graph', data, layout);
+    }
+
+    var graphs = [
+    {% for graph in sankey_graphs %}
+        {
+            label: {{ graph.label }},
+            source: {{ graph.source }},
+            target: {{ graph.target }},
+            value: {{ graph.value }},
+            color: {{ graph.color }},
+            height: {{ graph.height }},
+        },
+    {%- endfor %}
+    ]
+
+    render();
+
+    document.querySelectorAll('select.filter').forEach((el) => {
+        el.addEventListener('change', () => {
+            render()
+        })
+    });
 </script>
 
 </body>
