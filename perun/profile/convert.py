@@ -71,7 +71,7 @@ def resources_to_pandas_dataframe(profile: Profile) -> pandas.DataFrame:
     values["snapshots"] = array.array("I")
 
     # All resources at this point should be flat
-    for snapshot, resource in profile.all_resources(True):
+    for snapshot, resource in profile.all_resources(flatten_values=True):
         values["snapshots"].append(snapshot)
         for resource_key in resource_keys:
             values[resource_key].append(resource.get(resource_key, numpy.nan))

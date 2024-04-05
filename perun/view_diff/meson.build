@@ -11,4 +11,5 @@ py3.install_sources(
 
 subdir('flamegraph')
 subdir('report')
+subdir('sankey')
 subdir('table')

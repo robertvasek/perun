@@ -1,0 +1,51 @@
+{% import 'macros_profile_overview.html.jinja2' as profile_overview %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        html {
+            font-family: "Courier New", Courier, monospace;
+        }
+        .column {
+            width: 48%;
+            margin: 0 1%;
+        }
+        .left {
+            float: left;
+        }
+        .right {
+            float: right;
+        }
+        .column-head {
+            border-bottom: 1px solid #ddd;
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+        {{ profile_overview.css_style() }}
+    </style>
+</head>
+<body>
+
+<div class="left column">
+    <h2 class="column-head">{{ lhs_tag }}</h2>
+    {{ profile_overview.overview_table('toggleLeftCollapse', 'left-info', lhs_header, rhs_header) }}
+    <div style="margin: 0 10px;">&nbsp;</div>
+</div>
+
+<div class="right column">
+    <h2 class="column-head">{{ rhs_tag }}</h2>
+    {{ profile_overview.overview_table('toggleRightCollapse', 'right-info', rhs_header, lhs_header) }}
+    <div style="margin: 0 10px;">&nbsp;</div>
+</div>
+
+<script>
+    {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
+    {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
+</script>
+
+</body>
+</html>
