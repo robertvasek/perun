@@ -94,13 +94,13 @@
     function getData(index) {
         var data = {
             type: "sankey",
-            orientation: "h",
+            orientation: "v",
             node: {
-                pad: 15,
-                thickness: 30,
+                pad: 10,
+                thickness: 10,
                 line: {
                     color: "black",
-                    width: 0.5
+                    width: 1
                 },
                 label: graphs[index].label,
             },
@@ -120,9 +120,9 @@
         var layout = {
             title: "{{ title }}",
             font: {
-                size: 10
+                size: 14
             },
-            height: 200 + graphs[selected_uid].height * 100,
+            height: 200 + graphs[selected_uid].width* 100,
         };
 
         Plotly.react('sankey_graph', data, layout);
@@ -137,6 +137,7 @@
             value: {{ graph.value }},
             color: {{ graph.color }},
             height: {{ graph.height }},
+            width: {{ graph.width }},
         },
     {%- endfor %}
     ]
