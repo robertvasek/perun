@@ -1,4 +1,5 @@
 {% import 'macros_profile_overview.html.jinja2' as profile_overview %}
+{% import 'macros_html_widgets.html.jinja2' as widgets %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -50,6 +51,8 @@
             font-weight: bold;
         }
         {{ profile_overview.css_style() }}
+        {{ widgets.chip_list_style() }}
+        {{ widgets.range_picker_style() }}
     </style>
 </head>
 <body>
@@ -70,18 +73,22 @@
     <div class="tools">
         <table>
             <tbody>
-            <tr>
-                <td class="key" title="Displays resources for different uid.">Function:</td>
-                <td class="value" title="Displays resources for different uid.">
-                    <select class="filter" id="uid_selector">
-                        {% for uid in uids %}
-                            <option value="{{ loop.index0 }}">{{ uid }}</option>
-                        {%- endfor %}
-                    </select>
-                </td>
-            </tr>
+                <tr>
+                    <td class="key" title="Displays resources for different uid.">Function:</td>
+                    <td class="value" title="Displays resources for different uid.">
+                        <select class="filter" id="uid_selector">
+                            {% for uid in uids %}
+                                <option value="{{ loop.index0 }}">{{ uid }}</option>
+                            {%- endfor %}
+                        </select>
+                    </td>
+                </tr>
             </tbody>
         </table>
+        {{ widgets.chip_list('shown_functions') }}
+        {{ widgets.checkboxes([('base', 'Baseline'), ('target', 'Target'), ('both', 'Both')], 'shown_edges') }}
+        {{ widgets.radios([('w', 'Vertical'), ('h', 'Horizontal')], 'position_radios', 'positions') }}
+        {{ widgets.range_picker() }}
     </div>
 
    <div id="sankey_graph"><!-- DO NOT CHANGE: SANKEY GRAPH IS RENDERED HERE--></div>
@@ -90,6 +97,10 @@
 <script>
     {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
     {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
+    {{ widgets.add_to_chip_list() }}
+    {{ widgets.checkbox_handler() }}
+    {{ widgets.get_radio_handler('getPosition', 'positions') }}
+    {{ widgets.range_handlers() }}
 
     function getData(index) {
         var data = {
@@ -113,6 +124,7 @@
         }
         return [data]
     }
+
     function render() {
         const selected_uid = document.querySelector("#uid_selector").value
         data = getData(selected_uid);
@@ -149,6 +161,8 @@
             render()
         })
     });
+    addTag('shown_functions', 'test');
+    addTag('shown_functions', 'test2');
 </script>
 
 </body>
