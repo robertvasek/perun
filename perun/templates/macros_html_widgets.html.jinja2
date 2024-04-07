@@ -12,10 +12,17 @@
     }
 {% endmacro %}
 
-{% macro chip_list(chip_list_name) %}
-    <div id="{{ chip_list_name }}">
-    <!-- MORE TAGS WILL BE ADDED HERE -->
-    </div>
+{% macro chip_list(chip_list_name, header) %}
+    <table style="width: 98%; margin: 0 1%;">
+        <tr>
+            <td class="key" style="width: 8%;">{{ header }}:</td>
+            <td style="width: 90%;">
+                <div id="{{ chip_list_name }}">
+                <!-- MORE TAGS WILL BE ADDED HERE -->
+                </div>
+            </td>
+        </tr>
+    </table>
 {% endmacro %}
 
 {% macro add_to_chip_list() %}
@@ -39,14 +46,21 @@
     }
 {% endmacro %}
 
-{% macro checkboxes(checkbox_list, checkbox_id) %}
-    <div id="{{ checkbox_id }}">
-        {% for checkbox in checkbox_list %}
-            <label>
-                <input type="checkbox" name="{{ checkbox[0] }}", value="{{ checkbox[0] }}">{{ checkbox[1] }}
-            </label>
-        {%- endfor %}
-    </div>
+{% macro checkboxes(checkbox_list, checkbox_id, header) %}
+    <table id="{{ checkbox_id }}">
+        <tbody>
+            <tr>
+                <td class="key">{{ header }}:</td>
+                {% for checkbox in checkbox_list %}
+                    <td>
+                    <label>
+                        <input type="checkbox" name="{{ checkbox[0] }}", value="{{ checkbox[0] }}" checked>{{ checkbox[1] }}
+                    </label>
+                    </td>
+                {%- endfor %}
+            </tr>
+        </tbody>
+    </table >
 {% endmacro %}
 
 {% macro checkbox_handler() %}
@@ -59,15 +73,22 @@
     }
 {%- endmacro %}
 
-{% macro radios(radio_list, radio_id, choice_id) %}
-    <div id="{{ radio_id }}">
-        {% for radio in radio_list %}
-            <label>
-                <input type="radio" name="{{ choice_id }}" value="{{ radio[0] }}" {% if loop.index0 == 0 %}checked{% endif %}>
-                {{ radio[1] }}
-            </label>
-        {%- endfor %}
-    </div>
+{% macro radios(radio_list, radio_id, choice_id, header) %}
+    <table id="{{ radio_id }}">
+        <tbody>
+        <tr>
+            <td class="key">{{ header }}:</td>
+            <td>
+            {% for radio in radio_list %}
+                <label>
+                    <input type="radio" name="{{ choice_id }}" value="{{ radio[0] }}" {% if loop.index0 == 0 %}checked{% endif %}>
+                    {{ radio[1] }}
+                </label>
+            {%- endfor %}
+            </td>
+        </tr>
+        </tbody>
+    </table>
 {%- endmacro %}
 
 {% macro get_radio_handler(handler_name, radio_id) %}
@@ -88,22 +109,22 @@
 
 .sliders_control {
   position: relative;
-  min-height: 50px;
+  min-height: 15px;
 }
 
 .form_control {
   position: relative;
   display: flex;
   justify-content: space-between;
-  font-size: 24px;
+  font-size: 14px;
   color: #635a5a;
 }
 
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
   pointer-events: all;
-  width: 24px;
-  height: 24px;
+  width: 14px;
+  height: 14px;
   background-color: #fff;
   border-radius: 50%;
   box-shadow: 0 0 0 1px #C6C6C6;
@@ -113,8 +134,8 @@ input[type=range]::-webkit-slider-thumb {
 input[type=range]::-moz-range-thumb {
   -webkit-appearance: none;
   pointer-events: all;
-  width: 24px;
-  height: 24px;
+  width: 14px;
+  height: 14px;
   background-color: #fff;
   border-radius: 50%;
   box-shadow: 0 0 0 1px #C6C6C6;
@@ -134,7 +155,7 @@ input[type="number"] {
   color: #8a8383;
   width: 50px;
   height: 30px;
-  font-size: 20px;
+  font-size: 12px;
   border: none;
 }
 
@@ -167,12 +188,10 @@ input[type="range"] {
     </div>
     <div class="form_control">
         <div class="form_control_container">
-            <div class="form_control_container__time">Min</div>
-            <input class="form_control_container__time__input" type="number" id="fromInput" value="10" min="0" max="100"/>
+            Min: <input class="form_control_container__time__input" type="number" id="fromInput" value="10" min="0" max="100"/>
         </div>
         <div class="form_control_container">
-            <div class="form_control_container__time">Max</div>
-            <input class="form_control_container__time__input" type="number" id="toInput" value="40" min="0" max="100"/>
+            Max: <input class="form_control_container__time__input" type="number" id="toInput" value="40" min="0" max="100"/>
         </div>
     </div>
 </div>
