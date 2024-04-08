@@ -239,6 +239,19 @@
         }
     }
 
+    function filterEdgesByValue() {
+        const fromInput = document.querySelector('#fromInput').value;
+        const toInput = document.querySelector('#toInput').value;
+        for (let i = data[0].link.color.length - 1; i >= 0; i--) {
+            if (data[0].link.value[i] > toInput || data[0].link.value[i] < fromInput) {
+                data[0].link.source.splice(i, 1);
+                data[0].link.target.splice(i, 1);
+                data[0].link.value.splice(i, 1);
+                data[0].link.color.splice(i, 1);
+            }
+        }
+    }
+
     function filterEdgesByColor(color) {
         for (let i = data[0].link.color.length - 1; i >= 0; i--) {
             if (data[0].link.color[i] === color) {
@@ -261,27 +274,16 @@
         if(!isChecked("both")) {
             filterEdgesByColor("rgba(0, 0, 255, 0.4)")
         }
+        filterEdgesByValue();
         render();
     }
 
 
-    document.querySelectorAll('input[name="base"]').forEach((button) => {
-        button.addEventListener('change', () => {
-            filterEdges();
-        });
-    });
-
-    document.querySelectorAll('input[name="target"]').forEach((button) => {
-        button.addEventListener('change', () => {
-            filterEdges();
-        });
-    });
-
-    document.querySelectorAll('input[name="both"]').forEach((button) => {
-        button.addEventListener('change', () => {
-            filterEdges();
-        });
-    });
+    document.querySelector('input[name="base"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="both"]').addEventListener('change', filterEdges);
+    document.querySelector('#fromSlider').addEventListener('change', filterEdges);
+    document.querySelector('#toSlider').addEventListener('change', filterEdges);
 
     plot.on('plotly_click', function(data) {
         var tag = data.points[0].customdata;
