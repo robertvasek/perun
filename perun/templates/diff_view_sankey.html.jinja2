@@ -72,7 +72,7 @@
 <div class="middle">
     <div class="tools">
         <div class="left column">
-            {{ widgets.radios([('w', 'Vertical'), ('h', 'Horizontal')], 'position_radios', 'positions', 'Orientation') }}
+            {{ widgets.radios([('v', 'Vertical'), ('h', 'Horizontal')], 'position_radios', 'positions', 'Orientation') }}
             {{ widgets.radios([('snap', 'Reorder'), ('fixed', 'Select')], 'mode_radios', 'modes', 'Mode') }}
         </div>
         <div class="right column">
@@ -139,18 +139,21 @@
         return [data]
     }
 
-    function render() {
+    var data = []
+    var layout = {}
+    function reselectData() {
         const selected_uid = document.querySelector("#uid_selector").value
         data = getData(selected_uid);
-
-        var layout = {
+        layout = {
             title: "{{ title }}",
             font: {
                 size: 14
             },
             height: 200 + graphs[selected_uid].width* 100,
         };
+    }
 
+    function render() {
         Plotly.react('sankey_graph', data, layout);
     }
 
@@ -168,12 +171,32 @@
     {%- endfor %}
     ]
 
+    reselectData();
     render();
 
     document.querySelectorAll('select.filter').forEach((el) => {
         el.addEventListener('change', () => {
-            render()
+            reselectData();
+            render();
         })
+    });
+
+    document.querySelectorAll('input[name="positions"]').forEach((button) => {
+       button.addEventListener('change', () => {
+          if (button.checked) {
+              data[0].orientation = getPosition();
+              render();
+          }
+       });
+    });
+
+    document.querySelectorAll('input[name="modes"]').forEach((button) => {
+        button.addEventListener('change', () => {
+            if (button.checked) {
+                data[0].arrangement = getMode();
+                render();
+            }
+        });
     });
 </script>
 
