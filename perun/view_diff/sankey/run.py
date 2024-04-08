@@ -73,24 +73,42 @@ class SankeyGraph:
     """Representation of sankey graph data consisting of links between nodes
 
     :ivar uid: function for which they sankey graph is corresponding
-    :ivar label: list of labes for each node in the graph
+    :ivar label: list of labels for each node in the graph
+    :ivar node_uids: list of uids for unique identification of the node (different from label)
     :ivar source: sources of the edges
     :ivar target: targets of the edges
     :ivar value: values of edges
     :ivar color: colours of edges
     :ivar width: the size of the longest trace
     :ivar height: the maximal number of paralel traces
+    :ivar min: minimal number of amount on edges
+    :ivar max: maximal amount on edges
     """
 
-    __slots__ = ["label", "source", "target", "value", "color", "uid", "width", "height"]
+    __slots__ = [
+        "label",
+        "uid",
+        "source",
+        "target",
+        "value",
+        "color",
+        "node_uids",
+        "width",
+        "height",
+        "min",
+        "max",
+    ]
     uid: str
     label: list[str]
+    node_uids: list[str]
     source: list[int]
     target: list[int]
     value: list[int]
     color: list[str]
     width: int
     height: int
+    min: 0
+    max: 0
 
 
 def get_sankey_point(sankey_points: dict[str, SankeyNode], key: str) -> SankeyNode:
@@ -195,13 +213,14 @@ def extract_graphs_from_sankey_map(
     sankey_graphs = []
 
     for uid, sankey_points in progressbar.progressbar(sankey_map.items()):
-        sankey_graph = SankeyGraph(uid, [], [], [], [], [], 0, 0)
+        sankey_graph = SankeyGraph(uid, [], [], [], [], [], [], 0, 0, 0, 0)
         positions = []
 
         for sankey_point in sankey_points.values():
             if "#" in sankey_point.tag:
                 positions.append(int(sankey_point.tag.split("#")[-1]))
             sankey_graph.label.append(sankey_point.uid)
+            sankey_graph.node_uids.append(sankey_point.tag)
             for successor, value in sankey_point.succs.items():
                 value_diff = abs(value.baseline - value.target)
                 if value.baseline == value.target:
