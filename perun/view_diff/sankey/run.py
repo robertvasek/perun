@@ -109,8 +109,22 @@ class SankeyGraph:
     color: list[str]
     width: int
     height: int
-    min: 0
-    max: 0
+    min: int
+    max: int
+
+    def __init__(self, uid: str):
+        """Initializes the graph"""
+        self.uid = uid
+        self.label = []
+        self.node_uids = []
+        self.source = []
+        self.target = []
+        self.value = []
+        self.color = []
+        self.width = 0
+        self.height = 0
+        self.min = -1
+        self.max = 0
 
 
 def get_sankey_point(sankey_points: dict[str, SankeyNode], key: str) -> SankeyNode:
@@ -202,12 +216,13 @@ def create_edge(graph: SankeyGraph, src: int, tgt: int, value: int, color: str) 
     :param value: valuation of the edge
     :param color: color of the edge
     """
-    graph.source.append(src)
-    graph.target.append(tgt)
-    graph.value.append(value)
-    graph.color.append(color)
-    graph.min = min(value, graph.min) if graph.min != 0 else value
-    graph.max = max(value, graph.max)
+    if value > 0:
+        graph.source.append(src)
+        graph.target.append(tgt)
+        graph.value.append(value)
+        graph.color.append(color)
+        graph.min = min(value, graph.min) if graph.min != -1 else value
+        graph.max = max(value, graph.max)
 
 
 def extract_graphs_from_sankey_map(
@@ -221,7 +236,7 @@ def extract_graphs_from_sankey_map(
     sankey_graphs = []
 
     for uid, sankey_points in progressbar.progressbar(sankey_map.items()):
-        sankey_graph = SankeyGraph(uid, [], [], [], [], [], [], 0, 0, 0, 0)
+        sankey_graph = SankeyGraph(uid)
         positions = []
 
         for sankey_point in sankey_points.values():

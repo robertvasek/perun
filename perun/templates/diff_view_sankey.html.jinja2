@@ -252,6 +252,10 @@
         }
     }
 
+    function filterEdgesByReachable() {
+
+    }
+
     function filterEdgesByColor(color) {
         for (let i = data[0].link.color.length - 1; i >= 0; i--) {
             if (data[0].link.color[i] === color) {
@@ -275,6 +279,7 @@
             filterEdgesByColor("rgba(0, 0, 255, 0.4)")
         }
         filterEdgesByValue();
+        filterEdgesByReachable();
         render();
     }
 
@@ -287,8 +292,10 @@
 
     plot.on('plotly_click', function(data) {
         var tag = data.points[0].customdata;
-        filtered_nodes.push(tag);
+            index = data.points[0].index;
+        filtered_nodes.push(index);
         addTag('shown_functions', tag);
+        filterEdges();
     });
 </script>
 
