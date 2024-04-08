@@ -58,14 +58,16 @@ class SankeyNode:
     :ivar tag: uid joined with order in the traces
     :ivar id: integer representation of the node in the graph
     :ivar succs: list of successor sankey nodes together with the stats
+    :ivar preds: list of predecessor sankey nodes together with the stats
     """
 
-    __slots__ = ["uid", "id", "succs", "tag"]
+    __slots__ = ["uid", "id", "succs", "preds", "tag"]
 
     uid: str
     tag: str
     id: int
     succs: dict[int, SuccessorStats]
+    preds: dict[int, SuccessorStats]
 
 
 @dataclass
@@ -121,7 +123,7 @@ def get_sankey_point(sankey_points: dict[str, SankeyNode], key: str) -> SankeyNo
     :return: sankey node corresponding to given key
     """
     if key not in sankey_points:
-        sankey_points[key] = SankeyNode(key.split("#")[0], key, len(sankey_points), {})
+        sankey_points[key] = SankeyNode(key.split("#")[0], key, len(sankey_points), {}, {})
     return sankey_points[key]
 
 
@@ -150,11 +152,15 @@ def process_edge(
         tgt_point = get_sankey_point(sankey_points, tgt)
         if tgt_point.id not in src_point.succs:
             src_point.succs[tgt_point.id] = SuccessorStats(0, 0)
+        if src_point.id not in tgt_point.preds:
+            tgt_point.preds[src_point.id] = SuccessorStats(0, 0)
         if profile_type == "baseline":
             src_point.succs[tgt_point.id].baseline += amount
+            tgt_point.preds[src_point.id].baseline += amount
         else:
             assert profile_type == "target"
             src_point.succs[tgt_point.id].target += amount
+            tgt_point.preds[src_point.id].target += amount
 
 
 def process_traces(
@@ -200,6 +206,8 @@ def create_edge(graph: SankeyGraph, src: int, tgt: int, value: int, color: str) 
     graph.target.append(tgt)
     graph.value.append(value)
     graph.color.append(color)
+    graph.min = min(value, graph.min) if graph.min != 0 else value
+    graph.max = max(value, graph.max)
 
 
 def extract_graphs_from_sankey_map(

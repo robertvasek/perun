@@ -156,6 +156,28 @@
             },
             height: 200 + graphs[selected_uid].width* 100,
         };
+
+        var fromSlider = document.getElementById('fromSlider');
+        var toSlider = document.getElementById('toSlider');
+
+        fromSlider.min = graphs[selected_uid].min
+        fromSlider.max = graphs[selected_uid].max
+        fromSlider.value = graphs[selected_uid].min
+        toSlider.min = graphs[selected_uid].min
+        toSlider.max = graphs[selected_uid].max
+        toSlider.value = graphs[selected_uid].max
+
+        var fromInput = document.getElementById('fromInput');
+        var toInput = document.getElementById('toInput');
+
+        fromInput.min = graphs[selected_uid].min
+        fromInput.max = graphs[selected_uid].max
+        fromInput.value = graphs[selected_uid].min
+        toInput.min = graphs[selected_uid].min
+        toInput.max = graphs[selected_uid].max
+        toInput.value = graphs[selected_uid].max
+
+        fillSlider(fromSlider, toSlider, '#C6C6C6', '#25daa5', toSlider);
     }
 
     function render() {
@@ -173,6 +195,8 @@
             color: {{ graph.color }},
             height: {{ graph.height }},
             width: {{ graph.width }},
+            min: {{ graph.min }},
+            max: {{ graph.max }},
         },
     {%- endfor %}
     ]
