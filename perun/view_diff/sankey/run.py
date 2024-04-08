@@ -89,6 +89,7 @@ class SankeyGraph:
 
     __slots__ = [
         "label",
+        "diff",
         "uid",
         "source",
         "target",
@@ -111,6 +112,7 @@ class SankeyGraph:
     height: int
     min: int
     max: int
+    diff: int
 
     def __init__(self, uid: str):
         """Initializes the graph"""
@@ -125,6 +127,7 @@ class SankeyGraph:
         self.height = 0
         self.min = -1
         self.max = 0
+        self.diff = 0
 
 
 def get_sankey_point(sankey_points: dict[str, SankeyNode], key: str) -> SankeyNode:
@@ -251,9 +254,13 @@ def extract_graphs_from_sankey_map(
                 elif value.baseline > value.target:
                     create_edge(sankey_graph, sankey_point.id, successor, value.target, IN_BOTH)
                     create_edge(sankey_graph, sankey_point.id, successor, value_diff, NOT_IN_TARGET)
+                    if sankey_point.uid == uid:
+                        sankey_graph.diff -= value_diff
                 else:
                     create_edge(sankey_graph, sankey_point.id, successor, value.baseline, IN_BOTH)
                     create_edge(sankey_graph, sankey_point.id, successor, value_diff, NOT_IN_BASE)
+                    if sankey_point.uid == uid:
+                        sankey_graph.diff += value_diff
 
         sankey_graph.width = max(positions)
         sankey_graph.height = max(positions.count(pos) for pos in set(positions))
@@ -287,8 +294,11 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     log.major_info("Generating Sankey Graph Difference")
 
     sankey_graphs = to_sankey_graphs(lhs_profile, rhs_profile)
-    sankey_graphs = sorted(sankey_graphs, key=lambda x: x.uid)
-    sankey_keys = [graph.uid for graph in sankey_graphs]
+    sankey_graphs = sorted(sankey_graphs, key=lambda x: x.diff, reverse=True)
+    max_diff = max(x.diff for x in sankey_graphs)
+    sankey_keys = [
+        f"[{((graph.diff / max_diff) * 100): >7.2f}%] {graph.uid}" for graph in sankey_graphs
+    ]
 
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
     template = env.get_template("diff_view_sankey.html.jinja2")

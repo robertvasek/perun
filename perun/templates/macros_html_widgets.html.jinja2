@@ -47,20 +47,16 @@
 {% endmacro %}
 
 {% macro checkboxes(checkbox_list, checkbox_id, header) %}
-    <table id="{{ checkbox_id }}">
-        <tbody>
-            <tr>
-                <td class="key">{{ header }}:</td>
-                {% for checkbox in checkbox_list %}
-                    <td>
-                    <label>
-                        <input type="checkbox" name="{{ checkbox[0] }}", value="{{ checkbox[0] }}" checked>{{ checkbox[1] }}
-                    </label>
-                    </td>
-                {%- endfor %}
-            </tr>
-        </tbody>
-    </table >
+        <tr id="{{ checkbox_id }}">
+            <td class="key">{{ header }}:</td>
+            {% for checkbox in checkbox_list %}
+                <td>
+                <label>
+                    <input type="checkbox" name="{{ checkbox[0] }}", value="{{ checkbox[0] }}" checked>{{ checkbox[1] }}
+                </label>
+                </td>
+            {%- endfor %}
+        </tr>
 {% endmacro %}
 
 {% macro checkbox_handler() %}
@@ -74,9 +70,7 @@
 {%- endmacro %}
 
 {% macro radios(radio_list, radio_id, choice_id, header) %}
-    <table id="{{ radio_id }}">
-        <tbody>
-        <tr>
+        <tr {{ radio_id }}>
             <td class="key">{{ header }}:</td>
             <td>
             {% for radio in radio_list %}
@@ -87,8 +81,6 @@
             {%- endfor %}
             </td>
         </tr>
-        </tbody>
-    </table>
 {%- endmacro %}
 
 {% macro get_radio_handler(handler_name, radio_id) %}

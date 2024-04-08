@@ -72,19 +72,23 @@
 <div class="middle">
     <div class="tools">
         <div class="left column">
-            {{ widgets.radios([('v', 'Vertical'), ('h', 'Horizontal')], 'position_radios', 'positions', 'Orientation') }}
-            {{ widgets.radios([('snap', 'Reorder'), ('fixed', 'Select')], 'mode_radios', 'modes', 'Mode') }}
+            <table>
+                <tbody>
+                    {{ widgets.radios([('v', 'Vertical'), ('h', 'Horizontal')], 'position_radios', 'positions', 'Orientation') }}
+                    {{ widgets.radios([('snap', 'Reorder'), ('fixed', 'Select')], 'mode_radios', 'modes', 'Mode') }}
+                </tbody>
+            </table>
         </div>
         <div class="right column">
             <table>
                 <tbody>
-                <tr>
-                    <td class="key" style="width: 20%;">Threshold:</td>
-                    <td>{{ widgets.range_picker() }}</td>
-                </tr>
+                    <tr>
+                        <td class="key" style="width: 20%;">Threshold:</td>
+                        <td colspan="3">{{ widgets.range_picker() }}</td>
+                    </tr>
+                    {{ widgets.checkboxes([('base', 'Increased'), ('both', 'Equal'), ('target', 'Decreased')], 'shown_edges', 'Display') }}
                 </tbody>
             </table>
-        {{ widgets.checkboxes([('base', 'Baseline'), ('target', 'Target'), ('both', 'Both')], 'shown_edges', 'Display') }}
         </div>
         {{ widgets.chip_list('shown_functions', 'Filter') }}
         <table>
