@@ -64,7 +64,7 @@
 {% endmacro %}
 
 {% macro checkbox_handler() %}
-    function isCheched(checkbox_name) {
+    function isChecked(checkbox_name) {
         var checkbox = document.querySelector('input[name="' + checkbox_name + '"]');
         if (checkbox) {
             return checkbox.checked;

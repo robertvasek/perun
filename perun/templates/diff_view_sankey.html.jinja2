@@ -118,8 +118,8 @@
     function getData(index) {
         var data = {
             type: "sankey",
-            arrangement: "snap",
-            orientation: "v",
+            arrangement: getMode(),
+            orientation: getPosition(),
             node: {
                 pad: 10,
                 thickness: 10,
@@ -127,14 +127,14 @@
                     color: "black",
                     width: 1
                 },
-                label: graphs[index].label,
-                customdata: graphs[index].node_uids,
+                label: graphs[index].label.slice(),
+                customdata: graphs[index].node_uids.slice(),
             },
             link: {
-                source: graphs[index].source,
-                target: graphs[index].target,
-                value: graphs[index].value,
-                color: graphs[index].color
+                source: graphs[index].source.slice(),
+                target: graphs[index].target.slice(),
+                value: graphs[index].value.slice(),
+                color: graphs[index].color.slice()
             }
         }
         return [data]
@@ -226,6 +226,60 @@
                 data[0].arrangement = getMode();
                 render();
             }
+        });
+    });
+
+    function restoreEdges() {
+        const selected_uid = document.querySelector("#uid_selector").value
+        data[0].link = {
+            source: graphs[selected_uid].source.slice(),
+            target: graphs[selected_uid].target.slice(),
+            value: graphs[selected_uid].value.slice(),
+            color: graphs[selected_uid].color.slice()
+        }
+    }
+
+    function filterEdgesByColor(color) {
+        for (let i = data[0].link.color.length - 1; i >= 0; i--) {
+            if (data[0].link.color[i] === color) {
+                data[0].link.source.splice(i, 1);
+                data[0].link.target.splice(i, 1);
+                data[0].link.value.splice(i, 1);
+                data[0].link.color.splice(i, 1);
+            }
+        }
+    }
+
+    function filterEdges() {
+        restoreEdges()
+        if(!isChecked("base")) {
+            filterEdgesByColor("rgba(255, 0, 0, 0.4)")
+        }
+        if(!isChecked("target")) {
+            filterEdgesByColor("rgba(0, 255, 0, 0.4)")
+        }
+        if(!isChecked("both")) {
+            filterEdgesByColor("rgba(0, 0, 255, 0.4)")
+        }
+        render();
+    }
+
+
+    document.querySelectorAll('input[name="base"]').forEach((button) => {
+        button.addEventListener('change', () => {
+            filterEdges();
+        });
+    });
+
+    document.querySelectorAll('input[name="target"]').forEach((button) => {
+        button.addEventListener('change', () => {
+            filterEdges();
+        });
+    });
+
+    document.querySelectorAll('input[name="both"]').forEach((button) => {
+        button.addEventListener('change', () => {
+            filterEdges();
         });
     });
 
