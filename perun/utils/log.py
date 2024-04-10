@@ -855,8 +855,8 @@ def format_size(size: Optional[float], base_unit: str = "") -> str:
     for unit in ["", "k", "M", "G", "T"]:
         if abs(size) < 1000.0:
             if unit == "":
-                return f"{size:6.0f}{space}{base_unit}  "
-            return f"{size:6.1f}{space}{unit}{base_unit}"
+                return f"{size:8.0f}{space}{base_unit}  "
+            return f"{size:8.1f}{space}{unit}{base_unit}"
         size /= 1000.0
     return f"{size:.1f} P{base_unit}"
 

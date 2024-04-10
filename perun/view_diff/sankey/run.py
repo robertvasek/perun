@@ -33,6 +33,8 @@ from perun.view_diff.flamegraph import run as flamegraph_run
 NOT_IN_BASE: str = "rgba(255, 0, 0, 0.4)"
 NOT_IN_TARGET: str = "rgba(0, 255, 0, 0.4)"
 IN_BOTH: str = "rgba(0, 0, 255, 0.4)"
+HIGHLIGHT: str = "rgba(0, 0, 0, 0.7)"
+NOHIGHLIGHT: str = "rgba(0, 0, 0, 0.2)"
 
 
 @dataclass
@@ -94,6 +96,7 @@ class SankeyGraph:
         "max",
         "min",
         "node_uids",
+        "node_colors",
         "source",
         "sum",
         "target",
@@ -104,6 +107,7 @@ class SankeyGraph:
     uid: str
     label: list[str]
     node_uids: list[str]
+    node_colors: list[str]
     source: list[int]
     target: list[int]
     value: list[int]
@@ -120,6 +124,7 @@ class SankeyGraph:
         self.uid = uid
         self.label = []
         self.node_uids = []
+        self.node_colors = []
         self.source = []
         self.target = []
         self.value = []
@@ -249,6 +254,7 @@ def extract_graphs_from_sankey_map(
                 positions.append(int(sankey_point.tag.split("#")[-1]))
             sankey_graph.label.append(sankey_point.uid)
             sankey_graph.node_uids.append(sankey_point.tag)
+            sankey_graph.node_colors.append(HIGHLIGHT if sankey_point.uid == uid else NOHIGHLIGHT)
             for successor, value in sankey_point.succs.items():
                 value_diff = abs(value.baseline - value.target)
                 if value.baseline == value.target:
@@ -287,6 +293,17 @@ def to_sankey_graphs(lhs_profile: Profile, rhs_profile: Profile) -> list[SankeyG
     return extract_graphs_from_sankey_map(sankey_map)
 
 
+def graph_to_key(graph: SankeyGraph) -> str:
+    """Converts the graph to key representation
+
+    :param graph: graph we are converting to key
+    :return: key represented as relative change, absolute change and uid
+    """
+    return f"[{(common_kit.safe_division(graph.diff, graph.sum) * 100): >8.2f}%, {log.format_size(graph.diff)}] {graph.uid}".replace(
+        " ", "&nbsp;"
+    )
+
+
 def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -> None:
     """Generates differences of two profiles as sankey diagram
 
@@ -297,14 +314,27 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
 
     log.major_info("Generating Sankey Graph Difference")
 
-    sankey_graphs = to_sankey_graphs(lhs_profile, rhs_profile)
-    sankey_graphs = sorted(
-        sankey_graphs, key=lambda x: (common_kit.safe_division(x.diff, x.sum), x.diff), reverse=True
-    )
-    sankey_keys = [
-        f"[{(common_kit.safe_division(graph.diff, graph.sum) * 100): >7.2f}%, {log.format_size(graph.diff)}] {graph.uid}"
-        for graph in sankey_graphs
+    sankey_graphs = sorted(to_sankey_graphs(lhs_profile, rhs_profile), key=lambda x: x.uid)
+
+    lex_order = [sankey.uid for sankey in sankey_graphs]
+
+    rel_keys = [
+        (lex_order.index(g.uid), graph_to_key(g))
+        for g in sorted(
+            sankey_graphs,
+            key=lambda x: (common_kit.safe_division(x.diff, x.sum), x.diff),
+            reverse=True,
+        )
     ]
+    abs_keys = [
+        (lex_order.index(g.uid), graph_to_key(g))
+        for g in sorted(
+            sankey_graphs,
+            key=lambda x: (x.diff, common_kit.safe_division(x.diff, x.sum)),
+            reverse=True,
+        )
+    ]
+    lex_keys = [(i, graph_to_key(g)) for (i, g) in enumerate(sankey_graphs)]
 
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
     template = env.get_template("diff_view_sankey.html.jinja2")
@@ -315,7 +345,9 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         rhs_tag="Target (tgt)",
         rhs_header=flamegraph_run.generate_header(rhs_profile),
         sankey_graphs=sankey_graphs,
-        uids=sankey_keys,
+        uids_abs=abs_keys,
+        uids_rel=rel_keys,
+        uids_lex=lex_keys,
     )
     log.minor_success("Difference sankey", "generated")
     output_file = diff_kit.save_diff_view(

@@ -50,6 +50,12 @@
             text-align: right;
             font-weight: bold;
         }
+        div.tools td.topkey {
+            padding: 0;
+            padding-top: 1em;
+            text-align: center;
+            font-weight: bold;
+        }
         {{ profile_overview.css_style() }}
         {{ widgets.chip_list_style() }}
         {{ widgets.range_picker_style() }}
@@ -86,7 +92,7 @@
                         <td class="key" style="width: 20%;">Threshold:</td>
                         <td colspan="3">{{ widgets.range_picker() }}</td>
                     </tr>
-                    {{ widgets.checkboxes([('base', 'Increased'), ('both', 'Equal'), ('target', 'Decreased')], 'shown_edges', 'Display') }}
+                    {{ widgets.checkboxes([('base', 'Incr (from base)'), ('both', 'Equal'), ('target', 'Decr (from base)')], 'shown_edges', 'Show') }}
                 </tbody>
             </table>
         </div>
@@ -94,11 +100,32 @@
         <table>
             <tbody>
             <tr>
-                <td class="key" title="Displays resources for different uid.">Function:</td>
-                <td class="value" title="Displays resources for different uid.">
-                    <select class="filter" id="uid_selector">
-                        {% for uid in uids %}
-                            <option value="{{ loop.index0 }}">{{ uid }}</option>
+                <td class="topkey">Alphabetic Order</td>
+                <td class="topkey">Relative Change Order</td>
+                <td class="topkey">Absolute Change Order</td>
+            </tr>
+            <tr>
+                <td class="value" title="Displays resources for different uid (sorted lexicographically).">
+                    <select class="filter" id="uid_selector_lex">
+                        <option value="-1"></option>
+                        {% for (i, uid) in uids_lex %}
+                            <option value="{{ i }}">{{ uid }}</option>
+                        {%- endfor %}
+                    </select>
+                </td>
+                <td class="value" title="Displays resources for different uid (sorted by relative changes).">
+                    <select class="filter" id="uid_selector_rel">
+                        <option value="-1"></option>
+                        {% for (i, uid) in uids_rel %}
+                            <option value="{{ i }}">{{ uid }}</option>
+                        {%- endfor %}
+                    </select>
+                </td>
+                <td class="value" title="Displays resources for different uid (sorted by absolute changes).">
+                    <select class="filter" id="uid_selector_abs">
+                        <option value="-1"></option>
+                        {% for (i, uid) in uids_abs %}
+                            <option value="{{ i }}">{{ uid }}</option>
                         {%- endfor %}
                     </select>
                 </td>
@@ -115,6 +142,8 @@
         filtered_nodes = [],
         steps = [1],
         layout = {},
+        selected_uid = -1,
+        selected_uid_text = "",
         plot = document.getElementById('sankey_graph');
 
     {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
@@ -131,13 +160,14 @@
             arrangement: getMode(),
             orientation: getPosition(),
             node: {
-                pad: 10,
-                thickness: 10,
+                pad: 15,
+                thickness: 20,
                 line: {
                     color: "black",
                     width: 1
                 },
                 label: graphs[index].label.slice(),
+                color: graphs[index].node_colors.slice(),
                 customdata: graphs[index].node_uids.slice(),
             },
             link: {
@@ -151,12 +181,13 @@
     }
 
     function reselectData() {
-        const selected_uid = document.querySelector("#uid_selector").value
+        if (selected_uid === -1)
+            return
         data = getData(selected_uid);
         filtered_nodes = [];
         steps = Array.from(new Set(data[0].link.value)).sort((a, b) => a - b);
         layout = {
-            title: "{{ title }}",
+            title: selected_uid_text,
             font: {
                 size: 14
             },
@@ -265,7 +296,8 @@
     {% for graph in sankey_graphs %}
         {
             label: {{ graph.label }},
-            node_uids: {{ graph.node_uids}},
+            node_uids: {{ graph.node_uids }},
+            node_colors: {{ graph.node_colors }},
             source: {{ graph.source }},
             target: {{ graph.target }},
             value: {{ graph.value }},
@@ -278,12 +310,10 @@
     {%- endfor %}
     ]
 
-    reselectData();
-    filterEdges();
-    render();
-
     document.querySelectorAll('select.filter').forEach((el) => {
         el.addEventListener('change', () => {
+            selected_uid = el.value;
+            selected_uid_text = el.options[el.selectedIndex];
             reselectData();
             filterEdges();
             render();
@@ -309,7 +339,6 @@
     });
 
     function restoreEdges() {
-        const selected_uid = document.querySelector("#uid_selector").value
         data[0].link = {
             source: graphs[selected_uid].source.slice(),
             target: graphs[selected_uid].target.slice(),
