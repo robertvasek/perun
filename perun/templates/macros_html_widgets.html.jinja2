@@ -179,37 +179,37 @@ input[type="range"] {
     </div>
     <div class="form_control">
         <div class="form_control_container">
-            Min: <input class="form_control_container__time__input" type="number" id="fromInput" value="10" min="0" max="100"/>
+            Min: <label id="fromInput"/>
         </div>
         <div class="form_control_container">
-            Max: <input class="form_control_container__time__input" type="number" id="toInput" value="40" min="0" max="100"/>
+            Max: <label id="toInput"/>
         </div>
     </div>
 </div>
 {%- endmacro %}
 
 {% macro range_handlers() %}
-function controlFromInput(fromSlider, fromInput, toInput, controlSlider) {
-    const [from, to] = getParsed(fromInput, toInput);
-    fillSlider(fromInput, toInput, '#C6C6C6', '#25daa5', controlSlider);
-    if (from > to) {
-        fromSlider.value = to;
-        fromInput.value = to;
-    } else {
-        fromSlider.value = from;
+function formatSize(size, baseUnit = "") {
+    let space = baseUnit !== "" ? " " : "";
+    let units = ["", "k", "M", "G", "T"];
+    for (let unit of units) {
+        if (Math.abs(size) < 1000.0) {
+            if (unit === "") {
+                return `${size.toFixed(0)}${space}${baseUnit}  `;
+            }
+            return `${size.toFixed(1)}${space}${unit}${baseUnit}`;
+        }
+        size /= 1000.0;
     }
+    return `${size.toFixed(1)} P${baseUnit}`;
 }
 
-function controlToInput(toSlider, fromInput, toInput, controlSlider) {
-    const [from, to] = getParsed(fromInput, toInput);
-    fillSlider(fromInput, toInput, '#C6C6C6', '#25daa5', controlSlider);
-    setToggleAccessible(toInput);
-    if (from <= to) {
-        toSlider.value = to;
-        toInput.value = to;
-    } else {
-        toInput.value = from;
-    }
+function setInput(label, value) {
+    label.textContent = formatSize(value);
+}
+
+function findNearestStep(value, steps) {
+    return steps.reduce((prev, curr) => Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev);
 }
 
 function controlFromSlider(fromSlider, toSlider, fromInput) {
@@ -217,8 +217,10 @@ function controlFromSlider(fromSlider, toSlider, fromInput) {
   fillSlider(fromSlider, toSlider, '#C6C6C6', '#25daa5', toSlider);
   if (from > to) {
     fromSlider.value = to;
-    fromInput.value = to;
+    setInput(fromInput, to);
   } else {
+    setInput(fromInput, from);
+    fromSlider.value = from;
     fromInput.value = from;
   }
 }
@@ -229,23 +231,26 @@ function controlToSlider(fromSlider, toSlider, toInput) {
   setToggleAccessible(toSlider);
   if (from <= to) {
     toSlider.value = to;
-    toInput.value = to;
+    setInput(toInput, to);
   } else {
-    toInput.value = from;
     toSlider.value = from;
+    setInput(toInput, from);
   }
 }
 
 function getParsed(currentFrom, currentTo) {
-  const from = parseInt(currentFrom.value, 10);
-  const to = parseInt(currentTo.value, 10);
+  var from = parseInt(currentFrom.value, 10);
+  var to = parseInt(currentTo.value, 10);
+  from = findNearestStep(from, steps);
+  to = findNearestStep(to, steps);
   return [from, to];
 }
 
 function fillSlider(from, to, sliderColor, rangeColor, controlSlider) {
-    const rangeDistance = to.max-to.min;
-    const fromPosition = from.value - to.min;
-    const toPosition = to.value - to.min;
+    const [fromValue, toValue] = getParsed(from, to);
+    const rangeDistance = to.max - to.min;
+    const fromPosition = fromValue - to.min;
+    const toPosition = toValue - to.min;
     controlSlider.style.background = `linear-gradient(
       to right,
       ${sliderColor} 0%,
@@ -274,6 +279,4 @@ setToggleAccessible(toSlider);
 
 fromSlider.oninput = () => controlFromSlider(fromSlider, toSlider, fromInput);
 toSlider.oninput = () => controlToSlider(fromSlider, toSlider, toInput);
-fromInput.oninput = () => controlFromInput(fromSlider, fromInput, toInput, toSlider);
-toInput.oninput = () => controlToInput(toSlider, fromInput, toInput, toSlider);
 {%- endmacro %}

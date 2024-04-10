@@ -27,9 +27,8 @@ import progressbar
 from perun.profile import convert
 from perun.profile.factory import Profile
 from perun.utils import log
-from perun.utils.common import diff_kit
+from perun.utils.common import diff_kit, common_kit
 from perun.view_diff.flamegraph import run as flamegraph_run
-
 
 NOT_IN_BASE: str = "rgba(255, 0, 0, 0.4)"
 NOT_IN_TARGET: str = "rgba(0, 255, 0, 0.4)"
@@ -88,18 +87,19 @@ class SankeyGraph:
     """
 
     __slots__ = [
-        "label",
-        "diff",
-        "uid",
-        "source",
-        "target",
-        "value",
         "color",
-        "node_uids",
-        "width",
+        "diff",
         "height",
-        "min",
+        "label",
         "max",
+        "min",
+        "node_uids",
+        "source",
+        "sum",
+        "target",
+        "uid",
+        "value",
+        "width",
     ]
     uid: str
     label: list[str]
@@ -113,6 +113,7 @@ class SankeyGraph:
     min: int
     max: int
     diff: int
+    sum: int
 
     def __init__(self, uid: str):
         """Initializes the graph"""
@@ -128,6 +129,7 @@ class SankeyGraph:
         self.min = -1
         self.max = 0
         self.diff = 0
+        self.sum = 0
 
 
 def get_sankey_point(sankey_points: dict[str, SankeyNode], key: str) -> SankeyNode:
@@ -203,9 +205,9 @@ def process_traces(
             amount = int(resource["amount"])
             for i in range(0, trace_len - 1):
                 src = f"{full_trace[i]}#{i}"
-                tgt = f"{full_trace[i+1]}#{i+1}"
+                tgt = f"{full_trace[i + 1]}#{i + 1}"
                 process_edge(sankey_map, full_trace, profile_type, src, tgt, amount)
-            src = f"{full_trace[-2]}#{trace_len-1}"
+            src = f"{full_trace[-2]}#{trace_len - 1}"
             tgt = f"{full_trace[-1]}"
             process_edge(sankey_map, full_trace, profile_type, src, tgt, amount)
 
@@ -255,11 +257,13 @@ def extract_graphs_from_sankey_map(
                     create_edge(sankey_graph, sankey_point.id, successor, value.target, IN_BOTH)
                     create_edge(sankey_graph, sankey_point.id, successor, value_diff, NOT_IN_TARGET)
                     if sankey_point.uid == uid:
+                        sankey_graph.sum += max(value.baseline, value.target)
                         sankey_graph.diff -= value_diff
                 else:
                     create_edge(sankey_graph, sankey_point.id, successor, value.baseline, IN_BOTH)
                     create_edge(sankey_graph, sankey_point.id, successor, value_diff, NOT_IN_BASE)
                     if sankey_point.uid == uid:
+                        sankey_graph.sum += max(value.baseline, value.target)
                         sankey_graph.diff += value_diff
 
         sankey_graph.width = max(positions)
@@ -294,10 +298,12 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     log.major_info("Generating Sankey Graph Difference")
 
     sankey_graphs = to_sankey_graphs(lhs_profile, rhs_profile)
-    sankey_graphs = sorted(sankey_graphs, key=lambda x: x.diff, reverse=True)
-    max_diff = max(x.diff for x in sankey_graphs)
+    sankey_graphs = sorted(
+        sankey_graphs, key=lambda x: (common_kit.safe_division(x.diff, x.sum), x.diff), reverse=True
+    )
     sankey_keys = [
-        f"[{((graph.diff / max_diff) * 100): >7.2f}%] {graph.uid}" for graph in sankey_graphs
+        f"[{(common_kit.safe_division(graph.diff, graph.sum) * 100): >7.2f}%, {log.format_size(graph.diff)}] {graph.uid}"
+        for graph in sankey_graphs
     ]
 
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))

@@ -111,6 +111,12 @@
 </div>
 
 <script>
+    var data = [],
+        filtered_nodes = [],
+        steps = [1],
+        layout = {},
+        plot = document.getElementById('sankey_graph');
+
     {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
     {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
     {{ widgets.add_to_chip_list() }}
@@ -144,15 +150,11 @@
         return [data]
     }
 
-    var data = [],
-        filtered_nodes = [],
-        layout = {},
-        plot = document.getElementById('sankey_graph');
-
     function reselectData() {
         const selected_uid = document.querySelector("#uid_selector").value
         data = getData(selected_uid);
         filtered_nodes = [];
+        steps = Array.from(new Set(data[0].link.value)).sort((a, b) => a - b);
         layout = {
             title: "{{ title }}",
             font: {
@@ -164,28 +166,99 @@
         var fromSlider = document.getElementById('fromSlider');
         var toSlider = document.getElementById('toSlider');
 
-        fromSlider.min = graphs[selected_uid].min
-        fromSlider.max = graphs[selected_uid].max
-        fromSlider.value = graphs[selected_uid].min
-        toSlider.min = graphs[selected_uid].min
-        toSlider.max = graphs[selected_uid].max
-        toSlider.value = graphs[selected_uid].max
+        fromSlider.min = graphs[selected_uid].min;
+        fromSlider.max = graphs[selected_uid].max + 1;
+        fromSlider.value = graphs[selected_uid].min;
+        toSlider.min = graphs[selected_uid].min;
+        toSlider.max = graphs[selected_uid].max + 1;
+        toSlider.value = graphs[selected_uid].max;
 
         var fromInput = document.getElementById('fromInput');
         var toInput = document.getElementById('toInput');
 
-        fromInput.min = graphs[selected_uid].min
-        fromInput.max = graphs[selected_uid].max
-        fromInput.value = graphs[selected_uid].min
-        toInput.min = graphs[selected_uid].min
-        toInput.max = graphs[selected_uid].max
-        toInput.value = graphs[selected_uid].max
+        setInput(fromInput, graphs[selected_uid].min);
+        setInput(toInput, graphs[selected_uid].max);
 
         fillSlider(fromSlider, toSlider, '#C6C6C6', '#25daa5', toSlider);
     }
 
     function render() {
         Plotly.react('sankey_graph', data, layout);
+    }
+
+    function backwardReachableEdges(nodes, source, target) {
+        // Create a set of reachable nodes
+        const reachable = new Set(nodes);
+
+        // Initialize a queue with the initial nodes
+        const queue = [...nodes];
+
+        // Create an object to store visited edges
+        const visited = {};
+
+        // Initialize an array to store reachable edges
+        const reachableEdges = [];
+
+        // Perform BFS
+        while (queue.length > 0) {
+            const currentNode = queue.shift();
+
+            // Find all edges connected to the current node
+            for (let i = 0; i < source.length; i++) {
+                if (target[i] === currentNode && !visited[i]) {
+                    visited[i] = true;
+                    const nextNode = source[i];
+
+                    // Check if the next node is reachable
+                    if (!reachable.has(nextNode)) {
+                        reachable.add(nextNode);
+                        queue.push(nextNode);
+                    }
+
+                    // Add the edge to the list of reachable edges
+                    reachableEdges.push(i);
+                }
+            }
+        }
+
+        return reachableEdges;
+    }
+    function forwardReachableEdges(nodes, source, target) {
+        // Create a set of reachable nodes
+        const reachable = new Set(nodes);
+
+        // Initialize a queue with the initial nodes
+        const queue = [...nodes];
+
+        // Create an object to store visited edges
+        const visited = {};
+
+        // Initialize an array to store reachable edges
+        const reachableEdges = [];
+
+        // Perform BFS
+        while (queue.length > 0) {
+            const currentNode = queue.shift();
+
+            // Find all edges connected to the current node
+            for (let i = 0; i < source.length; i++) {
+                if (source[i] === currentNode && !visited[i]) {
+                    visited[i] = true;
+                    const nextNode = target[i];
+
+                    // Check if the next node is reachable
+                    if (!reachable.has(nextNode)) {
+                        reachable.add(nextNode);
+                        queue.push(nextNode);
+                    }
+
+                    // Add the edge to the list of reachable edges
+                    reachableEdges.push(i);
+                }
+            }
+        }
+
+        return reachableEdges;
     }
 
     var graphs = [
@@ -206,11 +279,13 @@
     ]
 
     reselectData();
+    filterEdges();
     render();
 
     document.querySelectorAll('select.filter').forEach((el) => {
         el.addEventListener('change', () => {
             reselectData();
+            filterEdges();
             render();
         })
     });
@@ -257,7 +332,20 @@
     }
 
     function filterEdgesByReachable() {
-
+        if (filtered_nodes.length !== 0) {
+            fwdEdges = forwardReachableEdges(filtered_nodes, data[0].link.source, data[0].link.target);
+            var s = [], t = [], v = [], c = [];
+            for (let i = data[0].link.color.length - 1; i >= 0; i--) {
+                s.push(data[0].link.source[fwdEdges[i]]);
+                t.push(data[0].link.target[fwdEdges[i]]);
+                v.push(data[0].link.value[fwdEdges[i]]);
+                c.push(data[0].link.color[fwdEdges[i]]);
+            }
+            data[0].link.source = s;
+            data[0].link.target = t;
+            data[0].link.value = v;
+            data[0].link.color = c;
+        }
     }
 
     function filterEdgesByColor(color) {
@@ -294,10 +382,19 @@
     document.querySelector('#fromSlider').addEventListener('change', filterEdges);
     document.querySelector('#toSlider').addEventListener('change', filterEdges);
 
-    plot.on('plotly_click', function(data) {
-        var tag = data.points[0].customdata;
-            index = data.points[0].index;
-        filtered_nodes.push(index);
+    plot.on('plotly_click', function(idata) {
+        filtered_nodes = [];
+        var tagList = document.getElementById('shown_functions');
+        tagList.querySelectorAll('div').forEach((el) => {
+            tagList.removeChild(el);
+        });
+        var tag = idata.points[0].customdata;
+        for (let i = 0; i < data[0].node.customdata.length; i++) {
+            if (data[0].node.customdata[i] === tag) {
+                filtered_nodes.push(i);
+                break;
+            }
+        }
         addTag('shown_functions', tag);
         filterEdges();
     });
