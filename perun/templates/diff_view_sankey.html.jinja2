@@ -138,10 +138,34 @@
 </div>
 
 <script>
-    var data = [],
+    var data = [{
+        type: "sankey",
+        arrangement: getMode(),
+        orientation: getPosition(),
+        node: {
+            pad: 15,
+            thickness: 20,
+            line: {
+                color: "black",
+                width: 1
+            },
+            label: [],
+        },
+        link: {
+            source: [],
+            target: [],
+            value: [],
+            color: []
+        }
+        }],
         filtered_nodes = [],
         steps = [1],
-        layout = {},
+        layout = {
+            title: "",
+            font: {
+                size: 14
+            },
+        },
         selected_uid = -1,
         selected_uid_text = "",
         plot = document.getElementById('sankey_graph');
@@ -411,6 +435,7 @@
     document.querySelector('#fromSlider').addEventListener('change', filterEdges);
     document.querySelector('#toSlider').addEventListener('change', filterEdges);
 
+    render();
     plot.on('plotly_click', function(idata) {
         filtered_nodes = [];
         var tagList = document.getElementById('shown_functions');
@@ -418,6 +443,8 @@
             tagList.removeChild(el);
         });
         var tag = idata.points[0].customdata;
+        if (idata.points[0].customdata === undefined)
+            return;
         for (let i = 0; i < data[0].node.customdata.length; i++) {
             if (data[0].node.customdata[i] === tag) {
                 filtered_nodes.push(i);
