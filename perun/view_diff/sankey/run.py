@@ -30,11 +30,17 @@ from perun.utils import log
 from perun.utils.common import diff_kit, common_kit
 from perun.view_diff.flamegraph import run as flamegraph_run
 
-NOT_IN_BASE: str = "rgba(255, 0, 0, 0.4)"
-NOT_IN_TARGET: str = "rgba(0, 255, 0, 0.4)"
-IN_BOTH: str = "rgba(0, 0, 255, 0.4)"
-HIGHLIGHT: str = "rgba(0, 0, 0, 0.7)"
-NOHIGHLIGHT: str = "rgba(0, 0, 0, 0.2)"
+
+class ColorPalette:
+    """ """
+
+    Baseline: str = "rgba(49, 48, 77, 0.4)"
+    Target: str = "rgba(255, 201, 74, 0.4)"
+    NotInBaseline: str = "rgba(255, 0, 0, 0.4)"
+    NotInTarget: str = "rgba(0, 255, 0, 0.4)"
+    InBoth: str = "rgba(0, 0, 255, 0.4)"
+    Highlight: str = "rgba(0, 0, 0, 0.7)"
+    NoHighlight: str = "rgba(0, 0, 0, 0.2)"
 
 
 @dataclass
@@ -72,16 +78,35 @@ class SankeyNode:
 
 
 @dataclass
+class Linkage:
+    """Representation of linkage in the sankey graph
+
+    :ivar source: sources of the edges
+    :ivar target: targets of the edges
+    :ivar value: values of edges
+    :ivar color: colours of edges
+    """
+
+    __slots__ = ["source", "target", "value", "color"]
+    source: list[int]
+    target: list[int]
+    value: list[int]
+    color: list[str]
+
+    def __init__(self):
+        self.source = []
+        self.target = []
+        self.value = []
+        self.color = []
+
+
+@dataclass
 class SankeyGraph:
     """Representation of sankey graph data consisting of links between nodes
 
     :ivar uid: function for which they sankey graph is corresponding
     :ivar label: list of labels for each node in the graph
     :ivar node_uids: list of uids for unique identification of the node (different from label)
-    :ivar source: sources of the edges
-    :ivar target: targets of the edges
-    :ivar value: values of edges
-    :ivar color: colours of edges
     :ivar width: the size of the longest trace
     :ivar height: the maximal number of paralel traces
     :ivar min: minimal number of amount on edges
@@ -89,29 +114,23 @@ class SankeyGraph:
     """
 
     __slots__ = [
-        "color",
         "diff",
         "height",
         "label",
+        "linkage",
         "max",
         "min",
         "node_uids",
         "node_colors",
-        "source",
         "sum",
-        "target",
         "uid",
-        "value",
         "width",
     ]
     uid: str
     label: list[str]
     node_uids: list[str]
     node_colors: list[str]
-    source: list[int]
-    target: list[int]
-    value: list[int]
-    color: list[str]
+    linkage: dict[Literal["split", "merged"], Linkage]
     width: int
     height: int
     min: int
@@ -125,10 +144,7 @@ class SankeyGraph:
         self.label = []
         self.node_uids = []
         self.node_colors = []
-        self.source = []
-        self.target = []
-        self.value = []
-        self.color = []
+        self.linkage = {"split": Linkage(), "merged": Linkage()}
         self.width = 0
         self.height = 0
         self.min = -1
@@ -217,9 +233,17 @@ def process_traces(
             process_edge(sankey_map, full_trace, profile_type, src, tgt, amount)
 
 
-def create_edge(graph: SankeyGraph, src: int, tgt: int, value: int, color: str) -> None:
+def create_edge(
+    graph: SankeyGraph,
+    edge_type: Literal["split", "merged"],
+    src: int,
+    tgt: int,
+    value: int,
+    color: str,
+) -> None:
     """Creates single edge in the sankey graph
 
+    :param edge_type: type of the edge
     :param graph: output sankey graph
     :param src: source of the edge
     :param tgt: target of the edge
@@ -227,10 +251,10 @@ def create_edge(graph: SankeyGraph, src: int, tgt: int, value: int, color: str) 
     :param color: color of the edge
     """
     if value > 0:
-        graph.source.append(src)
-        graph.target.append(tgt)
-        graph.value.append(value)
-        graph.color.append(color)
+        graph.linkage[edge_type].source.append(src)
+        graph.linkage[edge_type].target.append(tgt)
+        graph.linkage[edge_type].value.append(value)
+        graph.linkage[edge_type].color.append(color)
         graph.min = min(value, graph.min) if graph.min != -1 else value
         graph.max = max(value, graph.max)
 
@@ -246,35 +270,43 @@ def extract_graphs_from_sankey_map(
     sankey_graphs = []
 
     for uid, sankey_points in progressbar.progressbar(sankey_map.items()):
-        sankey_graph = SankeyGraph(uid)
+        graph = SankeyGraph(uid)
         positions = []
 
-        for sankey_point in sankey_points.values():
-            if "#" in sankey_point.tag:
-                positions.append(int(sankey_point.tag.split("#")[-1]))
-            sankey_graph.label.append(sankey_point.uid)
-            sankey_graph.node_uids.append(sankey_point.tag)
-            sankey_graph.node_colors.append(HIGHLIGHT if sankey_point.uid == uid else NOHIGHLIGHT)
-            for successor, value in sankey_point.succs.items():
+        for point in sankey_points.values():
+            if "#" in point.tag:
+                positions.append(int(point.tag.split("#")[-1]))
+            graph.label.append(point.uid)
+            graph.node_uids.append(point.tag)
+            graph.node_colors.append(
+                ColorPalette.Highlight if point.uid == uid else ColorPalette.NoHighlight
+            )
+            for succ, value in point.succs.items():
                 value_diff = abs(value.baseline - value.target)
+                create_edge(graph, "merged", point.id, succ, value.baseline, ColorPalette.Baseline)
+                create_edge(graph, "merged", point.id, succ, value.target, ColorPalette.Target)
                 if value.baseline == value.target:
-                    create_edge(sankey_graph, sankey_point.id, successor, value.baseline, IN_BOTH)
+                    create_edge(graph, "split", point.id, succ, value.baseline, ColorPalette.InBoth)
                 elif value.baseline > value.target:
-                    create_edge(sankey_graph, sankey_point.id, successor, value.target, IN_BOTH)
-                    create_edge(sankey_graph, sankey_point.id, successor, value_diff, NOT_IN_TARGET)
-                    if sankey_point.uid == uid:
-                        sankey_graph.sum += max(value.baseline, value.target)
-                        sankey_graph.diff -= value_diff
+                    create_edge(graph, "split", point.id, succ, value.target, ColorPalette.InBoth)
+                    create_edge(
+                        graph, "split", point.id, succ, value_diff, ColorPalette.NotInTarget
+                    )
+                    if point.uid == uid:
+                        graph.sum += max(value.baseline, value.target)
+                        graph.diff -= value_diff
                 else:
-                    create_edge(sankey_graph, sankey_point.id, successor, value.baseline, IN_BOTH)
-                    create_edge(sankey_graph, sankey_point.id, successor, value_diff, NOT_IN_BASE)
-                    if sankey_point.uid == uid:
-                        sankey_graph.sum += max(value.baseline, value.target)
-                        sankey_graph.diff += value_diff
+                    create_edge(graph, "split", point.id, succ, value.baseline, ColorPalette.InBoth)
+                    create_edge(
+                        graph, "split", point.id, succ, value_diff, ColorPalette.NotInBaseline
+                    )
+                    if point.uid == uid:
+                        graph.sum += max(value.baseline, value.target)
+                        graph.diff += value_diff
 
-        sankey_graph.width = max(positions)
-        sankey_graph.height = max(positions.count(pos) for pos in set(positions))
-        sankey_graphs.append(sankey_graph)
+        graph.width = max(positions)
+        graph.height = max(positions.count(pos) for pos in set(positions))
+        sankey_graphs.append(graph)
 
     return sankey_graphs
 
@@ -348,6 +380,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         uids_abs=abs_keys,
         uids_rel=rel_keys,
         uids_lex=lex_keys,
+        palette=ColorPalette,
     )
     log.minor_success("Difference sankey", "generated")
     output_file = diff_kit.save_diff_view(

@@ -59,6 +59,22 @@
         {{ profile_overview.css_style() }}
         {{ widgets.chip_list_style() }}
         {{ widgets.range_picker_style() }}
+
+        #label_base {
+            border-bottom: 5px solid {{ palette.Baseline }};
+        }
+        #label_target {
+            border-bottom: 5px solid {{ palette.Target }};
+        }
+        #label_incr {
+            border-bottom: 5px solid {{ palette.NotInBaseline }};
+        }
+        #label_both {
+            border-bottom: 5px solid {{ palette.InBoth }};
+        }
+        #label_decr {
+            border-bottom: 5px solid {{ palette.NotInTarget }};
+        }
     </style>
 </head>
 <body>
@@ -82,6 +98,7 @@
                 <tbody>
                     {{ widgets.radios([('v', 'Vertical'), ('h', 'Horizontal')], 'position_radios', 'positions', 'Orientation') }}
                     {{ widgets.radios([('snap', 'Reorder'), ('fixed', 'Select')], 'mode_radios', 'modes', 'Mode') }}
+                    {{ widgets.radios([('merged', 'Merged'), ('split', 'Split')], 'edge_mode_radios', 'edge_modes', 'Edges') }}
                 </tbody>
             </table>
         </div>
@@ -92,7 +109,8 @@
                         <td class="key" style="width: 20%;">Threshold:</td>
                         <td colspan="3">{{ widgets.range_picker() }}</td>
                     </tr>
-                    {{ widgets.checkboxes([('base', 'Incr (from base)'), ('both', 'Equal'), ('target', 'Decr (from base)')], 'shown_edges', 'Show') }}
+                    {{ widgets.checkboxes([('base', 'Baseline'), ('target', 'Target')], 'shown_merged_edges', 'Show') }}
+                    {{ widgets.checkboxes([('incr', 'Incr (from base)'), ('both', 'Equal'), ('decr', 'Decr (from base)')], 'shown_split_edges', 'Show') }}
                 </tbody>
             </table>
         </div>
@@ -100,9 +118,9 @@
         <table>
             <tbody>
             <tr>
-                <td class="topkey">Alphabetic Order</td>
-                <td class="topkey">Relative Change Order</td>
-                <td class="topkey">Absolute Change Order</td>
+                <td class="topkey">By Alphabet </td>
+                <td class="topkey">By Relative Change</td>
+                <td class="topkey">By Absolute Change</td>
             </tr>
             <tr>
                 <td class="value" title="Displays resources for different uid (sorted lexicographically).">
@@ -176,6 +194,7 @@
     {{ widgets.checkbox_handler() }}
     {{ widgets.get_radio_handler('getPosition', 'positions') }}
     {{ widgets.get_radio_handler('getMode', 'modes') }}
+    {{ widgets.get_radio_handler('getEdgeMode', 'edge_modes') }}
     {{ widgets.range_handlers() }}
 
     function getData(index) {
@@ -195,10 +214,10 @@
                 customdata: graphs[index].node_uids.slice(),
             },
             link: {
-                source: graphs[index].source.slice(),
-                target: graphs[index].target.slice(),
-                value: graphs[index].value.slice(),
-                color: graphs[index].color.slice()
+                source: graphs[index].link[getEdgeMode()].source.slice(),
+                target: graphs[index].link[getEdgeMode()].target.slice(),
+                value: graphs[index].link[getEdgeMode()].value.slice(),
+                color: graphs[index].link[getEdgeMode()].color.slice()
             }
         }
         return [data]
@@ -322,10 +341,20 @@
             label: {{ graph.label }},
             node_uids: {{ graph.node_uids }},
             node_colors: {{ graph.node_colors }},
-            source: {{ graph.source }},
-            target: {{ graph.target }},
-            value: {{ graph.value }},
-            color: {{ graph.color }},
+            link: {
+                merged: {
+                    source: {{ graph.linkage["merged"].source }},
+                    target: {{ graph.linkage["merged"].target }},
+                    value: {{ graph.linkage["merged"].value }},
+                    color: {{ graph.linkage["merged"].color }},
+                },
+                split: {
+                    source: {{ graph.linkage["split"].source }},
+                    target: {{ graph.linkage["split"].target }},
+                    value: {{ graph.linkage["split"].value }},
+                    color: {{ graph.linkage["split"].color }},
+                }
+            },
             height: {{ graph.height }},
             width: {{ graph.width }},
             min: {{ graph.min }},
@@ -362,12 +391,32 @@
         });
     });
 
+    document.querySelectorAll('input[name="edge_modes"]').forEach((button) => {
+        button.addEventListener('change', () => {
+            if (button.checked) {
+                reselectData();
+                filterEdges();
+                render();
+            }
+            var merged_edges_checkboxes = document.getElementById('shown_merged_edges'),
+                split_edges_checkboxes = document.getElementById('shown_split_edges'),
+                edge_mode = getEdgeMode();
+            if (edge_mode === "merged") {
+                merged_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = false;})
+                split_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
+            } else if (edge_mode == "split") {
+                split_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = false;})
+                merged_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
+            }
+        });
+    });
+
     function restoreEdges() {
         data[0].link = {
-            source: graphs[selected_uid].source.slice(),
-            target: graphs[selected_uid].target.slice(),
-            value: graphs[selected_uid].value.slice(),
-            color: graphs[selected_uid].color.slice()
+            source: graphs[selected_uid].link[getEdgeMode()].source.slice(),
+            target: graphs[selected_uid].link[getEdgeMode()].target.slice(),
+            value: graphs[selected_uid].link[getEdgeMode()].value.slice(),
+            color: graphs[selected_uid].link[getEdgeMode()].color.slice()
         }
     }
 
@@ -414,14 +463,25 @@
 
     function filterEdges() {
         restoreEdges()
-        if(!isChecked("base")) {
-            filterEdgesByColor("rgba(255, 0, 0, 0.4)")
-        }
-        if(!isChecked("target")) {
-            filterEdgesByColor("rgba(0, 255, 0, 0.4)")
-        }
-        if(!isChecked("both")) {
-            filterEdgesByColor("rgba(0, 0, 255, 0.4)")
+        var mode = getEdgeMode();
+
+        if (mode === "split") {
+            if (!isChecked("incr")) {
+                filterEdgesByColor("{{ palette.NotInBaseline }}")
+            }
+            if (!isChecked("decr")) {
+                filterEdgesByColor("{{ palette.NotInTarget }}")
+            }
+            if (!isChecked("both")) {
+                filterEdgesByColor("{{ palette.InBoth }}")
+            }
+        } else if (mode === "merged") {
+            if(!isChecked("base")) {
+                filterEdgesByColor("{{ palette.Baseline }}")
+            }
+            if(!isChecked("target")) {
+                filterEdgesByColor("{{ palette.Target }}")
+            }
         }
         filterEdgesByValue();
         filterEdgesByReachable();
@@ -429,11 +489,15 @@
     }
 
 
+    document.querySelector('input[name="incr"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="decr"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="base"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="both"]').addEventListener('change', filterEdges);
     document.querySelector('#fromSlider').addEventListener('change', filterEdges);
     document.querySelector('#toSlider').addEventListener('change', filterEdges);
+
+    document.getElementById('shown_split_edges').querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
 
     render();
     plot.on('plotly_click', function(idata) {

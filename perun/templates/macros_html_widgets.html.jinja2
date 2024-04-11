@@ -51,7 +51,7 @@
             <td class="key">{{ header }}:</td>
             {% for checkbox in checkbox_list %}
                 <td>
-                <label>
+                <label id="label_{{ checkbox[0] }}">
                     <input type="checkbox" name="{{ checkbox[0] }}", value="{{ checkbox[0] }}" checked>{{ checkbox[1] }}
                 </label>
                 </td>
@@ -72,14 +72,14 @@
 {% macro radios(radio_list, radio_id, choice_id, header) %}
         <tr {{ radio_id }}>
             <td class="key">{{ header }}:</td>
-            <td>
             {% for radio in radio_list %}
+                <td>
                 <label>
                     <input type="radio" name="{{ choice_id }}" value="{{ radio[0] }}" {% if loop.index0 == 0 %}checked{% endif %}>
                     {{ radio[1] }}
                 </label>
+                </td>
             {%- endfor %}
-            </td>
         </tr>
 {%- endmacro %}
 
