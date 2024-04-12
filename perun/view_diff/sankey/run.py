@@ -63,16 +63,18 @@ class SankeyNode:
 
     :ivar uid: string representation of the uid/node
     :ivar tag: uid joined with order in the traces
+    :ivar trace: trace to the node
     :ivar id: integer representation of the node in the graph
     :ivar succs: list of successor sankey nodes together with the stats
     :ivar preds: list of predecessor sankey nodes together with the stats
     """
 
-    __slots__ = ["uid", "id", "succs", "preds", "tag"]
+    __slots__ = ["uid", "id", "succs", "preds", "tag", "trace"]
 
     uid: str
     tag: str
     id: int
+    trace: list[str]
     succs: dict[int, SuccessorStats]
     preds: dict[int, SuccessorStats]
 
@@ -106,7 +108,7 @@ class SankeyGraph:
 
     :ivar uid: function for which they sankey graph is corresponding
     :ivar label: list of labels for each node in the graph
-    :ivar node_uids: list of uids for unique identification of the node (different from label)
+    :ivar customdata: list of uids for unique identification of the node (different from label) and traces
     :ivar width: the size of the longest trace
     :ivar height: the maximal number of paralel traces
     :ivar min: minimal number of amount on edges
@@ -120,15 +122,15 @@ class SankeyGraph:
         "linkage",
         "max",
         "min",
-        "node_uids",
         "node_colors",
+        "customdata",
         "sum",
         "uid",
         "width",
     ]
     uid: str
     label: list[str]
-    node_uids: list[str]
+    customdata: list[list[str, str]]
     node_colors: list[str]
     linkage: dict[Literal["split", "merged"], Linkage]
     width: int
@@ -142,7 +144,7 @@ class SankeyGraph:
         """Initializes the graph"""
         self.uid = uid
         self.label = []
-        self.node_uids = []
+        self.customdata = []
         self.node_colors = []
         self.linkage = {"split": Linkage(), "merged": Linkage()}
         self.width = 0
@@ -163,7 +165,8 @@ def get_sankey_point(sankey_points: dict[str, SankeyNode], key: str) -> SankeyNo
     :return: sankey node corresponding to given key
     """
     if key not in sankey_points:
-        sankey_points[key] = SankeyNode(key.split("#")[0], key, len(sankey_points), {}, {})
+        uid = key.split("#")[0]
+        sankey_points[key] = SankeyNode(uid, key, len(sankey_points), [uid], {}, {})
     return sankey_points[key]
 
 
@@ -259,12 +262,56 @@ def create_edge(
         graph.max = max(value, graph.max)
 
 
+def relabel_sankey_points(sankey_points: dict[str, SankeyNode]) -> dict[str, SankeyNode]:
+    """Relabels sankey points after the minimization
+
+    :param sankey_points: sankey points
+    :return: relabeled sankey points
+    """
+    ids = [sp.id for sp in sankey_points.values()]
+    for sp in sankey_points.values():
+        sp.id = ids.index(sp.id)
+        new_succs = {ids.index(key): val for (key, val) in sp.succs.items()}
+        sp.succs = new_succs
+        new_preds = {ids.index(key): val for (key, val) in sp.preds.items()}
+        sp.preds = new_preds
+    return sankey_points
+
+
+def minimize_sankey_maps(sankey_map: [str, dict[str, SankeyNode]]) -> [str, dict[str, SankeyNode]]:
+    """Merges chains of unbranched code
+
+    :param sankey_map: map of sankey graphs;
+    """
+    minimal_sankey_map = {}
+    for uid, sankey_points in progressbar.progressbar(sankey_map.items()):
+        id_to_point = {val.id: val for val in sankey_points.values()}
+        minimal_sankey_points = {}
+        for key in sankey_points.keys():
+            point = sankey_points[key]
+            if point.uid != uid:
+                preds, succs = list(point.preds.keys()), list(point.succs.keys())
+                if len(preds) == 1 and len(succs) == 1:
+                    pred, succ = id_to_point[preds[0]], id_to_point[succs[0]]
+                    if len(pred.succs) == 1 and len(succ.preds) == 1:
+                        # Merging a -> b -> c into ab -> c
+                        pred.succs[succ.id] = pred.succs[point.id]
+                        pred.succs.pop(point.id)
+                        pred.trace.append(point.uid)
+                        succ.preds[pred.id] = succ.preds[point.id]
+                        succ.preds.pop(point.id)
+                        continue
+            minimal_sankey_points[key] = point
+        minimal_sankey_map[uid] = relabel_sankey_points(minimal_sankey_points)
+    return minimal_sankey_map
+
+
 def extract_graphs_from_sankey_map(
     sankey_map: dict[str, dict[str, SankeyNode]]
 ) -> list[SankeyGraph]:
     """For computed maps of sankey edges computes the list of actual sankey graphs
 
-    :param sankey_map: mapping of function ids to their sankey points
+
     :return: list of sankey graphs
     """
     sankey_graphs = []
@@ -276,8 +323,10 @@ def extract_graphs_from_sankey_map(
         for point in sankey_points.values():
             if "#" in point.tag:
                 positions.append(int(point.tag.split("#")[-1]))
-            graph.label.append(point.uid)
-            graph.node_uids.append(point.tag)
+            graph.label.append(
+                point.uid if len(point.trace) == 1 else f"{point.uid}...{point.trace[-1]}"
+            )
+            graph.customdata.append([point.tag, "<br>↧<br>".join(point.trace)])
             graph.node_colors.append(
                 ColorPalette.Highlight if point.uid == uid else ColorPalette.NoHighlight
             )
@@ -311,17 +360,22 @@ def extract_graphs_from_sankey_map(
     return sankey_graphs
 
 
-def to_sankey_graphs(lhs_profile: Profile, rhs_profile: Profile) -> list[SankeyGraph]:
+def to_sankey_graphs(
+    lhs_profile: Profile, rhs_profile: Profile, minimize: bool = False
+) -> list[SankeyGraph]:
     """Converts difference of two profiles to sankey format
 
     :param lhs_profile: baseline profile
     :param rhs_profile: target profile
+    :param minimize: if set to true, then the resulting sankey map will be minimized
     """
     sankey_map: dict[str, dict[str, SankeyNode]] = defaultdict(dict)
 
     process_traces(lhs_profile, sankey_map, "baseline")
     process_traces(rhs_profile, sankey_map, "target")
 
+    if minimize:
+        sankey_map = minimize_sankey_maps(sankey_map)
     return extract_graphs_from_sankey_map(sankey_map)
 
 
@@ -346,7 +400,10 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
 
     log.major_info("Generating Sankey Graph Difference")
 
-    sankey_graphs = sorted(to_sankey_graphs(lhs_profile, rhs_profile), key=lambda x: x.uid)
+    sankey_graphs = sorted(
+        to_sankey_graphs(lhs_profile, rhs_profile, kwargs.get("minimize", False)),
+        key=lambda x: x.uid,
+    )
 
     lex_order = [sankey.uid for sankey in sankey_graphs]
 
@@ -391,6 +448,13 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
 
 @click.command()
 @click.option("-o", "--output-file", help="Sets the output file (default=automatically generated).")
+@click.option(
+    "-m",
+    "--minimize",
+    help="Minimizes the sankey grafs by merging non-branching points (default=False).",
+    is_flag=True,
+    default=False,
+)
 @click.pass_context
 def sankey(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
     """Creates sankey graphs representing the differences between two profiles"""

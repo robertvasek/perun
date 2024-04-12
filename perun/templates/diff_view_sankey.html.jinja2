@@ -211,7 +211,11 @@
                 },
                 label: graphs[index].label.slice(),
                 color: graphs[index].node_colors.slice(),
-                customdata: graphs[index].node_uids.slice(),
+                customdata: graphs[index].customdata.slice(),
+                hovertemplate: '%{customdata[1]}<extra>%{value}</extra>',
+                hoverlabel: {
+                    align: "left"
+                }
             },
             link: {
                 source: graphs[index].link[getEdgeMode()].source.slice(),
@@ -346,7 +350,7 @@
     {% for graph in sankey_graphs %}
         {
             label: {{ graph.label }},
-            node_uids: {{ graph.node_uids }},
+            customdata: {{ graph.customdata}},
             node_colors: {{ graph.node_colors }},
             link: {
                 merged: {
@@ -503,11 +507,8 @@
     }
 
     function annotateEdges() {
-        console.log("Clearing annotations");
         clearAnnotations();
-        console.log("Cleared annotations");
         if (isChecked('labels')) {
-            console.log("New annotations");
             const paths = document.querySelectorAll('.sankey-link');
             const edge_mode = getEdgeMode();
 
@@ -526,7 +527,6 @@
                 topLabel.textContent = formatSize(graphs[selected_uid].link[edge_mode].value[i]);
                 path.parentNode.appendChild(topLabel);
             })
-            console.log("Done");
         };
     };
 
@@ -551,7 +551,6 @@
 
     function refreshHandlers() {
         plot.on('plotly_afterplot', function () {
-            console.log("curak");
             annotateEdges();
         });
         plot.on('plotly_click', function (idata) {
@@ -560,11 +559,11 @@
             tagList.querySelectorAll('div').forEach((el) => {
                 tagList.removeChild(el);
             });
-            var tag = idata.points[0].customdata;
-            if (idata.points[0].customdata === undefined)
+            var tag = idata.points[0].customdata[0];
+            if (tag === undefined)
                 return;
             for (let i = 0; i < data[0].node.customdata.length; i++) {
-                if (data[0].node.customdata[i] === tag) {
+                if (data[0].node.customdata[i][0] === tag) {
                     filtered_nodes.push(i);
                     break;
                 }
