@@ -109,8 +109,8 @@
                         <td class="key" style="width: 20%;">Threshold:</td>
                         <td colspan="3">{{ widgets.range_picker() }}</td>
                     </tr>
-                    {{ widgets.checkboxes([('base', 'Baseline'), ('target', 'Target')], 'shown_merged_edges', 'Show') }}
-                    {{ widgets.checkboxes([('incr', 'Incr (from base)'), ('both', 'Equal'), ('decr', 'Decr (from base)')], 'shown_split_edges', 'Show') }}
+                    {{ widgets.checkboxes([('base', 'Baseline'), ('target', 'Target'), ('labels', 'Labels')], 'shown_merged_edges', 'Show') }}
+                    {{ widgets.checkboxes([('incr', 'Incr (vs base)'), ('both', 'Equal'), ('decr', 'Decr (vs base)')], 'shown_split_edges', 'Show') }}
                 </tbody>
             </table>
         </div>
@@ -258,6 +258,13 @@
 
     function render() {
         Plotly.react('sankey_graph', data, layout);
+        annotateEdges();
+    }
+
+    function newplot() {
+        Plotly.newPlot('sankey_graph', data, layout);
+        annotateEdges();
+        refreshHandlers();
     }
 
     function backwardReachableEdges(nodes, source, target) {
@@ -369,7 +376,7 @@
             selected_uid_text = el.options[el.selectedIndex];
             reselectData();
             filterEdges();
-            render();
+            newplot();
         })
     });
 
@@ -396,7 +403,7 @@
             if (button.checked) {
                 reselectData();
                 filterEdges();
-                render();
+                newplot();
             }
             var merged_edges_checkboxes = document.getElementById('shown_merged_edges'),
                 split_edges_checkboxes = document.getElementById('shown_split_edges'),
@@ -488,7 +495,48 @@
         render();
     }
 
+    function clearAnnotations() {
+        const annotations = document.querySelectorAll('.sankey-annotation');
+        annotations.forEach(annotation => {
+            annotation.remove()
+        });
+    }
 
+    function annotateEdges() {
+        console.log("Clearing annotations");
+        clearAnnotations();
+        console.log("Cleared annotations");
+        if (isChecked('labels')) {
+            console.log("New annotations");
+            const paths = document.querySelectorAll('.sankey-link');
+            const edge_mode = getEdgeMode();
+
+            paths.forEach((path, i) => {
+                const bbox = path.getBBox();
+
+                const xMid = bbox.x + bbox.width / 2;
+                const yMid = bbox.y + bbox.height / 2;
+
+                const topLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                topLabel.setAttribute("x", 0);
+                topLabel.setAttribute("y", 0);
+                topLabel.setAttribute("class", "sankey-annotation");
+                topLabel.setAttribute("style", "font-family: 'Impact', sans-serif; font-style: bold; font-size: 10px; fill: rgb(0, 0, 0); fill-opacity: 0.6;")
+                topLabel.setAttribute("transform", `translate(${xMid}, ${yMid}) scale(-1,1) rotate(90)`);
+                topLabel.textContent = formatSize(graphs[selected_uid].link[edge_mode].value[i]);
+                path.parentNode.appendChild(topLabel);
+            })
+            console.log("Done");
+        };
+    };
+
+    document.querySelector('input[name="labels"]').addEventListener('change', function() {
+        if (isChecked('labels')) {
+            annotateEdges();
+        } else {
+            clearAnnotations();
+        }
+    });
     document.querySelector('input[name="incr"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="decr"]').addEventListener('change', filterEdges);
@@ -499,25 +547,32 @@
 
     document.getElementById('shown_split_edges').querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
 
-    render();
-    plot.on('plotly_click', function(idata) {
-        filtered_nodes = [];
-        var tagList = document.getElementById('shown_functions');
-        tagList.querySelectorAll('div').forEach((el) => {
-            tagList.removeChild(el);
+    newplot()
+
+    function refreshHandlers() {
+        plot.on('plotly_afterplot', function () {
+            console.log("curak");
+            annotateEdges();
         });
-        var tag = idata.points[0].customdata;
-        if (idata.points[0].customdata === undefined)
-            return;
-        for (let i = 0; i < data[0].node.customdata.length; i++) {
-            if (data[0].node.customdata[i] === tag) {
-                filtered_nodes.push(i);
-                break;
+        plot.on('plotly_click', function (idata) {
+            filtered_nodes = [];
+            var tagList = document.getElementById('shown_functions');
+            tagList.querySelectorAll('div').forEach((el) => {
+                tagList.removeChild(el);
+            });
+            var tag = idata.points[0].customdata;
+            if (idata.points[0].customdata === undefined)
+                return;
+            for (let i = 0; i < data[0].node.customdata.length; i++) {
+                if (data[0].node.customdata[i] === tag) {
+                    filtered_nodes.push(i);
+                    break;
+                }
             }
-        }
-        addTag('shown_functions', tag);
-        filterEdges();
-    });
+            addTag('shown_functions', tag);
+            filterEdges();
+        });
+    }
 </script>
 
 </body>
