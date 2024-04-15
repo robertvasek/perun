@@ -6,8 +6,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.min.css">
     <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src='https://cdn.plot.ly/plotly-2.30.0.min.js'></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/2.0.3/js/dataTables.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/select/2.0.0/js/dataTables.select.min.js"></script>
     <style>
         html {
             font-family: "Courier New", Courier, monospace;
@@ -51,8 +54,7 @@
             font-weight: bold;
         }
         div.tools td.topkey {
-            padding: 0;
-            padding-top: 1em;
+            padding: 1em 0 0;
             text-align: center;
             font-weight: bold;
         }
@@ -93,6 +95,15 @@
 
 <div class="middle">
     <div class="tools">
+        <table id="table" class="display" style="width: 100%;">
+            <thead>
+            <tr>
+                <th>Unit</th>
+                <th>Absolute</th>
+                <th>Relative</th>
+            </tr>
+            </thead>
+        </table>
         <div class="left column">
             <table>
                 <tbody>
@@ -115,48 +126,13 @@
             </table>
         </div>
         {{ widgets.chip_list('shown_functions', 'Filter') }}
-        <table>
-            <tbody>
-            <tr>
-                <td class="topkey">By Alphabet </td>
-                <td class="topkey">By Relative Change</td>
-                <td class="topkey">By Absolute Change</td>
-            </tr>
-            <tr>
-                <td class="value" title="Displays resources for different uid (sorted lexicographically).">
-                    <select class="filter" id="uid_selector_lex">
-                        <option value="-1"></option>
-                        {% for (i, uid) in uids_lex %}
-                            <option value="{{ i }}">{{ uid }}</option>
-                        {%- endfor %}
-                    </select>
-                </td>
-                <td class="value" title="Displays resources for different uid (sorted by relative changes).">
-                    <select class="filter" id="uid_selector_rel">
-                        <option value="-1"></option>
-                        {% for (i, uid) in uids_rel %}
-                            <option value="{{ i }}">{{ uid }}</option>
-                        {%- endfor %}
-                    </select>
-                </td>
-                <td class="value" title="Displays resources for different uid (sorted by absolute changes).">
-                    <select class="filter" id="uid_selector_abs">
-                        <option value="-1"></option>
-                        {% for (i, uid) in uids_abs %}
-                            <option value="{{ i }}">{{ uid }}</option>
-                        {%- endfor %}
-                    </select>
-                </td>
-            </tr>
-            </tbody>
-        </table>
     </div>
 
    <div id="sankey_graph"><!-- DO NOT CHANGE: SANKEY GRAPH IS RENDERED HERE--></div>
 </div>
 
 <script>
-    var data = [{
+    let data = [{
         type: "sankey",
         arrangement: getMode(),
         orientation: getPosition(),
@@ -198,7 +174,7 @@
     {{ widgets.range_handlers() }}
 
     function getData(index) {
-        var data = {
+        let data = {
             type: "sankey",
             arrangement: getMode(),
             orientation: getPosition(),
@@ -241,8 +217,8 @@
             height: 200 + graphs[selected_uid].width* 100,
         };
 
-        var fromSlider = document.getElementById('fromSlider');
-        var toSlider = document.getElementById('toSlider');
+        let fromSlider = document.getElementById('fromSlider');
+        let toSlider = document.getElementById('toSlider');
 
         fromSlider.min = graphs[selected_uid].min;
         fromSlider.max = graphs[selected_uid].max + 1;
@@ -251,8 +227,8 @@
         toSlider.max = graphs[selected_uid].max + 1;
         toSlider.value = graphs[selected_uid].max;
 
-        var fromInput = document.getElementById('fromInput');
-        var toInput = document.getElementById('toInput');
+        let fromInput = document.getElementById('fromInput');
+        let toInput = document.getElementById('toInput');
 
         setInput(fromInput, graphs[selected_uid].min);
         setInput(toInput, graphs[selected_uid].max);
@@ -346,7 +322,78 @@
         return reachableEdges;
     }
 
-    var graphs = [
+    let table = {
+        "data": [
+            {% for val in selection_table %}
+                {
+                    "uid": "{{ val.uid }}",
+                    "index": "{{ val.index }}",
+                    "abs": "{{ val.abs_amount }}",
+                    "rel": "{{ val.rel_amount }}"
+                },
+            {%- endfor %}
+        ]
+    };
+    let selection_table = $("#table").DataTable({
+        data: table.data,
+        columns: [
+            { data: "uid" },
+            {
+                data: "abs",
+                className: "dt-body-right",
+                render: function (data, type) {
+                    if (type === 'display') {
+                        const floatValue = parseFloat(data);
+                        const intValue = parseInt(data);
+                        if (!isNaN(intValue) && intValue.toString() === data) {
+                            let formatted_int= intValue.toLocaleString();
+                            return `${formatted_int}`;
+                        } else if(!isNaN(floatValue) && floatValue.toString() === data) {
+                            let formatted_float = floatValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            return `${formatted_float}`;
+                        } else {
+                            return data;
+                        }
+                    }
+
+                    return data;
+                },
+            },
+            { data: "rel" },
+            { data: "index", visible: false},
+        ],
+        order: [[2, "desc"]],
+        iDisplayLength: 5,
+        select: true
+    })
+
+    selection_table.on('click', 'tbody tr', (el) => {
+        let classList = el.currentTarget.classList;
+
+        if (classList.contains('selected')) {
+            classList.remove('selected');
+        } else {
+            selection_table.rows('.selected').nodes().each((row) => row.classList.remove('selected'));
+            classList.add('selected');
+        }
+    })
+
+    selection_table.on('select', function(e, dt, type, indexes) {
+        if (type === 'row') {
+            let data = selection_table.rows(indexes).data();
+            if (data.length > 0) {
+                selected_uid = data[0].index;
+                selected_uid_text = data[0].uid + "(" + data[0].rel + ", " + data[0].abs + ")";
+
+                reselectData();
+                filterEdges();
+                newplot();
+            }
+        }
+    })
+
+
+    let graphs = [
     {% for graph in sankey_graphs %}
         {
             label: {{ graph.label }},
@@ -374,16 +421,6 @@
     {%- endfor %}
     ]
 
-    document.querySelectorAll('select.filter').forEach((el) => {
-        el.addEventListener('change', () => {
-            selected_uid = el.value;
-            selected_uid_text = el.options[el.selectedIndex];
-            reselectData();
-            filterEdges();
-            newplot();
-        })
-    });
-
     document.querySelectorAll('input[name="positions"]').forEach((button) => {
        button.addEventListener('change', () => {
           if (button.checked) {
@@ -409,13 +446,13 @@
                 filterEdges();
                 newplot();
             }
-            var merged_edges_checkboxes = document.getElementById('shown_merged_edges'),
+            let merged_edges_checkboxes = document.getElementById('shown_merged_edges'),
                 split_edges_checkboxes = document.getElementById('shown_split_edges'),
                 edge_mode = getEdgeMode();
             if (edge_mode === "merged") {
                 merged_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = false;})
                 split_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
-            } else if (edge_mode == "split") {
+            } else if (edge_mode === "split") {
                 split_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = false;})
                 merged_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
             }
@@ -447,7 +484,7 @@
     function filterEdgesByReachable() {
         if (filtered_nodes.length !== 0) {
             fwdEdges = forwardReachableEdges(filtered_nodes, data[0].link.source, data[0].link.target);
-            var s = [], t = [], v = [], c = [];
+            let s = [], t = [], v = [], c = [];
             for (let i = data[0].link.color.length - 1; i >= 0; i--) {
                 s.push(data[0].link.source[fwdEdges[i]]);
                 t.push(data[0].link.target[fwdEdges[i]]);
@@ -474,7 +511,7 @@
 
     function filterEdges() {
         restoreEdges()
-        var mode = getEdgeMode();
+        let mode = getEdgeMode();
 
         if (mode === "split") {
             if (!isChecked("incr")) {
@@ -519,16 +556,16 @@
                 const yMid = bbox.y + bbox.height / 2;
 
                 const topLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                topLabel.setAttribute("x", 0);
-                topLabel.setAttribute("y", 0);
+                topLabel.setAttribute("x", "0");
+                topLabel.setAttribute("y", "0");
                 topLabel.setAttribute("class", "sankey-annotation");
                 topLabel.setAttribute("style", "font-family: 'Impact', sans-serif; font-style: bold; font-size: 10px; fill: rgb(0, 0, 0); fill-opacity: 0.6;")
                 topLabel.setAttribute("transform", `translate(${xMid}, ${yMid}) scale(-1,1) rotate(90)`);
                 topLabel.textContent = formatSize(graphs[selected_uid].link[edge_mode].value[i]);
                 path.parentNode.appendChild(topLabel);
             })
-        };
-    };
+        }
+    }
 
     document.querySelector('input[name="labels"]').addEventListener('change', function() {
         if (isChecked('labels')) {
@@ -555,11 +592,11 @@
         });
         plot.on('plotly_click', function (idata) {
             filtered_nodes = [];
-            var tagList = document.getElementById('shown_functions');
+            let tagList = document.getElementById('shown_functions');
             tagList.querySelectorAll('div').forEach((el) => {
                 tagList.removeChild(el);
             });
-            var tag = idata.points[0].customdata[0];
+            let tag = idata.points[0].customdata[0];
             if (tag === undefined)
                 return;
             for (let i = 0; i < data[0].node.customdata.length; i++) {

@@ -80,6 +80,23 @@ class SankeyNode:
 
 
 @dataclass
+class SelectionRow:
+    """Helper dataclass for displaying selection of data
+
+    :ivar uid: uid of the selected graph
+    :ivar index: index in the sorted list of data
+    :ivar abs_amount: absolute change in the units
+    :ivar rel_amount: relative change in the units
+    """
+
+    __slots__ = ["uid", "index", "abs_amount", "rel_amount"]
+    uid: str
+    index: int
+    abs_amount: float
+    rel_amount: float
+
+
+@dataclass
 class Linkage:
     """Representation of linkage in the sankey graph
 
@@ -379,17 +396,6 @@ def to_sankey_graphs(
     return extract_graphs_from_sankey_map(sankey_map)
 
 
-def graph_to_key(graph: SankeyGraph) -> str:
-    """Converts the graph to key representation
-
-    :param graph: graph we are converting to key
-    :return: key represented as relative change, absolute change and uid
-    """
-    return f"[{(common_kit.safe_division(graph.diff, graph.sum) * 100): >8.2f}%, {log.format_size(graph.diff)}] {graph.uid}".replace(
-        " ", "&nbsp;"
-    )
-
-
 def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -> None:
     """Generates differences of two profiles as sankey diagram
 
@@ -404,26 +410,10 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         to_sankey_graphs(lhs_profile, rhs_profile, kwargs.get("minimize", False)),
         key=lambda x: x.uid,
     )
-
-    lex_order = [sankey.uid for sankey in sankey_graphs]
-
-    rel_keys = [
-        (lex_order.index(g.uid), graph_to_key(g))
-        for g in sorted(
-            sankey_graphs,
-            key=lambda x: (common_kit.safe_division(x.diff, x.sum), x.diff),
-            reverse=True,
-        )
+    selection_table = [
+        SelectionRow(g.uid, i, g.diff, common_kit.safe_division(g.diff, g.sum) * 100)
+        for (i, g) in enumerate(sankey_graphs)
     ]
-    abs_keys = [
-        (lex_order.index(g.uid), graph_to_key(g))
-        for g in sorted(
-            sankey_graphs,
-            key=lambda x: (x.diff, common_kit.safe_division(x.diff, x.sum)),
-            reverse=True,
-        )
-    ]
-    lex_keys = [(i, graph_to_key(g)) for (i, g) in enumerate(sankey_graphs)]
 
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
     template = env.get_template("diff_view_sankey.html.jinja2")
@@ -434,9 +424,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         rhs_tag="Target (tgt)",
         rhs_header=flamegraph_run.generate_header(rhs_profile),
         sankey_graphs=sankey_graphs,
-        uids_abs=abs_keys,
-        uids_rel=rel_keys,
-        uids_lex=lex_keys,
+        selection_table=selection_table,
         palette=ColorPalette,
     )
     log.minor_success("Difference sankey", "generated")
