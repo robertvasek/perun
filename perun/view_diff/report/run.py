@@ -106,16 +106,42 @@ class TraceInfo:
         raise TypeError("Cannot compare TraceInfo with other types.")
 
 
+def construct_filters(kwargs: dict[str, Any]) -> list[tuple[str, str]]:
+    """Constructs list of filters for filtering the dataframe
+
+    :param kwargs: arguments from command line
+    :return: list of callable functions on pandas series
+    """
+    return [
+        ("ncalls", f"ncalls > {kwargs.get('filter_by_calls', 1)}"),
+        (
+            "Total Inclusive T [ms]",
+            f"`Total Inclusive T [ms]` > {kwargs.get('filter_by_time', 0.01)}",
+        ),
+        (
+            "Total Exclusive T [ms]",
+            f"`Total Exclusive T [ms]` > {kwargs.get('filter_by_time', 0.01)}",
+        ),
+    ]
+
+
 def profile_to_data(
-    profile: Profile, classifier: traces_kit.TraceClassifier
+    profile: Profile,
+    classifier: traces_kit.TraceClassifier,
+    filters: list[tuple[str, str]],
 ) -> tuple[list[TableRecord], list[str]]:
     """Converts profile to list of columns and list of list of values
 
     :param profile: converted profile
     :param classifier: classifier used for classification of traces
+    :param filters: list of filters for filtering the data
     :return: list of columns and list of rows and list of selectable types
     """
     df = convert.resources_to_pandas_dataframe(profile)
+    applicable_filters = " & ".join(f[1] for f in filters if f[0] in df.columns)
+    if applicable_filters:
+        log.minor_status("Applying filters", f"{log.highlight(applicable_filters)}")
+        df = df.query(applicable_filters)
 
     # Convert traces to some trace objects
     trace_info_map = {}
@@ -167,14 +193,15 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
     :param rhs_profile: target profile
     :param kwargs: other parameters
     """
+    filters = construct_filters(kwargs)
     classifier = traces_kit.TraceClassifier(
         strategy=traces_kit.ClassificationStrategy(kwargs.get("classify_traces_by", "identity")),
         threshold=0.5,
     )
     log.major_info("Generating HTML Report", no_title=True)
-    lhs_data, lhs_types = profile_to_data(lhs_profile, classifier)
+    lhs_data, lhs_types = profile_to_data(lhs_profile, classifier, filters)
     log.minor_success("Baseline data", "generated")
-    rhs_data, rhs_types = profile_to_data(rhs_profile, classifier)
+    rhs_data, rhs_types = profile_to_data(rhs_profile, classifier, filters)
     log.minor_success("Target data", "generated")
     # TODO: Remake obtaining of the unit somehow
     data_types = diff_kit.get_candidate_keys(set(lhs_types).union(set(rhs_types)))
@@ -218,6 +245,23 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
     "(default=identity)",
     type=click.Choice(["identity", "best-fit", "first-fit"]),
     default="identity",
+)
+@click.option(
+    "-fc",
+    "--filter-by-calls",
+    nargs=1,
+    help="Filters records that have less or equal calls than [INT] (default=1)",
+    type=click.INT,
+    default=1,
+)
+@click.option(
+    "-ft",
+    "--filter-by-time",
+    nargs=1,
+    help="Filters records based on the 'Total {Inclusive,Exclusive} Time T [ms]' column. "
+    "It filters values that are lesser or equal than [FLOAT] (default=0.1).",
+    type=click.FLOAT,
+    default=0.1,
 )
 @click.pass_context
 def report(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
