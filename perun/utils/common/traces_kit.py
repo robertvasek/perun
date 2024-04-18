@@ -27,6 +27,7 @@ class ClassificationStrategy(Enum):
 
     FIRST_FIT = "first-fit"
     BEST_FIT = "best-fit"
+    IDENTITY = "identity"
 
 
 DEFAULT_THRESHOLD: float = 2.0
@@ -129,6 +130,8 @@ class TraceClassifierLayer:
             self.find_cluster: Callable[
                 [TraceClusterMember], TraceCluster
             ] = self.find_first_fit_cluster_for
+        elif strategy == ClassificationStrategy.IDENTITY:
+            self.find_cluster: Callable[[TraceClusterMember], TraceCluster] = self.find_identity_for
         else:
             assert strategy == ClassificationStrategy.BEST_FIT
             self.find_cluster: Callable[  # type: ignore
@@ -159,6 +162,17 @@ class TraceClassifierLayer:
         :return: classification of the traces
         """
         return self.find_cluster(trace_member)
+
+    def find_identity_for(self, trace_member: TraceClusterMember) -> TraceCluster:
+        """Always creates new cluster for trace
+
+        :param trace_member: trace which we are classifying
+        :return: classification of the traces
+        """
+        new_cluster = TraceCluster(trace_member)
+        self.clusters.append(new_cluster)
+        trace_member.parent = new_cluster
+        return new_cluster
 
     def find_first_fit_cluster_for(self, trace_member: TraceClusterMember) -> TraceCluster:
         """Finds first suitable cluster for the given trace

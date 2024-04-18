@@ -168,7 +168,8 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
     :param kwargs: other parameters
     """
     classifier = traces_kit.TraceClassifier(
-        strategy=traces_kit.ClassificationStrategy.BEST_FIT, threshold=0.5
+        strategy=traces_kit.ClassificationStrategy(kwargs.get("classify_traces_by", "identity")),
+        threshold=0.5,
     )
     log.major_info("Generating HTML Report", no_title=True)
     lhs_data, lhs_types = profile_to_data(lhs_profile, classifier)
@@ -207,6 +208,17 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
 
 @click.command()
 @click.option("-o", "--output-file", help="Sets the output file (default=automatically generated).")
+@click.option(
+    "-c",
+    "--classify-traces-by",
+    help="Classifies the traces by selected classifier. "
+    "One of: 1) identity (each uid is classified to its own cluster); "
+    "2) best-fit (each uid is classified to best cluster); "
+    "3) first-fit (each uid is classified to first suitable cluster). "
+    "(default=identity)",
+    type=click.Choice(["identity", "best-fit", "first-fit"]),
+    default="identity",
+)
 @click.pass_context
 def report(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
     assert ctx.parent is not None and f"impossible happened: {ctx} has no parent"
