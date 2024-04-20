@@ -53,8 +53,8 @@ class SuccessorStats:
 
     __slots__ = ["baseline", "target"]
 
-    baseline: int
-    target: int
+    baseline: float
+    target: float
 
 
 @dataclass
@@ -187,9 +187,9 @@ def get_sankey_point(sankey_points: dict[str, SankeyNode], key: str) -> SankeyNo
     return sankey_points[key]
 
 
-def process_edge(
+def process_single_edge(
     sankey_map: dict[str, dict[str, SankeyNode]],
-    trace: list[str],
+    key: str,
     profile_type: Literal["baseline", "target"],
     src: str,
     tgt: str,
@@ -200,33 +200,66 @@ def process_edge(
     Increases the valuation of appropriate statistic
 
     :param sankey_map: list of sankey points corresponding to each uid
-    :param trace: list of uid representing the trace
+    :param key: key where sankey points are
     :param profile_type: identification of either baseline or target
     :param src: source id of the edge
     :param tgt: target id of the edge
     :param amount: valuation of the edge
     """
-    for t in trace:
-        sankey_points = sankey_map[t]
-        src_point = get_sankey_point(sankey_points, src)
-        tgt_point = get_sankey_point(sankey_points, tgt)
-        if tgt_point.id not in src_point.succs:
-            src_point.succs[tgt_point.id] = SuccessorStats(0, 0)
-        if src_point.id not in tgt_point.preds:
-            tgt_point.preds[src_point.id] = SuccessorStats(0, 0)
-        if profile_type == "baseline":
-            src_point.succs[tgt_point.id].baseline += amount
-            tgt_point.preds[src_point.id].baseline += amount
-        else:
-            assert profile_type == "target"
-            src_point.succs[tgt_point.id].target += amount
-            tgt_point.preds[src_point.id].target += amount
+    sankey_points = sankey_map[key]
+    src_point = get_sankey_point(sankey_points, src)
+    tgt_point = get_sankey_point(sankey_points, tgt)
+    if tgt_point.id not in src_point.succs:
+        src_point.succs[tgt_point.id] = SuccessorStats(0.0, 0.0)
+    if src_point.id not in tgt_point.preds:
+        tgt_point.preds[src_point.id] = SuccessorStats(0.0, 0.0)
+    if profile_type == "baseline":
+        src_point.succs[tgt_point.id].baseline += amount
+        tgt_point.preds[src_point.id].baseline += amount
+    else:
+        assert profile_type == "target"
+        src_point.succs[tgt_point.id].target += amount
+        tgt_point.preds[src_point.id].target += amount
+
+
+def process_edge(
+    sankey_map: dict[str, dict[str, SankeyNode]],
+    reachability_map: dict[str, set[str]],
+    trace: list[str],
+    profile_type: Literal["baseline", "target"],
+    src: str,
+    tgt: str,
+    amount: int,
+    inclusive_time: bool,
+) -> None:
+    """Creates and edge in each of the sankey graph along the trace
+
+    Increases the valuation of appropriate statistic
+
+    :param sankey_map: list of sankey points corresponding to each uid
+    :param reachability_map: map of reachable nodes
+    :param trace: list of uid representing the trace
+    :param profile_type: identification of either baseline or target
+    :param src: source id of the edge
+    :param tgt: target id of the edge
+    :param amount: valuation of the edge
+    :param inclusive_time: whether the times should be distributed through whole trace
+    """
+    if inclusive_time:
+        for t in trace:
+            process_single_edge(sankey_map, t, profile_type, src, tgt, amount)
+    else:
+        for reachable in reachability_map["->".join(trace)].union(set(trace)):
+            process_single_edge(sankey_map, reachable, profile_type, src, tgt, amount)
 
 
 def process_traces(
     profile: Profile,
     sankey_map: dict[str, dict[str, SankeyNode]],
+    reachability_map: dict[str, set[str]],
     profile_type: Literal["baseline", "target"],
+    source_key: str,
+    inclusive_traces: bool,
 ) -> None:
     """Processes all traces in the profile
 
@@ -235,7 +268,11 @@ def process_traces(
 
     :param profile: input profile
     :param sankey_map: output sankey map with sankey nodes
+    :param reachability_map: set of nodes reachable for each node
     :param profile_type: type of the profile
+    :param source_key: key that is used to extract the amount
+        edge for all pairs in traces.
+    :param inclusive_traces: whether traces should be inclusively distributed or not
     """
     for _, resource in progressbar.progressbar(profile.all_resources()):
         trace_len = len(resource["trace"])
@@ -243,14 +280,46 @@ def process_traces(
             convert.to_uid(resource["uid"])
         ]
         if trace_len > 0:
-            amount = int(resource["amount"])
-            for i in range(0, trace_len - 1):
-                src = f"{full_trace[i]}#{i}"
-                tgt = f"{full_trace[i + 1]}#{i + 1}"
-                process_edge(sankey_map, full_trace, profile_type, src, tgt, amount)
-            src = f"{full_trace[-2]}#{trace_len - 1}"
-            tgt = f"{full_trace[-1]}"
-            process_edge(sankey_map, full_trace, profile_type, src, tgt, amount)
+            amount = float(resource[source_key])
+            if inclusive_traces:
+                for i in range(0, trace_len - 1):
+                    src = f"{full_trace[i]}#{i}"
+                    tgt = f"{full_trace[i + 1]}#{i + 1}"
+                    process_edge(
+                        sankey_map,
+                        reachability_map,
+                        full_trace,
+                        profile_type,
+                        src,
+                        tgt,
+                        amount,
+                        inclusive_traces,
+                    )
+                src = f"{full_trace[-2]}#{trace_len - 1}"
+                tgt = f"{full_trace[-1]}"
+                process_edge(
+                    sankey_map,
+                    reachability_map,
+                    full_trace,
+                    profile_type,
+                    src,
+                    tgt,
+                    amount,
+                    inclusive_traces,
+                )
+            else:
+                src = f"{full_trace[-2]}#{trace_len-1}"
+                tgt = f"{full_trace[-1]}#{trace_len}"
+                process_edge(
+                    sankey_map,
+                    reachability_map,
+                    full_trace,
+                    profile_type,
+                    src,
+                    tgt,
+                    amount,
+                    inclusive_traces,
+                )
 
 
 def create_edge(
@@ -370,26 +439,55 @@ def extract_graphs_from_sankey_map(
                         graph.sum += max(value.baseline, value.target)
                         graph.diff += value_diff
 
-        graph.width = max(positions)
-        graph.height = max(positions.count(pos) for pos in set(positions))
+        graph.width = max(positions) if positions else 10
+        graph.height = max(positions.count(pos) for pos in set(positions)) if positions else 10
         sankey_graphs.append(graph)
 
     return sankey_graphs
 
 
+def compute_reachable(profile: Profile, reachability_map: dict[str, set[str]]) -> None:
+    """Computes map for each node a map of forward reachable functions.
+
+    :param profile: profile with data
+    :param reachability_map: map of nodes to their backward or forward reachable nodes
+    """
+    for _, resource in progressbar.progressbar(profile.all_resources()):
+        full_trace = [convert.to_uid(t) for t in resource["trace"]] + [
+            convert.to_uid(resource["uid"])
+        ]
+        for i in range(0, len(full_trace) - 1):
+            reachability_map["->".join(full_trace[: i + 1])].update(full_trace[i + 1 :])
+
+
 def to_sankey_graphs(
-    lhs_profile: Profile, rhs_profile: Profile, minimize: bool = False
+    lhs_profile: Profile,
+    rhs_profile: Profile,
+    minimize: bool = False,
+    source_key: str = "amount",
+    inclusive_traces: bool = False,
 ) -> list[SankeyGraph]:
     """Converts difference of two profiles to sankey format
 
     :param lhs_profile: baseline profile
     :param rhs_profile: target profile
+    :param source_key: key for obtaining the values
     :param minimize: if set to true, then the resulting sankey map will be minimized
+    :param inclusive_traces: if set to true, then the traces should be minimized
     """
     sankey_map: dict[str, dict[str, SankeyNode]] = defaultdict(dict)
+    reachability_map: dict[str, set[str]] = defaultdict(set)
 
-    process_traces(lhs_profile, sankey_map, "baseline")
-    process_traces(rhs_profile, sankey_map, "target")
+    if not inclusive_traces:
+        compute_reachable(lhs_profile, reachability_map)
+        compute_reachable(rhs_profile, reachability_map)
+
+    process_traces(
+        lhs_profile, sankey_map, reachability_map, "baseline", source_key, inclusive_traces
+    )
+    process_traces(
+        rhs_profile, sankey_map, reachability_map, "target", source_key, inclusive_traces
+    )
 
     if minimize:
         sankey_map = minimize_sankey_maps(sankey_map)
@@ -403,11 +501,20 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     :param rhs_profile: target profile
     :param kwargs: additional arguments
     """
+    # We automatically set the value of True for kperf, which samples
+    if lhs_profile.get("collector_info", {}).get("name") == "kperf":
+        kwargs["trace_is_inclusive"] = True
 
     log.major_info("Generating Sankey Graph Difference")
 
     sankey_graphs = sorted(
-        to_sankey_graphs(lhs_profile, rhs_profile, kwargs.get("minimize", False)),
+        to_sankey_graphs(
+            lhs_profile,
+            rhs_profile,
+            kwargs.get("minimize", False),
+            kwargs.get("source_column", "amount"),
+            kwargs.get("trace_is_inclusive", False),
+        ),
         key=lambda x: x.uid,
     )
     selection_table = [
@@ -442,6 +549,21 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     help="Minimizes the sankey grafs by merging non-branching points (default=False).",
     is_flag=True,
     default=False,
+)
+@click.option(
+    "-c",
+    "--source-column",
+    nargs=1,
+    help="Selects column for output of the sankey graph (default=amount).",
+    default="amount",
+)
+@click.option(
+    "-i",
+    "--trace-is-inclusive",
+    is_flag=True,
+    default=False,
+    help="Marks that the amount should be distributed through all of the traces (default=False). "
+    "Note, that for kperf profiles we set this automatically to true.",
 )
 @click.pass_context
 def sankey(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
