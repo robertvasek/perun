@@ -31,6 +31,15 @@ from perun.utils.common import diff_kit, common_kit
 from perun.view_diff.flamegraph import run as flamegraph_run
 
 
+@dataclass
+class Config:
+    __slots__ = ["minimize", "source_key", "inclusive_traces", "edge_threshold"]
+    minimize: bool
+    source_key: str
+    inclusive_traces: bool
+    edge_threshold: float
+
+
 class ColorPalette:
     """ """
 
@@ -193,7 +202,7 @@ def process_single_edge(
     profile_type: Literal["baseline", "target"],
     src: str,
     tgt: str,
-    amount: int,
+    amount: float,
 ) -> None:
     """Creates and edge in each of the sankey graph along the trace
 
@@ -229,8 +238,8 @@ def process_edge(
     profile_type: Literal["baseline", "target"],
     src: str,
     tgt: str,
-    amount: int,
-    inclusive_time: bool,
+    amount: float,
+    cfg: Config,
 ) -> None:
     """Creates and edge in each of the sankey graph along the trace
 
@@ -243,9 +252,9 @@ def process_edge(
     :param src: source id of the edge
     :param tgt: target id of the edge
     :param amount: valuation of the edge
-    :param inclusive_time: whether the times should be distributed through whole trace
+    :param cfg: configuration of the generation
     """
-    if inclusive_time:
+    if cfg.inclusive_traces:
         for t in trace:
             process_single_edge(sankey_map, t, profile_type, src, tgt, amount)
     else:
@@ -258,8 +267,7 @@ def process_traces(
     sankey_map: dict[str, dict[str, SankeyNode]],
     reachability_map: dict[str, set[str]],
     profile_type: Literal["baseline", "target"],
-    source_key: str,
-    inclusive_traces: bool,
+    cfg: Config,
 ) -> None:
     """Processes all traces in the profile
 
@@ -270,18 +278,16 @@ def process_traces(
     :param sankey_map: output sankey map with sankey nodes
     :param reachability_map: set of nodes reachable for each node
     :param profile_type: type of the profile
-    :param source_key: key that is used to extract the amount
-        edge for all pairs in traces.
-    :param inclusive_traces: whether traces should be inclusively distributed or not
+    :param cfg: configuration of the generation
     """
     for _, resource in progressbar.progressbar(profile.all_resources()):
         trace_len = len(resource["trace"])
         full_trace = [convert.to_uid(t) for t in resource["trace"]] + [
             convert.to_uid(resource["uid"])
         ]
-        if trace_len > 0:
-            amount = float(resource[source_key])
-            if inclusive_traces:
+        amount = float(resource[cfg.source_key])
+        if trace_len > 0 and amount > cfg.edge_threshold:
+            if cfg.inclusive_traces:
                 for i in range(0, trace_len - 1):
                     src = f"{full_trace[i]}#{i}"
                     tgt = f"{full_trace[i + 1]}#{i + 1}"
@@ -293,7 +299,7 @@ def process_traces(
                         src,
                         tgt,
                         amount,
-                        inclusive_traces,
+                        cfg,
                     )
                 src = f"{full_trace[-2]}#{trace_len - 1}"
                 tgt = f"{full_trace[-1]}"
@@ -305,7 +311,7 @@ def process_traces(
                     src,
                     tgt,
                     amount,
-                    inclusive_traces,
+                    cfg,
                 )
             else:
                 src = f"{full_trace[-2]}#{trace_len-1}"
@@ -318,7 +324,7 @@ def process_traces(
                     src,
                     tgt,
                     amount,
-                    inclusive_traces,
+                    cfg,
                 )
 
 
@@ -473,36 +479,24 @@ def compute_reachable(profile: Profile, reachability_map: dict[str, set[str]]) -
             reachability_map["->".join(full_trace[: i + 1])].update(full_trace[i + 1 :])
 
 
-def to_sankey_graphs(
-    lhs_profile: Profile,
-    rhs_profile: Profile,
-    minimize: bool = False,
-    source_key: str = "amount",
-    inclusive_traces: bool = False,
-) -> list[SankeyGraph]:
+def to_sankey_graphs(lhs_profile: Profile, rhs_profile: Profile, cfg: Config) -> list[SankeyGraph]:
     """Converts difference of two profiles to sankey format
 
     :param lhs_profile: baseline profile
     :param rhs_profile: target profile
-    :param source_key: key for obtaining the values
-    :param minimize: if set to true, then the resulting sankey map will be minimized
-    :param inclusive_traces: if set to true, then the traces should be minimized
+    :param cfg: configuration of the generation
     """
     sankey_map: dict[str, dict[str, SankeyNode]] = defaultdict(dict)
     reachability_map: dict[str, set[str]] = defaultdict(set)
 
-    if not inclusive_traces:
+    if not cfg.inclusive_traces:
         compute_reachable(lhs_profile, reachability_map)
         compute_reachable(rhs_profile, reachability_map)
 
-    process_traces(
-        lhs_profile, sankey_map, reachability_map, "baseline", source_key, inclusive_traces
-    )
-    process_traces(
-        rhs_profile, sankey_map, reachability_map, "target", source_key, inclusive_traces
-    )
+    process_traces(lhs_profile, sankey_map, reachability_map, "baseline", cfg)
+    process_traces(rhs_profile, sankey_map, reachability_map, "target", cfg)
 
-    if minimize:
+    if cfg.minimize:
         sankey_map = minimize_sankey_maps(sankey_map)
     return extract_graphs_from_sankey_map(sankey_map)
 
@@ -520,14 +514,15 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
 
     log.major_info("Generating Sankey Graph Difference")
 
+    cfg = Config(
+        kwargs.get("minimize", False),
+        kwargs.get("source_column", "amount"),
+        kwargs.get("trace_is_inclusive", False),
+        kwargs.get("filter_edges", 0.0),
+    )
+
     sankey_graphs = sorted(
-        to_sankey_graphs(
-            lhs_profile,
-            rhs_profile,
-            kwargs.get("minimize", False),
-            kwargs.get("source_column", "amount"),
-            kwargs.get("trace_is_inclusive", False),
-        ),
+        to_sankey_graphs(lhs_profile, rhs_profile, cfg),
         key=lambda x: x.uid,
     )
     selection_table = [
@@ -577,6 +572,13 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     default=False,
     help="Marks that the amount should be distributed through all of the traces (default=False). "
     "Note, that for kperf profiles we set this automatically to true.",
+)
+@click.option(
+    "-f",
+    "--filter-edges",
+    default=-1.0,
+    type=click.FLOAT,
+    help="Filters edges smaller than [INT] valuation for both target and baseline (default=0).",
 )
 @click.pass_context
 def sankey(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
