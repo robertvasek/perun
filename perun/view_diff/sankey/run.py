@@ -364,6 +364,22 @@ def relabel_sankey_points(sankey_points: dict[str, SankeyNode]) -> dict[str, San
     return sankey_points
 
 
+def delete_node(point, pred, succ):
+    """Delets point and merges it into its preds an succs
+
+    merges pred -> point -> succ into pred -> succ
+
+    :param point: point we are deleting
+    :param pred: predecessor of the point
+    :param succ: succ of point
+    """
+    pred.succs[succ.id] = pred.succs[point.id]
+    pred.succs.pop(point.id)
+    pred.trace.append(point.uid)
+    succ.preds[pred.id] = succ.preds[point.id]
+    succ.preds.pop(point.id)
+
+
 def minimize_sankey_maps(sankey_map: [str, dict[str, SankeyNode]]) -> [str, dict[str, SankeyNode]]:
     """Merges chains of unbranched code
 
@@ -377,15 +393,12 @@ def minimize_sankey_maps(sankey_map: [str, dict[str, SankeyNode]]) -> [str, dict
             point = sankey_points[key]
             if point.uid != uid:
                 preds, succs = list(point.preds.keys()), list(point.succs.keys())
+                # TODO: Fix that you should compare the stats
                 if len(preds) == 1 and len(succs) == 1:
                     pred, succ = id_to_point[preds[0]], id_to_point[succs[0]]
                     if len(pred.succs) == 1 and len(succ.preds) == 1:
                         # Merging a -> b -> c into ab -> c
-                        pred.succs[succ.id] = pred.succs[point.id]
-                        pred.succs.pop(point.id)
-                        pred.trace.append(point.uid)
-                        succ.preds[pred.id] = succ.preds[point.id]
-                        succ.preds.pop(point.id)
+                        delete_node(point, pred, succ)
                         continue
             minimal_sankey_points[key] = point
         minimal_sankey_map[uid] = relabel_sankey_points(minimal_sankey_points)
@@ -410,7 +423,7 @@ def extract_graphs_from_sankey_map(
             if "#" in point.tag:
                 positions.append(int(point.tag.split("#")[-1]))
             graph.label.append(
-                point.uid if len(point.trace) == 1 else f"{point.uid}...{point.trace[-1]}"
+                point.uid if len(point.trace) == 1 else f"{point.uid}⇢{point.trace[-1]}"
             )
             graph.customdata.append([point.tag, "<br>↧<br>".join(point.trace)])
             graph.node_colors.append(
