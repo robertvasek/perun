@@ -164,6 +164,80 @@
         selected_uid_text = "",
         plot = document.getElementById('sankey_graph');
 
+    // Selection table
+    let table = {
+        "data": [
+            {% for val in selection_table %}
+                {
+                    "uid": "{{ val.uid }}",
+                    "index": "{{ val.index }}",
+                    "abs": "{{ val.abs_amount }}",
+                    "rel": "{{ val.rel_amount }}"
+                },
+            {%- endfor %}
+        ]
+    };
+    let selection_table = $("#table").DataTable({
+        data: table.data,
+        columns: [
+            { data: "uid" },
+            {
+                data: "abs",
+                className: "dt-body-right",
+                render: function (data, type) {
+                    if (type === 'display') {
+                        const floatValue = parseFloat(data);
+                        const intValue = parseInt(data);
+                        if (!isNaN(intValue) && intValue.toString() === data) {
+                            let formatted_int= intValue.toLocaleString();
+                            return `${formatted_int}`;
+                        } else if(!isNaN(floatValue) && floatValue.toString() === data) {
+                            let formatted_float = floatValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            return `${formatted_float}`;
+                        } else {
+                            return data;
+                        }
+                    }
+
+                    return data;
+                },
+            },
+            { data: "rel" },
+            { data: "index", visible: false},
+        ],
+        order: [[2, "desc"]],
+        iDisplayLength: 5,
+        select: true
+    })
+
+    // Graph data
+    let graphs = [
+        {% for graph in sankey_graphs %}
+            {
+                label: {{ graph.label }},
+                customdata: {{ graph.customdata}},
+                node_colors: {{ graph.node_colors }},
+                link: {
+                    merged: {
+                        source: {{ graph.linkage["merged"].source }},
+                        target: {{ graph.linkage["merged"].target }},
+                        value: {{ graph.linkage["merged"].value }},
+                        color: {{ graph.linkage["merged"].color }},
+                    },
+                    split: {
+                        source: {{ graph.linkage["split"].source }},
+                        target: {{ graph.linkage["split"].target }},
+                        value: {{ graph.linkage["split"].value }},
+                        color: {{ graph.linkage["split"].color }},
+                    }
+                },
+                height: {{ graph.height }},
+                width: {{ graph.width }},
+                min: {{ graph.min }},
+                max: {{ graph.max }},
+            },
+        {%- endfor %}
+    ]
     {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
     {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
     {{ widgets.add_to_chip_list() }}
@@ -322,142 +396,6 @@
         return reachableEdges;
     }
 
-    let table = {
-        "data": [
-            {% for val in selection_table %}
-                {
-                    "uid": "{{ val.uid }}",
-                    "index": "{{ val.index }}",
-                    "abs": "{{ val.abs_amount }}",
-                    "rel": "{{ val.rel_amount }}"
-                },
-            {%- endfor %}
-        ]
-    };
-    let selection_table = $("#table").DataTable({
-        data: table.data,
-        columns: [
-            { data: "uid" },
-            {
-                data: "abs",
-                className: "dt-body-right",
-                render: function (data, type) {
-                    if (type === 'display') {
-                        const floatValue = parseFloat(data);
-                        const intValue = parseInt(data);
-                        if (!isNaN(intValue) && intValue.toString() === data) {
-                            let formatted_int= intValue.toLocaleString();
-                            return `${formatted_int}`;
-                        } else if(!isNaN(floatValue) && floatValue.toString() === data) {
-                            let formatted_float = floatValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                            return `${formatted_float}`;
-                        } else {
-                            return data;
-                        }
-                    }
-
-                    return data;
-                },
-            },
-            { data: "rel" },
-            { data: "index", visible: false},
-        ],
-        order: [[2, "desc"]],
-        iDisplayLength: 5,
-        select: true
-    })
-
-    selection_table.on('click', 'tbody tr', (el) => {
-        let classList = el.currentTarget.classList;
-
-        if (classList.contains('selected')) {
-            classList.remove('selected');
-        } else {
-            selection_table.rows('.selected').nodes().each((row) => row.classList.remove('selected'));
-            classList.add('selected');
-        }
-    })
-
-    selection_table.on('select', function(e, dt, type, indexes) {
-        if (type === 'row') {
-            let data = selection_table.rows(indexes).data();
-            if (data.length > 0) {
-                selected_uid = data[0].index;
-                selected_uid_text = data[0].uid + "(" + data[0].rel + ", " + data[0].abs + ")";
-
-                reselectData();
-                filterEdges();
-                newplot();
-            }
-        }
-    })
-
-
-    let graphs = [
-    {% for graph in sankey_graphs %}
-        {
-            label: {{ graph.label }},
-            customdata: {{ graph.customdata}},
-            node_colors: {{ graph.node_colors }},
-            link: {
-                merged: {
-                    source: {{ graph.linkage["merged"].source }},
-                    target: {{ graph.linkage["merged"].target }},
-                    value: {{ graph.linkage["merged"].value }},
-                    color: {{ graph.linkage["merged"].color }},
-                },
-                split: {
-                    source: {{ graph.linkage["split"].source }},
-                    target: {{ graph.linkage["split"].target }},
-                    value: {{ graph.linkage["split"].value }},
-                    color: {{ graph.linkage["split"].color }},
-                }
-            },
-            height: {{ graph.height }},
-            width: {{ graph.width }},
-            min: {{ graph.min }},
-            max: {{ graph.max }},
-        },
-    {%- endfor %}
-    ]
-
-    document.querySelectorAll('input[name="positions"]').forEach((button) => {
-       button.addEventListener('change', () => {
-          if (button.checked) {
-              data[0].orientation = getPosition();
-              render();
-          }
-       });
-    });
-
-    document.querySelectorAll('input[name="modes"]').forEach((button) => {
-        button.addEventListener('change', () => {
-            if (button.checked) {
-                data[0].arrangement = getMode();
-                render();
-            }
-        });
-    });
-
-    document.querySelectorAll('input[name="edge_modes"]').forEach((button) => {
-        button.addEventListener('change', () => {
-            if (button.checked) {
-                reselectData();
-                filterEdges();
-                newplot();
-            }
-            let merged_edges_checkboxes = document.getElementById('shown_merged_edges'),
-                split_edges_checkboxes = document.getElementById('shown_split_edges'),
-                edge_mode = getEdgeMode();
-            if (edge_mode === "merged") {
-                merged_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = false;})
-                split_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
-            } else if (edge_mode === "split") {
-                split_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = false;})
-                merged_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
-            }
-        });
-    });
 
     function restoreEdges() {
         data[0].link = {
@@ -567,25 +505,6 @@
         }
     }
 
-    document.querySelector('input[name="labels"]').addEventListener('change', function() {
-        if (isChecked('labels')) {
-            annotateEdges();
-        } else {
-            clearAnnotations();
-        }
-    });
-    document.querySelector('input[name="incr"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="decr"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="base"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
-    document.querySelector('#fromSlider').addEventListener('change', filterEdges);
-    document.querySelector('#toSlider').addEventListener('change', filterEdges);
-
-    document.getElementById('shown_split_edges').querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
-
-    newplot()
-
     function refreshHandlers() {
         plot.on('plotly_afterplot', function () {
             annotateEdges();
@@ -609,6 +528,88 @@
             filterEdges();
         });
     }
+
+    // Event handlers
+    selection_table.on('click', 'tbody tr', (el) => {
+        let classList = el.currentTarget.classList;
+
+        if (classList.contains('selected')) {
+            classList.remove('selected');
+        } else {
+            selection_table.rows('.selected').nodes().each((row) => row.classList.remove('selected'));
+            classList.add('selected');
+        }
+    })
+
+    selection_table.on('select', function(e, dt, type, indexes) {
+        if (type === 'row') {
+            let data = selection_table.rows(indexes).data();
+            if (data.length > 0) {
+                selected_uid = data[0].index;
+                selected_uid_text = data[0].uid + "(" + data[0].rel + ", " + data[0].abs + ")";
+
+                reselectData();
+                filterEdges();
+                newplot();
+            }
+        }
+    })
+
+    document.querySelectorAll('input[name="positions"]').forEach((button) => {
+        button.addEventListener('change', () => {
+            if (button.checked) {
+                data[0].orientation = getPosition();
+                render();
+            }
+        });
+    });
+
+    document.querySelectorAll('input[name="modes"]').forEach((button) => {
+        button.addEventListener('change', () => {
+            if (button.checked) {
+                data[0].arrangement = getMode();
+                render();
+            }
+        });
+    });
+
+    document.querySelectorAll('input[name="edge_modes"]').forEach((button) => {
+        button.addEventListener('change', () => {
+            if (button.checked) {
+                reselectData();
+                filterEdges();
+                newplot();
+            }
+            let merged_edges_checkboxes = document.getElementById('shown_merged_edges'),
+                split_edges_checkboxes = document.getElementById('shown_split_edges'),
+                edge_mode = getEdgeMode();
+            if (edge_mode === "merged") {
+                merged_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = false;})
+                split_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
+            } else if (edge_mode === "split") {
+                split_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = false;})
+                merged_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
+            }
+        });
+    });
+    document.querySelector('input[name="labels"]').addEventListener('change', function() {
+        if (isChecked('labels')) {
+            annotateEdges();
+        } else {
+            clearAnnotations();
+        }
+    });
+    document.querySelector('input[name="incr"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="decr"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="base"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
+    document.querySelector('#fromSlider').addEventListener('change', filterEdges);
+    document.querySelector('#toSlider').addEventListener('change', filterEdges);
+
+    document.getElementById('shown_split_edges').querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
+
+    newplot()
 </script>
 
 </body>
