@@ -59,7 +59,6 @@
             font-weight: bold;
         }
         {{ profile_overview.css_style() }}
-        {{ widgets.chip_list_style() }}
         {{ widgets.range_picker_style() }}
 
         #label_base {
@@ -108,7 +107,7 @@
             <table>
                 <tbody>
                     {{ widgets.radios([('v', 'Vertical'), ('h', 'Horizontal')], 'position_radios', 'positions', 'Orientation') }}
-                    {{ widgets.radios([('snap', 'Reorder'), ('fixed', 'Select')], 'mode_radios', 'modes', 'Mode') }}
+                    {{ widgets.radios([('fixed', 'Select'), ('snap', 'Reorder')], 'mode_radios', 'modes', 'Mode') }}
                     {{ widgets.radios([('merged', 'Merged'), ('split', 'Split')], 'edge_mode_radios', 'edge_modes', 'Edges') }}
                 </tbody>
             </table>
@@ -132,7 +131,7 @@
 </div>
 
 <script>
-    let data = [{
+    let sankey_data = [{
         type: "sankey",
         arrangement: getMode(),
         orientation: getPosition(),
@@ -144,21 +143,25 @@
                 width: 1
             },
             label: [],
+            color: [],
+            customdata: []
         },
         link: {
             source: [],
             target: [],
             value: [],
-            color: []
+            color: [],
+            customdata: []
         }
         }],
-        filtered_nodes = [],
+        shown_nodes = [],
         steps = [1],
         layout = {
             title: "",
             font: {
                 size: 14
             },
+            height: 600,
         },
         selected_uid = -1,
         selected_uid_text = "",
@@ -211,300 +214,141 @@
     })
 
     // Graph data
-    let graphs = [
-            {
-            },
-    ]
+    {% autoescape off %}
+    let succ_graph = {{ succ_graph }}
+    let pred_graph = {{ pred_graph }}
+    let nodes = {{ nodes }}
+    let stats = {{ stats }}
+    let node_map = {{ node_map }}
+    {% endautoescape %}
 
     {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
     {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
-    {{ widgets.add_to_chip_list() }}
     {{ widgets.checkbox_handler() }}
     {{ widgets.get_radio_handler('getPosition', 'positions') }}
     {{ widgets.get_radio_handler('getMode', 'modes') }}
     {{ widgets.get_radio_handler('getEdgeMode', 'edge_modes') }}
     {{ widgets.range_handlers() }}
 
-    function getData(index) {
-        let data = {
-            type: "sankey",
-            arrangement: getMode(),
-            orientation: getPosition(),
-            node: {
-                pad: 15,
-                thickness: 20,
-                line: {
-                    color: "black",
-                    width: 1
-                },
-                label: graphs[index].label.slice(),
-                color: graphs[index].node_colors.slice(),
-                customdata: graphs[index].customdata.slice(),
-                hovertemplate: '%{customdata[1]}<extra>%{value}</extra>',
-                hoverlabel: {
-                    align: "left"
-                }
-            },
-            link: {
-                source: graphs[index].link[getEdgeMode()].source.slice(),
-                target: graphs[index].link[getEdgeMode()].target.slice(),
-                value: graphs[index].link[getEdgeMode()].value.slice(),
-                color: graphs[index].link[getEdgeMode()].color.slice()
-            }
-        }
-        return [data]
-    }
-
-    function reselectData() {
-        if (selected_uid === -1)
-            return
-        data = getData(selected_uid);
-        filtered_nodes = [];
-        steps = Array.from(new Set(data[0].link.value)).sort((a, b) => a - b);
-        layout = {
-            title: selected_uid_text,
-            font: {
-                size: 14
-            },
-            height: 200 + graphs[selected_uid].width* 100,
-        };
-
-        let fromSlider = document.getElementById('fromSlider');
-        let toSlider = document.getElementById('toSlider');
-
-        fromSlider.min = graphs[selected_uid].min;
-        fromSlider.max = graphs[selected_uid].max + 1;
-        fromSlider.value = graphs[selected_uid].min;
-        toSlider.min = graphs[selected_uid].min;
-        toSlider.max = graphs[selected_uid].max + 1;
-        toSlider.value = graphs[selected_uid].max;
-
-        let fromInput = document.getElementById('fromInput');
-        let toInput = document.getElementById('toInput');
-
-        setInput(fromInput, graphs[selected_uid].min);
-        setInput(toInput, graphs[selected_uid].max);
-
-        fillSlider(fromSlider, toSlider, '#C6C6C6', '#25daa5', toSlider);
-    }
-
     function render() {
-        Plotly.react('sankey_graph', data, layout);
-        annotateEdges();
+        Plotly.react('sankey_graph', sankey_data, layout);
     }
 
     function newplot() {
-        Plotly.newPlot('sankey_graph', data, layout);
-        annotateEdges();
+        Plotly.newPlot('sankey_graph', sankey_data, layout);
         refreshHandlers();
-    }
-
-    function backwardReachableEdges(nodes, source, target) {
-        // Create a set of reachable nodes
-        const reachable = new Set(nodes);
-
-        // Initialize a queue with the initial nodes
-        const queue = [...nodes];
-
-        // Create an object to store visited edges
-        const visited = {};
-
-        // Initialize an array to store reachable edges
-        const reachableEdges = [];
-
-        // Perform BFS
-        while (queue.length > 0) {
-            const currentNode = queue.shift();
-
-            // Find all edges connected to the current node
-            for (let i = 0; i < source.length; i++) {
-                if (target[i] === currentNode && !visited[i]) {
-                    visited[i] = true;
-                    const nextNode = source[i];
-
-                    // Check if the next node is reachable
-                    if (!reachable.has(nextNode)) {
-                        reachable.add(nextNode);
-                        queue.push(nextNode);
-                    }
-
-                    // Add the edge to the list of reachable edges
-                    reachableEdges.push(i);
-                }
-            }
-        }
-
-        return reachableEdges;
-    }
-    function forwardReachableEdges(nodes, source, target) {
-        // Create a set of reachable nodes
-        const reachable = new Set(nodes);
-
-        // Initialize a queue with the initial nodes
-        const queue = [...nodes];
-
-        // Create an object to store visited edges
-        const visited = {};
-
-        // Initialize an array to store reachable edges
-        const reachableEdges = [];
-
-        // Perform BFS
-        while (queue.length > 0) {
-            const currentNode = queue.shift();
-
-            // Find all edges connected to the current node
-            for (let i = 0; i < source.length; i++) {
-                if (source[i] === currentNode && !visited[i]) {
-                    visited[i] = true;
-                    const nextNode = target[i];
-
-                    // Check if the next node is reachable
-                    if (!reachable.has(nextNode)) {
-                        reachable.add(nextNode);
-                        queue.push(nextNode);
-                    }
-
-                    // Add the edge to the list of reachable edges
-                    reachableEdges.push(i);
-                }
-            }
-        }
-
-        return reachableEdges;
-    }
-
-
-    function restoreEdges() {
-        data[0].link = {
-            source: graphs[selected_uid].link[getEdgeMode()].source.slice(),
-            target: graphs[selected_uid].link[getEdgeMode()].target.slice(),
-            value: graphs[selected_uid].link[getEdgeMode()].value.slice(),
-            color: graphs[selected_uid].link[getEdgeMode()].color.slice()
-        }
-    }
-
-    function filterEdgesByValue() {
-        const fromInput = document.querySelector('#fromInput').value;
-        const toInput = document.querySelector('#toInput').value;
-        for (let i = data[0].link.color.length - 1; i >= 0; i--) {
-            if (data[0].link.value[i] > toInput || data[0].link.value[i] < fromInput) {
-                data[0].link.source.splice(i, 1);
-                data[0].link.target.splice(i, 1);
-                data[0].link.value.splice(i, 1);
-                data[0].link.color.splice(i, 1);
-            }
-        }
-    }
-
-    function filterEdgesByReachable() {
-        if (filtered_nodes.length !== 0) {
-            fwdEdges = forwardReachableEdges(filtered_nodes, data[0].link.source, data[0].link.target);
-            let s = [], t = [], v = [], c = [];
-            for (let i = data[0].link.color.length - 1; i >= 0; i--) {
-                s.push(data[0].link.source[fwdEdges[i]]);
-                t.push(data[0].link.target[fwdEdges[i]]);
-                v.push(data[0].link.value[fwdEdges[i]]);
-                c.push(data[0].link.color[fwdEdges[i]]);
-            }
-            data[0].link.source = s;
-            data[0].link.target = t;
-            data[0].link.value = v;
-            data[0].link.color = c;
-        }
-    }
-
-    function filterEdgesByColor(color) {
-        for (let i = data[0].link.color.length - 1; i >= 0; i--) {
-            if (data[0].link.color[i] === color) {
-                data[0].link.source.splice(i, 1);
-                data[0].link.target.splice(i, 1);
-                data[0].link.value.splice(i, 1);
-                data[0].link.color.splice(i, 1);
-            }
-        }
-    }
-
-    function filterEdges() {
-        restoreEdges()
-        let mode = getEdgeMode();
-
-        if (mode === "split") {
-            if (!isChecked("incr")) {
-                filterEdgesByColor("{{ palette.NotInBaseline }}")
-            }
-            if (!isChecked("decr")) {
-                filterEdgesByColor("{{ palette.NotInTarget }}")
-            }
-            if (!isChecked("both")) {
-                filterEdgesByColor("{{ palette.InBoth }}")
-            }
-        } else if (mode === "merged") {
-            if(!isChecked("base")) {
-                filterEdgesByColor("{{ palette.Baseline }}")
-            }
-            if(!isChecked("target")) {
-                filterEdgesByColor("{{ palette.Target }}")
-            }
-        }
-        filterEdgesByValue();
-        filterEdgesByReachable();
-        render();
-    }
-
-    function clearAnnotations() {
-        const annotations = document.querySelectorAll('.sankey-annotation');
-        annotations.forEach(annotation => {
-            annotation.remove()
-        });
-    }
-
-    function annotateEdges() {
-        clearAnnotations();
-        if (isChecked('labels')) {
-            const paths = document.querySelectorAll('.sankey-link');
-            const edge_mode = getEdgeMode();
-
-            paths.forEach((path, i) => {
-                const bbox = path.getBBox();
-
-                const xMid = bbox.x + bbox.width / 2;
-                const yMid = bbox.y + bbox.height / 2;
-
-                const topLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                topLabel.setAttribute("x", "0");
-                topLabel.setAttribute("y", "0");
-                topLabel.setAttribute("class", "sankey-annotation");
-                topLabel.setAttribute("style", "font-family: 'Impact', sans-serif; font-style: bold; font-size: 10px; fill: rgb(0, 0, 0); fill-opacity: 0.6;")
-                topLabel.setAttribute("transform", `translate(${xMid}, ${yMid}) scale(-1,1) rotate(90)`);
-                topLabel.textContent = formatSize(graphs[selected_uid].link[edge_mode].value[i]);
-                path.parentNode.appendChild(topLabel);
-            })
-        }
     }
 
     function refreshHandlers() {
         plot.on('plotly_afterplot', function () {
-            annotateEdges();
+            //annotateEdges();
         });
         plot.on('plotly_click', function (idata) {
-            filtered_nodes = [];
-            let tagList = document.getElementById('shown_functions');
-            tagList.querySelectorAll('div').forEach((el) => {
-                tagList.removeChild(el);
-            });
-            let tag = idata.points[0].customdata[0];
-            if (tag === undefined)
-                return;
-            for (let i = 0; i < data[0].node.customdata.length; i++) {
-                if (data[0].node.customdata[i][0] === tag) {
-                    filtered_nodes.push(i);
-                    break;
+            for (let i = 0; i < idata.points.length; i++) {
+                clicked = idata.points[i];
+                if (clicked.customdata !== undefined) {
+                    clickedNode = getNode(clicked.customdata.index, clicked.customdata.pos, false);
+                    if (clicked.customdata.hidden) {
+                        addAllEdgesFor(clickedNode, clicked.customdata.pos, pred_graph[clicked.customdata.index][clicked.customdata.pos], false);
+                        addAllEdgesFor(clickedNode, clicked.customdata.pos, succ_graph[clicked.customdata.index][clicked.customdata.pos], true);
+                        sankey_data[0].node.label[clicked.customdata.id] = clicked.customdata.label;
+                        clicked.customdata.hidden = false;
+                    }
                 }
             }
-            addTag('shown_functions', tag);
-            filterEdges();
-        });
+            render();
+        })
+    }
+
+    function filterEdges() {
+        render();
+    }
+
+    // Graph Operations
+    function getNode(node, pos, isroot) {
+        node_len = shown_nodes.length;
+
+        for (let i = 0; i < node_len; i++) {
+            if (shown_nodes[i][0] === node && shown_nodes[i][1] === pos) {
+                return i;
+            }
+        }
+
+        if (isroot) {
+            sankey_data[0].node.color.push("rgba(0, 0, 0, 0.7)");
+            sankey_data[0].node.label.push(nodes[node]);
+            sankey_data[0].node.customdata.push({label: nodes[node], index: node, pos: pos, hidden: false, root: true, id: node_len});
+        } else {
+            sankey_data[0].node.color.push("rgba(0, 0, 0, 0.2)");
+            sankey_data[0].node.label.push("[+]");
+            sankey_data[0].node.customdata.push({label: nodes[node], index: node, pos: pos, hidden: true, root: false, id: node_len});
+        }
+        shown_nodes.push([node, pos])
+        return node_len;
+    }
+
+    function clearGraph() {
+        sankey_data[0].node.label = [];
+        sankey_data[0].node.color = [];
+        sankey_data[0].node.customdata = [];
+        sankey_data[0].link.source = [];
+        sankey_data[0].link.target = [];
+        sankey_data[0].link.value = [];
+        sankey_data[0].link.color = [];
+        sankey_data[0].link.customdata = [];
+        shown_nodes = [];
+    }
+
+    function addToSankey(src, target, val, color, type, edge_stats) {
+        sankey_data[0].link.source.push(src);
+        sankey_data[0].link.target.push(target);
+        sankey_data[0].link.value.push(val);
+        sankey_data[0].link.color.push(color);
+        sankey_data[0].link.customdata.push({stats: edge_stats, type: type})
+    }
+
+    function addEdge(src, target, edge_stats) {
+        // Baseline data
+        let baseline_stat = edge_stats[0], target_stat = edge_stats[2]
+        if (baseline_stat) {
+            addToSankey(src, target, baseline_stat, "rgba(49, 48, 77, 0.4)", "baseline", edge_stats)
+        }
+        if (target_stat) {
+            addToSankey(src, target, target_stat, "rgba(255, 201, 74, 0.4)", "target", edge_stats)
+        }
+        let diff = baseline_stat - target_stat;
+        if (diff > 0) {
+            // Baseline is higher
+            addToSankey(src, target, diff, "rgba(0, 250, 0, 0.4)", "decr", edge_stats);
+            addToSankey(src, target, 0, "rgba(255, 0, 0, 0.4)", "decr", edge_stats);
+            addToSankey(src, target, Math.min(baseline_stat, target_stat), "rgba(0, 0, 255, 0.4)", "decr", edge_stats);
+        } else {
+            addToSankey(src, target, Math.abs(diff), "rgba(250, 0, 0, 0.4)", "decr", edge_stats);
+            addToSankey(src, target, 0, "rgba(0, 250, 0, 0.4)", "decr", edge_stats);
+            addToSankey(src, target, Math.min(baseline_stat, target_stat), "rgba(0, 0, 255, 0.4)", "decr", edge_stats);
+        }
+    }
+
+    function addAllEdgesFor(node, pos, edges, isfwd) {
+        if (edges !== undefined) {
+            for (edge in edges) {
+                if (isfwd) {
+                    addEdge(node, getNode(edge, pos-1, false), stats[edges[edge]]);
+                } else {
+                    addEdge(getNode(edge, pos-1, false), node, stats[edges[edge]]);
+                }
+            }
+        }
+    }
+
+    function addRootNode(index) {
+        // Add node to labels
+        for (let i = 0; i < node_map[index].length; i++) {
+            pos = node_map[index][i];
+            rootNode = getNode(index, pos, true);
+            addAllEdgesFor(rootNode, pos, pred_graph[index][pos], false);
+            addAllEdgesFor(rootNode, pos, succ_graph[index][pos], true);
+        }
     }
 
     // Event handlers
@@ -524,10 +368,10 @@
             let data = selection_table.rows(indexes).data();
             if (data.length > 0) {
                 selected_uid = data[0].index;
-                selected_uid_text = data[0].uid + "(" + data[0].rel + ", " + data[0].abs + ")";
-
-                reselectData();
-                filterEdges();
+                selected_uid_text = data[0].uid;
+                layout.title = selected_uid_text;
+                clearGraph();
+                addRootNode(selected_uid);
                 newplot();
             }
         }
@@ -536,7 +380,7 @@
     document.querySelectorAll('input[name="positions"]').forEach((button) => {
         button.addEventListener('change', () => {
             if (button.checked) {
-                data[0].orientation = getPosition();
+                sankey_data[0].orientation = getPosition();
                 render();
             }
         });
@@ -545,8 +389,8 @@
     document.querySelectorAll('input[name="modes"]').forEach((button) => {
         button.addEventListener('change', () => {
             if (button.checked) {
-                data[0].arrangement = getMode();
-                render();
+                sankey_data[0].arrangement = getMode();
+                newplot();
             }
         });
     });
@@ -554,29 +398,21 @@
     document.querySelectorAll('input[name="edge_modes"]').forEach((button) => {
         button.addEventListener('change', () => {
             if (button.checked) {
-                reselectData();
-                filterEdges();
                 newplot();
             }
             let merged_edges_checkboxes = document.getElementById('shown_merged_edges'),
                 split_edges_checkboxes = document.getElementById('shown_split_edges'),
                 edge_mode = getEdgeMode();
-            if (edge_mode === "merged") {
-                merged_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = false;})
-                split_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
-            } else if (edge_mode === "split") {
-                split_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = false;})
-                merged_edges_checkboxes.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
-            }
         });
     });
     document.querySelector('input[name="labels"]').addEventListener('change', function() {
         if (isChecked('labels')) {
-            annotateEdges();
+
         } else {
-            clearAnnotations();
+
         }
     });
+
     document.querySelector('input[name="incr"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="decr"]').addEventListener('change', filterEdges);
@@ -584,8 +420,6 @@
     document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
     document.querySelector('#fromSlider').addEventListener('change', filterEdges);
     document.querySelector('#toSlider').addEventListener('change', filterEdges);
-
-    document.getElementById('shown_split_edges').querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {checkbox.disabled = true;})
 
     newplot()
 </script>

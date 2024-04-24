@@ -437,4 +437,18 @@ def get_module(module_name: str) -> types.ModuleType:
     return MODULE_CACHE[module_name]
 
 
+def compact_convert_num_to_str(number: int | float, float_precision: int = 2) -> str:
+    """Converts the number to smallest string possible
+
+    :param number: converted number
+    :param float_precision: float precision, i.e. number of decimal places in number
+    """
+    if isinstance(number, int):
+        return str(number)
+    elif number.is_integer():
+        return str(int(number))
+    else:
+        return str(round(number, float_precision))
+
+
 MODULE_CACHE: dict[str, types.ModuleType] = {}
