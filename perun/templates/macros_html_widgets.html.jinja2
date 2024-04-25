@@ -190,6 +190,9 @@ input[type="range"] {
 
 {% macro range_handlers() %}
 function formatSize(size, baseUnit = "") {
+    if (typeof size !== "number") {
+        size = Number(size);
+    }
     let space = baseUnit !== "" ? " " : "";
     let units = ["", "k", "M", "G", "T"];
     for (let unit of units) {

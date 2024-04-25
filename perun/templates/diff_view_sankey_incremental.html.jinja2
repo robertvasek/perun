@@ -297,6 +297,67 @@
         sankey_data[0].link.color = [];
         sankey_data[0].link.customdata = [];
         shown_nodes = [];
+        steps = [];
+    }
+
+    function updateSliders(val) {
+        if (val == 0 || val == 0.0) {
+            return;
+        }
+
+        let fromSlider = document.getElementById('fromSlider');
+        let toSlider = document.getElementById('toSlider');
+
+        let minVal = Math.min(fromSlider.min, val);
+        let maxVal = Math.max(toSlider.max, val);
+
+
+        if (fromSlider.value !== fromSlider.min) {
+            minVal = fromSlider.value
+        }
+        if (toSlider.value !== toSlider.max) {
+            maxVal = toSlider.value
+        }
+
+        if (steps.length === 1) {
+            fromSlider.min = val;
+            fromSlider.value = val;
+            fromSlider.max = val;
+            toSlider.min = val;
+            toSlider.value = val;
+            toSlider.max = val;
+            setInput(fromInput, val);
+            setInput(toInput, val);
+        } else {
+            fromSlider.min = Math.min(fromSlider.min, val);
+            fromSlider.max = Math.max(fromSlider.max, val);
+            fromSlider.value = minVal;
+            toSlider.min = Math.min(toSlider.min, val);
+            toSlider.max = Math.max(toSlider.max, val);
+            toSlider.value = maxVal;
+            setInput(fromInput, minVal);
+            setInput(toInput, maxVal);
+        }
+
+        fillSlider(fromSlider, toSlider, '#C6C6C6', '#25daa5', toSlider);
+    }
+
+    function addToSteps(val) {
+        let low = 0, high = steps.length - 1;
+
+        while (low <= high) {
+            let mid = Math.floor((low + high) / 2);
+            if (steps[mid] === val) {
+                return;
+            } else if(steps[mid] < val) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+
+        steps.splice(low, 0, val);
+        updateSliders(val);
     }
 
     function addToSankey(src, target, val, color, type, edge_stats) {
@@ -305,6 +366,7 @@
         sankey_data[0].link.value.push(val);
         sankey_data[0].link.color.push(color);
         sankey_data[0].link.customdata.push({stats: edge_stats, type: type})
+        addToSteps(val);
     }
 
     function addEdge(src, target, edge_stats) {
@@ -418,6 +480,7 @@
     document.querySelector('input[name="decr"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="base"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
+
     document.querySelector('#fromSlider').addEventListener('change', filterEdges);
     document.querySelector('#toSlider').addEventListener('change', filterEdges);
 
