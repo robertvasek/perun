@@ -149,50 +149,50 @@ class Graph:
             return f"{self.uid_to_id[node.split('#')[0]]}"
         return str(self.uid_to_id[node])
 
-    def get_pred_stats(self, src: str, tgt: str) -> Stats:
-        """Returns stats for predecessors of the src
+    def get_callee_stats(self, src: str, tgt: str) -> Stats:
+        """Returns stats for callees of the src
 
         :param src: source node
-        :param tgt: target predecessor node
+        :param tgt: target callee node
         :return: stats
         """
         # Create node if it does not already exist
         src_node = self.get_node(src)
 
         # Get link if it does not already exist
-        if tgt not in src_node.preds:
+        if tgt not in src_node.callees:
             tgt_node = self.get_node(tgt)
-            src_node.preds[tgt] = Link(tgt_node, Stats())
+            src_node.callees[tgt] = Link(tgt_node, Stats())
 
-        return src_node.preds[tgt].stats
+        return src_node.callees[tgt].stats
 
-    def get_succ_stats(self, src: str, tgt: str) -> Stats:
-        """Returns stats for successors of the src
+    def get_caller_stats(self, src: str, tgt: str) -> Stats:
+        """Returns stats for callers of the src
 
         :param src: source node
-        :param tgt: target successor node
+        :param tgt: target caller node
         :return: stats
         """
         # Create node if it does not already exist
         src_node = self.get_node(src)
 
         # Get link if it does not already exist
-        if tgt not in src_node.succs:
+        if tgt not in src_node.callers:
             tgt_node = self.get_node(tgt)
-            src_node.succs[tgt] = Link(tgt_node, Stats())
+            src_node.callers[tgt] = Link(tgt_node, Stats())
 
-        return src_node.succs[tgt].stats
+        return src_node.callers[tgt].stats
 
-    def to_jinja_string(self, link_type: Literal["succs", "preds"] = "succs") -> str:
+    def to_jinja_string(self, link_type: Literal["callers", "callees"] = "callers") -> str:
         """Since jinja seems to be awfully slow with this, we render the result ourselves
 
         1. Target nodes of "uid#pos" are simplified to "uid", since you can infer pos to be pos+1 of source
         2. Stats are merged together: first half is for baseline, second half is for target
 
-        TODO: switch preds to callers and succs to callees
+        TODO: switch callees to callers and callers to callees
 
-        :param link_type: either succs for successors or pred for predecessors
-        :return string representation of the successor or predecessor relation
+        :param link_type: either callers for callers or callee for callees
+        :return string representation of the caller or callee relation
         """
 
         def comma_control(commas: list[bool], pos: int) -> str:
@@ -215,11 +215,11 @@ class Graph:
                 output += comma_control(commas, 1) + f"{node.get_order()}:" + "{"
                 commas[2] = False
                 for link in node.get_links(link_type).values():
-                    assert link_type == "preds" or int(node.get_order()) + 1 == int(
+                    assert link_type == "callees" or int(node.get_order()) + 1 == int(
                         link.target.get_order()
                     )
                     assert (
-                        link_type == "succs"
+                        link_type == "callers"
                         or int(node.get_order()) == int(link.target.get_order()) + 1
                     )
                     output += comma_control(commas, 2) + f"{self.translate_node(link.target.uid)}:"
@@ -236,32 +236,32 @@ class Node:
     """Single node in sankey graph
 
     :ivar uid: unique identifier of the node (the label)
-    :ivar succs: mapp of positions to edge relation for successors
-    :ivar preds: mapp of positions to edge relation for predecessors
+    :ivar callers: mapp of positions to edge relation for callers
+    :ivar callees: mapp of positions to edge relation for callees
     """
 
-    __slots__ = ["uid", "succs", "preds"]
+    __slots__ = ["uid", "callers", "callees"]
 
     uid: str
-    succs: dict[str, Link]
-    preds: dict[str, Link]
+    callers: dict[str, Link]
+    callees: dict[str, Link]
 
     def __init__(self, uid: str):
         """Initializes the node"""
         self.uid = uid
-        self.succs = {}
-        self.preds = {}
+        self.callers = {}
+        self.callees = {}
 
-    def get_links(self, link_type: Literal["succs", "preds"]) -> dict[str, Link]:
+    def get_links(self, link_type: Literal["callers", "callees"]) -> dict[str, Link]:
         """Returns linkage based on given type
 
-        :param link_type: either successors or predecessors
+        :param link_type: either callers or callees
         :return: linkage of the given ty pe
         """
-        if link_type == "succs":
-            return self.succs
-        assert link_type == "preds"
-        return self.preds
+        if link_type == "callers":
+            return self.callers
+        assert link_type == "callees"
+        return self.callees
 
     def get_order(self) -> int:
         """Gets position/order in the call traces
@@ -339,8 +339,8 @@ def process_edge(
     :param src: caller
     :param tgt: callee
     """
-    src_stats = graph.get_succ_stats(src, tgt)
-    tgt_stats = graph.get_pred_stats(tgt, src)
+    src_stats = graph.get_caller_stats(src, tgt)
+    tgt_stats = graph.get_callee_stats(tgt, src)
     for key in resource:
         amount = common_kit.try_convert(resource[key], [float])
         if amount is None:
@@ -407,8 +407,8 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         rhs_tag="Target (tgt)",
         rhs_header=flamegraph_run.generate_header(rhs_profile),
         palette=ColorPalette,
-        succ_graph=graph.to_jinja_string("succs"),
-        pred_graph=graph.to_jinja_string("preds"),
+        caller_graph=graph.to_jinja_string("callers"),
+        callee_graph=graph.to_jinja_string("callees"),
         stats="["
         + ",".join(
             list(map(itemgetter(0), sorted(list(graph.stats_to_id.items()), key=itemgetter(1))))

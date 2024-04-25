@@ -215,8 +215,8 @@
 
     // Graph data
     {% autoescape off %}
-    let succ_graph = {{ succ_graph }}
-    let pred_graph = {{ pred_graph }}
+    let caller_graph = {{ caller_graph }}
+    let callee_graph = {{ callee_graph }}
     let nodes = {{ nodes }}
     let stats = {{ stats }}
     let node_map = {{ node_map }}
@@ -249,8 +249,8 @@
                 if (clicked.customdata !== undefined) {
                     clickedNode = getNode(clicked.customdata.index, clicked.customdata.pos, false);
                     if (clicked.customdata.hidden) {
-                        addAllEdgesFor(clickedNode, clicked.customdata.pos, pred_graph[clicked.customdata.index][clicked.customdata.pos], false);
-                        addAllEdgesFor(clickedNode, clicked.customdata.pos, succ_graph[clicked.customdata.index][clicked.customdata.pos], true);
+                        addAllEdgesFor(clickedNode, clicked.customdata.pos, callee_graph[clicked.customdata.index][clicked.customdata.pos], false);
+                        addAllEdgesFor(clickedNode, clicked.customdata.pos, caller_graph[clicked.customdata.index][clicked.customdata.pos], true);
                         sankey_data[0].node.label[clicked.customdata.id] = clicked.customdata.label;
                         clicked.customdata.hidden = false;
                     }
@@ -346,8 +346,8 @@
         for (let i = 0; i < node_map[index].length; i++) {
             pos = node_map[index][i];
             rootNode = getNode(index, pos, true);
-            addAllEdgesFor(rootNode, pos, pred_graph[index][pos], false);
-            addAllEdgesFor(rootNode, pos, succ_graph[index][pos], true);
+            addAllEdgesFor(rootNode, pos, callee_graph[index][pos], false);
+            addAllEdgesFor(rootNode, pos, caller_graph[index][pos], true);
         }
     }
 
