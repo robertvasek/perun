@@ -50,11 +50,11 @@
         <tr id="{{ checkbox_id }}">
             <td class="key">{{ header }}:</td>
             {% for checkbox in checkbox_list %}
-                <td>
-                <label id="label_{{ checkbox[0] }}">
-                    <input type="checkbox" name="{{ checkbox[0] }}", value="{{ checkbox[0] }}" checked>{{ checkbox[1] }}
-                </label>
-                </td>
+            <td class="check_option">
+            <label id="label_{{ checkbox[0] }}">
+                <input type="checkbox" name="{{ checkbox[0] }}", value="{{ checkbox[0] }}" checked>{{ checkbox[1] }}
+            </label>
+            </td>
             {%- endfor %}
         </tr>
 {% endmacro %}

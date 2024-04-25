@@ -53,6 +53,9 @@
             text-align: right;
             font-weight: bold;
         }
+        div.tools td.check_option {
+            padding: 1em 0.5em;
+        }
         div.tools td.topkey {
             padding: 1em 0 0;
             text-align: center;
@@ -103,28 +106,15 @@
             </tr>
             </thead>
         </table>
-        <div class="left column">
-            <table>
-                <tbody>
-                    {{ widgets.radios([('v', 'Vertical'), ('h', 'Horizontal')], 'position_radios', 'positions', 'Orientation') }}
-                    {{ widgets.radios([('fixed', 'Select'), ('snap', 'Reorder')], 'mode_radios', 'modes', 'Mode') }}
-                    {{ widgets.radios([('merged', 'Merged'), ('split', 'Split')], 'edge_mode_radios', 'edge_modes', 'Edges') }}
-                </tbody>
-            </table>
-        </div>
-        <div class="right column">
-            <table>
-                <tbody>
-                    <tr>
-                        <td class="key" style="width: 20%;">Threshold:</td>
-                        <td colspan="3">{{ widgets.range_picker() }}</td>
-                    </tr>
-                    {{ widgets.checkboxes([('base', 'Baseline'), ('target', 'Target'), ('labels', 'Labels')], 'shown_merged_edges', 'Show') }}
-                    {{ widgets.checkboxes([('incr', 'Incr (vs base)'), ('both', 'Equal'), ('decr', 'Decr (vs base)')], 'shown_split_edges', 'Show') }}
-                </tbody>
-            </table>
-        </div>
-        {{ widgets.chip_list('shown_functions', 'Filter') }}
+        <table>
+            <tbody>
+                <tr>
+                    <td class="key" style="width: 20%;">Threshold:</td>
+                    <td colspan="6">{{ widgets.range_picker() }}</td>
+                </tr>
+                {{ widgets.checkboxes([('base', 'Baseline'), ('target', 'Target'), ('incr', 'Incr (vs base)'), ('both', 'Equal'), ('decr', 'Decr (vs base)'), ('labels', 'Labels')], 'show_edges', 'Show') }}
+            </tbody>
+        </table>
     </div>
 
    <div id="sankey_graph"><!-- DO NOT CHANGE: SANKEY GRAPH IS RENDERED HERE--></div>
@@ -133,8 +123,8 @@
 <script>
     let sankey_data = [{
         type: "sankey",
-        arrangement: getMode(),
-        orientation: getPosition(),
+        arrangement: "snap",
+        orientation: "v",
         node: {
             pad: 15,
             thickness: 20,
@@ -224,10 +214,8 @@
 
     {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
     {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
+
     {{ widgets.checkbox_handler() }}
-    {{ widgets.get_radio_handler('getPosition', 'positions') }}
-    {{ widgets.get_radio_handler('getMode', 'modes') }}
-    {{ widgets.get_radio_handler('getEdgeMode', 'edge_modes') }}
     {{ widgets.range_handlers() }}
 
     function render() {
@@ -261,6 +249,10 @@
     }
 
     function filterEdges() {
+        edges = sankey_data[0].link;
+        for (let i = 0; i < edges.customdata.length; i++) {
+            edges.value[i] = recomputeValue(edges.customdata[i].type, edges.customdata[i].stats);
+        }
         render();
     }
 
@@ -369,6 +361,25 @@
         addToSteps(val);
     }
 
+    function recomputeValue(stat_type, edge_stats) {
+        if (!isChecked(stat_type))
+            return 0;
+
+        // Baseline data
+        let baseline_stat = edge_stats[0], target_stat = edge_stats[2]
+        if (stat_type === "baseline")
+            return baseline_stat;
+        if (stat_type === "target")
+            return target_stat;
+        let diff = baseline_stat - target_stat;
+        if (stat_type === "decr")
+            return diff > 0 ? Math.abs(diff) : 0;
+        if (stat_type === "incr")
+            return diff <= 0 ? Math.abs(diff) : 0
+        if (stat_type === "both")
+            return Math.min(baseline_stat, target_stat);
+    }
+
     function addEdge(src, target, edge_stats) {
         // Baseline data
         let baseline_stat = edge_stats[0], target_stat = edge_stats[2]
@@ -382,12 +393,12 @@
         if (diff > 0) {
             // Baseline is higher
             addToSankey(src, target, diff, "rgba(0, 250, 0, 0.4)", "decr", edge_stats);
-            addToSankey(src, target, 0, "rgba(255, 0, 0, 0.4)", "decr", edge_stats);
-            addToSankey(src, target, Math.min(baseline_stat, target_stat), "rgba(0, 0, 255, 0.4)", "decr", edge_stats);
+            addToSankey(src, target, 0, "rgba(255, 0, 0, 0.4)", "incr", edge_stats);
+            addToSankey(src, target, Math.min(baseline_stat, target_stat), "rgba(0, 0, 255, 0.4)", "both", edge_stats);
         } else {
-            addToSankey(src, target, Math.abs(diff), "rgba(250, 0, 0, 0.4)", "decr", edge_stats);
+            addToSankey(src, target, Math.abs(diff), "rgba(250, 0, 0, 0.4)", "incr", edge_stats);
             addToSankey(src, target, 0, "rgba(0, 250, 0, 0.4)", "decr", edge_stats);
-            addToSankey(src, target, Math.min(baseline_stat, target_stat), "rgba(0, 0, 255, 0.4)", "decr", edge_stats);
+            addToSankey(src, target, Math.min(baseline_stat, target_stat), "rgba(0, 0, 255, 0.4)", "both", edge_stats);
         }
     }
 
@@ -435,38 +446,11 @@
                 clearGraph();
                 addRootNode(selected_uid);
                 newplot();
+                filterEdges();
             }
         }
     })
 
-    document.querySelectorAll('input[name="positions"]').forEach((button) => {
-        button.addEventListener('change', () => {
-            if (button.checked) {
-                sankey_data[0].orientation = getPosition();
-                render();
-            }
-        });
-    });
-
-    document.querySelectorAll('input[name="modes"]').forEach((button) => {
-        button.addEventListener('change', () => {
-            if (button.checked) {
-                sankey_data[0].arrangement = getMode();
-                newplot();
-            }
-        });
-    });
-
-    document.querySelectorAll('input[name="edge_modes"]').forEach((button) => {
-        button.addEventListener('change', () => {
-            if (button.checked) {
-                newplot();
-            }
-            let merged_edges_checkboxes = document.getElementById('shown_merged_edges'),
-                split_edges_checkboxes = document.getElementById('shown_split_edges'),
-                edge_mode = getEdgeMode();
-        });
-    });
     document.querySelector('input[name="labels"]').addEventListener('change', function() {
         if (isChecked('labels')) {
 
@@ -479,7 +463,7 @@
     document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="decr"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="base"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="both"]').addEventListener('change', filterEdges);
 
     document.querySelector('#fromSlider').addEventListener('change', filterEdges);
     document.querySelector('#toSlider').addEventListener('change', filterEdges);
