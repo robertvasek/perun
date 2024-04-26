@@ -319,7 +319,8 @@
     {{ widgets.range_handlers() }}
 
     function format_row(d) {
-        let result = '<table style="width: 100%;">';
+        let result = '<table id="example" class="display" style="width:100%">';
+        result += "<thead><tr><th>Metric</th><th>Absolute</th><th>Relative</th></tr></thead><tbody>";
         d.stats.forEach((value, index) => {
             result += "<tr>";
             result += '<td style="white-space: pre-wrap">' + value[0] + "</td>";
@@ -327,8 +328,8 @@
             result += '<td style="white-space: pre-wrap">' + value[2] + "</td>";
             result += "</tr>";
         });
-        result += '</table>';
-        return result
+        result += '</tbody></table>';
+        return result;
     }
 
     function render() {
@@ -559,6 +560,7 @@
             tr.addClass('hidden');
         } else {
             row.child(format_row(row.data())).show();
+            new DataTable("#example", {});
             tr.removeClass('hidden');
             tr.addClass('shown');
         }
