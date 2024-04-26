@@ -79,6 +79,18 @@
         #label_decr {
             border-bottom: 5px solid {{ palette.NotInTarget }};
         }
+        tr.shown span.minus {
+            display: block;
+        }
+        tr.shown span.plus {
+            display: none;
+        }
+        tr.hidden span.plus {
+            display: block;
+        }
+        tr.hidden span.minus {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -100,6 +112,7 @@
         <table id="table" class="display" style="width: 100%;">
             <thead>
             <tr>
+                <th></th>
                 <th>Unit</th>
                 <th>Change</th>
                 <th>Metric</th>
@@ -229,6 +242,7 @@
                     "uid": "{{ val.uid }}",
                     "index": "{{ val.index }}",
                     "fresh": "{{ val.fresh }}",
+                    "stats": {{ val.stats}},
                     "type": "{{ val.main_stat }}",
                     "abs": "{{ val.abs_amount }}",
                     "rel": "{{ val.rel_amount }}"
@@ -239,7 +253,17 @@
     let selection_table = $("#table").DataTable({
         data: table.data,
         columns: [
-            { data: "uid" },
+            {
+                className: "details-control",
+                orderable: false,
+                data: null,
+                defaultContent: "",
+                render: function () {
+                    return '<span class="plus">[+]</span><span class="minus">[-]</span>';
+                },
+                width: "15px"
+            },
+            { data: "uid" , className: "details-uid"},
             { data: "fresh" },
             { data: "type" },
             {
@@ -267,9 +291,17 @@
             { data: "index", visible: false},
         ],
         order: [[3, "desc"]],
-        iDisplayLength: 5,
-        select: true
+        iDisplayLength: 10,
+        select: true,
+        createdRow: function( row, data, dataIndex ) {
+            $( row ).addClass('hidden');
+        },
     })
+    selection_table.on('user-select', function (e, dt, type, cell, originalEvent) {
+        if (originalEvent.target.cellIndex === 0 || originalEvent.target.tagName === "SPAN") {
+            e.preventDefault();
+        }
+    });
 
     // Graph data
     {% autoescape off %}
@@ -285,6 +317,19 @@
 
     {{ widgets.checkbox_handler() }}
     {{ widgets.range_handlers() }}
+
+    function format_row(d) {
+        let result = '<table style="width: 100%;">';
+        d.stats.forEach((value, index) => {
+            result += "<tr>";
+            result += '<td style="white-space: pre-wrap">' + value[0] + "</td>";
+            result += '<td style="white-space: pre-wrap">' + value[1] + "</td>";
+            result += '<td style="white-space: pre-wrap">' + value[2] + "</td>";
+            result += "</tr>";
+        });
+        result += '</table>';
+        return result
+    }
 
     function render() {
         Plotly.react('sankey_graph', sankey_data, layout, config);
@@ -333,7 +378,6 @@
         node_len = shown_nodes.length;
 
         for (let i = 0; i < node_len; i++) {
-            console.log(node, pos, shown_nodes);
             if (shown_nodes[i][0] === node && shown_nodes[i][1] === pos) {
                 return i;
             }
@@ -505,16 +549,20 @@
     }
 
     // Event handlers
-    selection_table.on('click', 'tbody tr', (el) => {
-        let classList = el.currentTarget.classList;
+    selection_table.on('click', 'td.details-control', function(el) {
+        var tr = $(this).closest('tr');
+        var row = selection_table.row(tr);
 
-        if (classList.contains('selected')) {
-            classList.remove('selected');
+        if (row.child.isShown()) {
+            row.child.hide();
+            tr.removeClass('shown');
+            tr.addClass('hidden');
         } else {
-            selection_table.rows('.selected').nodes().each((row) => row.classList.remove('selected'));
-            classList.add('selected');
+            row.child(format_row(row.data())).show();
+            tr.removeClass('hidden');
+            tr.addClass('shown');
         }
-    })
+    });
 
     selection_table.on('select', function(e, dt, type, indexes) {
         if (type === 'row') {
