@@ -104,9 +104,10 @@ class Graph:
     :ivar stats_to_id: mapping of stats to unique identifiers
     """
 
-    __slots__ = ["nodes", "uid_to_nodes", "uid_to_id", "stats_to_id"]
+    __slots__ = ["nodes", "uid_to_nodes", "uid_to_id", "stats_to_id", "uid_to_traces"]
 
     nodes: dict[str, Node]
+    uid_to_traces: dict[str, list[list[str]]]
     uid_to_nodes: dict[str, list[Node]]
     uid_to_id: dict[str, int]
     stats_to_id: dict[str, int]
@@ -115,6 +116,7 @@ class Graph:
         """Initializes empty graph"""
         self.nodes = {}
         self.uid_to_nodes = defaultdict(list)
+        self.uid_to_traces = defaultdict(list)
         self.stats_to_id = {}
         self.uid_to_id = {}
 
@@ -349,7 +351,7 @@ def process_edge(
     tgt_stats = graph.get_callee_stats(tgt, src)
     for key in resource:
         amount = common_kit.try_convert(resource[key], [float])
-        if amount is None or key in ("time"):
+        if amount is None or key in ("time",):
             continue
         src_stats.add_stat(profile_type, key, amount)
         tgt_stats.add_stat(profile_type, key, amount)
@@ -381,6 +383,8 @@ def process_traces(
                 src = f"{full_trace[-2]}#{trace_len-2}"
                 tgt = f"{full_trace[-1]}#{trace_len-1}"
                 process_edge(graph, profile_type, resource, src, tgt)
+            for uid in full_trace:
+                graph.uid_to_traces[uid].append(full_trace)
 
 
 def generate_selection(graph: Graph) -> list[SelectionRow]:

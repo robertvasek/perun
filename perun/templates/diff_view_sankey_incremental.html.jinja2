@@ -127,7 +127,7 @@
                     <td class="key" style="width: 20%;">Threshold:</td>
                     <td colspan="6">{{ widgets.range_picker() }}</td>
                 </tr>
-                {{ widgets.checkboxes([('base', 'Baseline'), ('target', 'Target'), ('incr', 'Incr (vs base)'), ('both', 'Equal'), ('decr', 'Decr (vs base)')], 'show_edges', 'Show') }}
+                {{ widgets.checkboxes([('baseline', 'Baseline'), ('target', 'Target'), ('incr', 'Incr (vs base)'), ('both', 'Equal'), ('decr', 'Decr (vs base)')], 'show_edges', 'Show') }}
                 {% if stat_list|length > 1 %}
                 <tr>
                     <td class="key" style="width: 20%;">Metric:</td>
@@ -612,8 +612,8 @@
     document.querySelector('input[name="incr"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="decr"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="both"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="base"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="base"]').checked = false;
+    document.querySelector('input[name="baseline"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="baseline"]').checked = false;
     document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="target"]').checked = false;
 
