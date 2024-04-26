@@ -79,14 +79,20 @@ class SelectionRow:
     :ivar uid: uid of the selected graph
     :ivar index: index in the sorted list of data
     :ivar abs_amount: absolute change in the units
+    :ivar fresh: the state of the uid (whether it is new (added in target), removed (removed in target), or
+        possibly unchanged
+    :ivar main_stat: type of the
     :ivar rel_amount: relative change in the units
     """
 
-    __slots__ = ["uid", "index", "abs_amount", "rel_amount"]
+    __slots__ = ["uid", "index", "fresh", "main_stat", "abs_amount", "rel_amount", "stats"]
     uid: str
     index: int
+    fresh: Literal["new", "removed", "(un)changed"]
+    main_stat: str
     abs_amount: float
     rel_amount: float
+    stats: list[list[str, float, float]]
 
 
 class Graph:
@@ -377,6 +383,54 @@ def process_traces(
                 process_edge(graph, profile_type, resource, src, tgt)
 
 
+def generate_selection(graph: Graph) -> list[SelectionRow]:
+    """Generates selection table
+
+    :param graph: sankey graph
+    :return: list of selection rows for table
+    """
+    selection = []
+    for uid, nodes in graph.uid_to_nodes.items():
+        baseline_overall = defaultdict(float)
+        target_overall = defaultdict(float)
+        stats = []
+        for node in nodes:
+            for known_stat in Stats.KnownStats:
+                stat = " ".join(["callee", known_stat])
+                for link in node.callees.values():
+                    baseline_overall[stat] += link.stats.baseline[known_stat]
+                    target_overall[stat] += link.stats.target[known_stat]
+                stat = " ".join(["caller", known_stat])
+                for link in node.callers.values():
+                    baseline_overall[stat] += link.stats.baseline[known_stat]
+                    target_overall[stat] += link.stats.target[known_stat]
+        for stat in baseline_overall:
+            baseline, target = baseline_overall[stat], target_overall[stat]
+            if baseline != 0 or target != 0:
+                abs_diff = target - baseline
+                rel_diff = round(100 * abs_diff / max(baseline, target), 2)
+                stats.append([stat, abs_diff, rel_diff])
+        stats = sorted(stats, key=itemgetter(2))
+        if all(val == 0 for val in baseline_overall.values()):
+            state = "new"
+        elif all(val == 0 for val in target_overall.values()):
+            state = "removed"
+        else:
+            state = "(un)changed"
+        selection.append(
+            SelectionRow(
+                uid,
+                graph.uid_to_id[uid],
+                state,
+                stats[0][0],
+                stats[0][1],
+                stats[0][2],
+                stats,
+            )
+        )
+    return selection
+
+
 def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -> None:
     """Generates differences of two profiles as sankey diagram
 
@@ -395,7 +449,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     process_traces(lhs_profile, "baseline", graph)
     process_traces(rhs_profile, "target", graph)
 
-    selection_table = [SelectionRow(uid, graph.uid_to_id[uid], 0, 0) for uid in graph.uid_to_nodes]
+    selection_table = generate_selection(graph)
     log.minor_success("Sankey graphs", "generated")
 
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))

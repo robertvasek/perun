@@ -101,6 +101,8 @@
             <thead>
             <tr>
                 <th>Unit</th>
+                <th>Change</th>
+                <th>Metric</th>
                 <th>Absolute</th>
                 <th>Relative</th>
             </tr>
@@ -113,16 +115,18 @@
                     <td colspan="6">{{ widgets.range_picker() }}</td>
                 </tr>
                 {{ widgets.checkboxes([('base', 'Baseline'), ('target', 'Target'), ('incr', 'Incr (vs base)'), ('both', 'Equal'), ('decr', 'Decr (vs base)')], 'show_edges', 'Show') }}
+                {% if stat_list|length > 1 %}
                 <tr>
                     <td class="key" style="width: 20%;">Metric:</td>
                     <td colspan="6">
-                        <select class="dt-input", id="metricSelection">
+                        <select class="dt-input" id="metricSelection">
                             {%- for metric in stat_list %}
                                 <option value="{{ loop.index0 }}">{{ metric }}</option>
                             {% endfor %}
                         </select>
                     </td>
                 </tr>
+            {% endif %}
             </tbody>
         </table>
     </div>
@@ -224,6 +228,8 @@
                 {
                     "uid": "{{ val.uid }}",
                     "index": "{{ val.index }}",
+                    "fresh": "{{ val.fresh }}",
+                    "type": "{{ val.main_stat }}",
                     "abs": "{{ val.abs_amount }}",
                     "rel": "{{ val.rel_amount }}"
                 },
@@ -234,6 +240,8 @@
         data: table.data,
         columns: [
             { data: "uid" },
+            { data: "fresh" },
+            { data: "type" },
             {
                 data: "abs",
                 className: "dt-body-right",
@@ -258,7 +266,7 @@
             { data: "rel" },
             { data: "index", visible: false},
         ],
-        order: [[2, "desc"]],
+        order: [[3, "desc"]],
         iDisplayLength: 5,
         select: true
     })
@@ -524,6 +532,7 @@
         }
     })
 
+    {% if stat_list|length > 1 %}
     document.getElementById("metricSelection").addEventListener('change', function() {
         selected_metric = parseInt(document.getElementById("metricSelection").value);
         let values = [];
@@ -548,6 +557,7 @@
         fillSliders(steps[0], steps[0], steps[steps.length-1], steps[0], steps[steps.length-1], steps[steps.length-1]);
         filterEdges();
     });
+    {% endif %}
 
     document.querySelector('input[name="incr"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="decr"]').addEventListener('change', filterEdges);
