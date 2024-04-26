@@ -390,7 +390,7 @@
             sankey_data[0].node.customdata.push({label: nodes[node], index: node, pos: pos, hidden: false, root: true, id: node_len});
         } else {
             sankey_data[0].node.color.push("rgba(0, 0, 0, 0.2)");
-            sankey_data[0].node.label.push("[+]");
+            sankey_data[0].node.label.push("[+] (" + nodes[node] + ")");
             sankey_data[0].node.customdata.push({label: nodes[node], index: node, pos: pos, hidden: true, root: false, id: node_len});
         }
         shown_nodes.push([node, pos])
