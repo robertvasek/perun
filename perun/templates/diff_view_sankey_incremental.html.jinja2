@@ -172,6 +172,7 @@
         }
         }],
         shown_nodes = [],
+        processed_edges = new Set();
         steps = [1],
         config = {
             responsive: true,
@@ -324,6 +325,7 @@
         node_len = shown_nodes.length;
 
         for (let i = 0; i < node_len; i++) {
+            console.log(node, pos, shown_nodes);
             if (shown_nodes[i][0] === node && shown_nodes[i][1] === pos) {
                 return i;
             }
@@ -352,6 +354,7 @@
         sankey_data[0].link.color = [];
         sankey_data[0].link.customdata = [];
         shown_nodes = [];
+        processed_edges = new Set();
         steps = [];
     }
 
@@ -446,6 +449,10 @@
 
     function addEdge(src, target, edge_stats) {
         // Baseline data
+        let key = src + "," + target;
+        if (processed_edges.has(key))
+            return;
+
         let baseline_stat = edge_stats[selected_metric], target_stat = edge_stats[selected_metric+number_of_metrics];
         if (baseline_stat) {
             addToSankey(src, target, baseline_stat, "rgba(49, 48, 77, 0.4)", "baseline", edge_stats)
@@ -464,13 +471,14 @@
             addToSankey(src, target, 0, "rgba(0, 250, 0, 0.4)", "decr", edge_stats);
             addToSankey(src, target, Math.min(baseline_stat, target_stat), "rgba(0, 0, 255, 0.4)", "both", edge_stats);
         }
+        processed_edges.add(key);
     }
 
     function addAllEdgesFor(node, pos, edges, isfwd) {
         if (edges !== undefined) {
             for (edge in edges) {
                 if (isfwd) {
-                    addEdge(node, getNode(edge, pos-1, false), stats[edges[edge]]);
+                    addEdge(node, getNode(edge, pos+1, false), stats[edges[edge]]);
                 } else {
                     addEdge(getNode(edge, pos-1, false), node, stats[edges[edge]]);
                 }
