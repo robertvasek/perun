@@ -343,7 +343,7 @@ def process_edge(
     tgt_stats = graph.get_callee_stats(tgt, src)
     for key in resource:
         amount = common_kit.try_convert(resource[key], [float])
-        if amount is None:
+        if amount is None or key in ("time"):
             continue
         src_stats.add_stat(profile_type, key, amount)
         tgt_stats.add_stat(profile_type, key, amount)
@@ -409,6 +409,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         palette=ColorPalette,
         caller_graph=graph.to_jinja_string("callers"),
         callee_graph=graph.to_jinja_string("callees"),
+        stat_list=list(Stats.KnownStats),
         stats="["
         + ",".join(
             list(map(itemgetter(0), sorted(list(graph.stats_to_id.items()), key=itemgetter(1))))

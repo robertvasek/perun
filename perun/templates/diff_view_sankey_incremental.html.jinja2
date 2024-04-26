@@ -112,7 +112,17 @@
                     <td class="key" style="width: 20%;">Threshold:</td>
                     <td colspan="6">{{ widgets.range_picker() }}</td>
                 </tr>
-                {{ widgets.checkboxes([('base', 'Baseline'), ('target', 'Target'), ('incr', 'Incr (vs base)'), ('both', 'Equal'), ('decr', 'Decr (vs base)'), ('labels', 'Labels')], 'show_edges', 'Show') }}
+                {{ widgets.checkboxes([('base', 'Baseline'), ('target', 'Target'), ('incr', 'Incr (vs base)'), ('both', 'Equal'), ('decr', 'Decr (vs base)')], 'show_edges', 'Show') }}
+                <tr>
+                    <td class="key" style="width: 20%;">Metric:</td>
+                    <td colspan="6">
+                        <select class="dt-input", id="metricSelection">
+                            {%- for metric in stat_list %}
+                                <option value="{{ loop.index0 }}">{{ metric }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -123,7 +133,7 @@
 <script>
     let sankey_data = [{
         type: "sankey",
-        arrangement: "snap",
+        arrangement: "fixed",
         orientation: "v",
         node: {
             pad: 15,
@@ -153,6 +163,8 @@
             },
             height: 600,
         },
+        selected_metric = 0;
+        number_of_metrics = {{ stat_list|length }};
         selected_uid = -1,
         selected_uid_text = "",
         plot = document.getElementById('sankey_graph');
@@ -223,7 +235,7 @@
     }
 
     function newplot() {
-        Plotly.newPlot('sankey_graph', sankey_data, layout);
+        Plotly.newPlot('sankey_graph', sankey_data, layout, {responsive: true});
         refreshHandlers();
     }
 
@@ -250,8 +262,11 @@
 
     function filterEdges() {
         edges = sankey_data[0].link;
+        let fromInput = document.getElementById('fromSlider').value;
+        let toInput = document.getElementById('toSlider').value;
         for (let i = 0; i < edges.customdata.length; i++) {
-            edges.value[i] = recomputeValue(edges.customdata[i].type, edges.customdata[i].stats);
+            newValue = recomputeValue(edges.customdata[i].type, edges.customdata[i].stats);
+            edges.value[i] = (fromInput <= newValue && newValue <= toInput) ? newValue : 0;
         }
         render();
     }
@@ -292,6 +307,23 @@
         steps = [];
     }
 
+    function fillSliders(fromMin, fromVal, fromMax, toMin, toVal, toMax) {
+        let fromSlider = document.getElementById('fromSlider');
+        let toSlider = document.getElementById('toSlider');
+
+        fromSlider.min = fromMin;
+        fromSlider.value = fromVal;
+        fromSlider.max = fromMax;
+        toSlider.min = toMin;
+        toSlider.value = toVal;
+        toSlider.max = toMax;
+
+        setInput(fromInput, fromVal);
+        setInput(toInput, toVal);
+
+        fillSlider(fromSlider, toSlider, '#C6C6C6', '#25daa5', toSlider);
+    }
+
     function updateSliders(val) {
         if (val == 0 || val == 0.0) {
             return;
@@ -312,26 +344,10 @@
         }
 
         if (steps.length === 1) {
-            fromSlider.min = val;
-            fromSlider.value = val;
-            fromSlider.max = val;
-            toSlider.min = val;
-            toSlider.value = val;
-            toSlider.max = val;
-            setInput(fromInput, val);
-            setInput(toInput, val);
+            fillSliders(val, val, val, val, val, val);
         } else {
-            fromSlider.min = Math.min(fromSlider.min, val);
-            fromSlider.max = Math.max(fromSlider.max, val);
-            fromSlider.value = minVal;
-            toSlider.min = Math.min(toSlider.min, val);
-            toSlider.max = Math.max(toSlider.max, val);
-            toSlider.value = maxVal;
-            setInput(fromInput, minVal);
-            setInput(toInput, maxVal);
+            fillSliders(Math.min(fromSlider.min, val), minVal, Math.max(fromSlider.max, val), Math.min(toSlider.min, val), maxVal, Math.max(toSlider.max, val));
         }
-
-        fillSlider(fromSlider, toSlider, '#C6C6C6', '#25daa5', toSlider);
     }
 
     function addToSteps(val) {
@@ -366,7 +382,7 @@
             return 0;
 
         // Baseline data
-        let baseline_stat = edge_stats[0], target_stat = edge_stats[2]
+        let baseline_stat = edge_stats[selected_metric], target_stat = edge_stats[selected_metric+number_of_metrics];
         if (stat_type === "baseline")
             return baseline_stat;
         if (stat_type === "target")
@@ -375,14 +391,14 @@
         if (stat_type === "decr")
             return diff > 0 ? Math.abs(diff) : 0;
         if (stat_type === "incr")
-            return diff <= 0 ? Math.abs(diff) : 0
+            return diff <= 0 ? Math.abs(diff) : 0;
         if (stat_type === "both")
             return Math.min(baseline_stat, target_stat);
     }
 
     function addEdge(src, target, edge_stats) {
         // Baseline data
-        let baseline_stat = edge_stats[0], target_stat = edge_stats[2]
+        let baseline_stat = edge_stats[selected_metric], target_stat = edge_stats[selected_metric+number_of_metrics];
         if (baseline_stat) {
             addToSankey(src, target, baseline_stat, "rgba(49, 48, 77, 0.4)", "baseline", edge_stats)
         }
@@ -446,24 +462,44 @@
                 clearGraph();
                 addRootNode(selected_uid);
                 newplot();
+                fillSliders(steps[0], steps[0], steps[steps.length-1], steps[0], steps[steps.length-1], steps[steps.length-1]);
                 filterEdges();
             }
         }
     })
 
-    document.querySelector('input[name="labels"]').addEventListener('change', function() {
-        if (isChecked('labels')) {
-
-        } else {
-
+    document.getElementById("metricSelection").addEventListener('change', function() {
+        selected_metric = parseInt(document.getElementById("metricSelection").value);
+        let values = [];
+        let edge_values = sankey_data[0].link.customdata;
+        for (let i = 0; i < edge_values.length; i++) {
+            baseline_metric = edge_values[i].stats[selected_metric];
+            target_metric = edge_values[i].stats[selected_metric+number_of_metrics]
+            // We skip empty metrics
+            if (baseline_metric !== 0)
+                values.push(baseline_metric);
+            if (target_metric !== 0)
+                values.push(target_metric);
         }
+
+        // We adjust empty values
+        if (values.length === 0) {
+            steps = [0];
+        } else {
+            steps = Array.from(new Set(values)).sort((a, b) => a - b);
+        }
+
+        fillSliders(steps[0], steps[0], steps[steps.length-1], steps[0], steps[steps.length-1], steps[steps.length-1]);
+        filterEdges();
     });
 
     document.querySelector('input[name="incr"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="decr"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="base"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="both"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="base"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="base"]').checked = false;
+    document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="target"]').checked = false;
 
     document.querySelector('#fromSlider').addEventListener('change', filterEdges);
     document.querySelector('#toSlider').addEventListener('change', filterEdges);
