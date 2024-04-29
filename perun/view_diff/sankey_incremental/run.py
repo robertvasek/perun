@@ -481,36 +481,6 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
     return trace_stats
 
 
-def to_short_trace(trace: list[str]) -> str:
-    """Converts trace to a short version
-
-    :param trace: list of uids
-    :return: short trace
-    """
-    if len(trace) > 1:
-        return "⇢".join([trace[0], trace[-1]])
-    return trace[0]
-
-
-def generate_trace_list(trace: list[str]) -> list[str]:
-    """Generates list of traces
-
-    TODO: Add stats
-
-    arrows = "↪⤷⤿⭨⮑⮡⮩⮱"  # TEMPORARY
-    :param trace: trace to uid
-    :return: list of rows for trace infok:w
-    """
-    data = []
-    for i, uid in enumerate(trace):
-        if i == 0:
-            data.append(uid)
-            continue
-        indent = " " * i + f"⤷ "
-        data.append(indent + uid)
-    return data
-
-
 def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) -> list[SelectionRow]:
     """Generates selection table
 
@@ -557,9 +527,21 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
                 rel_amount = (trace.target_cost[stat] - trace.baseline_cost[stat]) / max(
                     trace.target_cost[stat], trace.baseline_cost[stat]
                 )
-                long_trace = generate_trace_list(trace.trace)
+
+                short_id = ";".join(
+                    [
+                        str(graph.uid_to_id[trace.trace[0]]),
+                        str(graph.uid_to_id[trace.trace[-1]]),
+                    ]
+                )
                 uid_trace_stats.append(
-                    [to_short_trace(trace.trace), stat, abs_amount, rel_amount, long_trace]
+                    [
+                        short_id,
+                        stat,
+                        abs_amount,
+                        rel_amount,
+                        [graph.uid_to_id[t] for t in trace.trace],
+                    ]
                 )
         uid_trace_stats = sorted(uid_trace_stats, key=itemgetter(3))
         selection.append(

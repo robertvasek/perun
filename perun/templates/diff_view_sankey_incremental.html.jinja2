@@ -320,11 +320,15 @@
     {{ widgets.range_handlers() }}
 
     function format_sub_row(d) {
+        // ↪⤷⤿⭨⮑⮡⮩⮱ ⇢
         let result = '<table style="width: 100%;">';
         d[5].split(',').forEach((v, i) => {
-        result += "<tr>";
-        result += '<td style="white-space: pre-wrap">' + v + "</td>";
-        result += "</tr>";
+        result += '<tr><td style="white-space: pre-wrap">';
+        if (i !== 0) {
+            result += '  '.repeat(i) + "⮡ ";
+        }
+        result += nodes[v];
+        result += "</td></tr>";
         });
         result += '</table>';
         return result
@@ -346,7 +350,8 @@
         d.traces.forEach((value, index) => {
             result += "<tr>";
             result += '<td style="white-space: pre-wrap"></td>';
-            result += '<td style="white-space: pre-wrap">' + value[0] + "</td>";
+            let uids = value[0].toString().split(';');
+            result += '<td style="white-space: pre-wrap">' + nodes[uids[0]] + ' ⇢ ' + nodes[uids[1]] + "</td>";
             result += '<td style="white-space: pre-wrap">' + value[1] + "</td>";
             result += '<td style="white-space: pre-wrap">' + value[2] + "</td>";
             result += '<td style="white-space: pre-wrap">' + value[3] + "</td>";
