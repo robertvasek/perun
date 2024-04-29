@@ -320,7 +320,6 @@
     {{ widgets.range_handlers() }}
 
     function format_sub_row(d) {
-        // ↪⤷⤿⭨⮑⮡⮩⮱ ⇢
         let result = '<table style="width: 100%;">';
         d[5].split(',').forEach((v, i) => {
         result += '<tr><td style="white-space: pre-wrap">';
@@ -335,7 +334,7 @@
     };
 
     function format_row(d) {
-        let result = '<table id="metrics" class="display" style="width:100%; border-right: 10px solid #ddd; border-left: 10px solid #ddd;">';
+        let result = '<table id="metrics' + d.index + '" class="display" style="width:100%; border-right: 10px solid #ddd; border-left: 10px solid #ddd;">';
         result += "<thead><tr><th>Metric</th><th>Absolute</th><th>Relative</th></tr></thead><tbody>";
         d.stats.forEach((value, index) => {
             result += "<tr>";
@@ -345,7 +344,7 @@
             result += "</tr>";
         });
         result += '</tbody></table>';
-        result += '<table id="traces" class="display" style="width:100%; border-right: 10px solid #ddd; border-left: 10px solid #ddd;">';
+        result += '<table id="traces' + d.index + '" class="display" style="width:100%; border-right: 10px solid #ddd; border-left: 10px solid #ddd;">';
         result += "<thead><tr><th></th><th>Trace</th><th>Metric</th><th>Abs</th><th>Rel</th></tr></thead><tbody>";
         d.traces.forEach((value, index) => {
             result += "<tr>";
@@ -589,9 +588,10 @@
             tr.removeClass('shown');
             tr.addClass('hidden');
         } else {
-            row.child(format_row(row.data())).show();
-            new DataTable("#metrics", {});
-            trace_table = new DataTable("#traces", {
+            let d = row.data();
+            row.child(format_row(d)).show();
+            new DataTable("#metrics" + d.index, {});
+            trace_table = new DataTable("#traces" + d.index, {
                 columns: [
                     {
                         className: "inner-details-control",
