@@ -497,16 +497,16 @@ def generate_trace_list(trace: list[str]) -> list[str]:
 
     TODO: Add stats
 
+    arrows = "↪⤷⤿⭨⮑⮡⮩⮱"  # TEMPORARY
     :param trace: trace to uid
     :return: list of rows for trace infok:w
     """
-    arrows = "↪⤷⤿⭨⮑⮡⮩⮱"  # TEMPORARY
     data = []
     for i, uid in enumerate(trace):
         if i == 0:
             data.append(uid)
             continue
-        indent = " " * i + f"{arrows[i % len(arrows)]} "
+        indent = " " * i + f"⤷ "
         data.append(indent + uid)
     return data
 

@@ -319,8 +319,19 @@
     {{ widgets.checkbox_handler() }}
     {{ widgets.range_handlers() }}
 
+    function format_sub_row(d) {
+        let result = '<table style="width: 100%;">';
+        d[5].split(',').forEach((v, i) => {
+        result += "<tr>";
+        result += '<td style="white-space: pre-wrap">' + v + "</td>";
+        result += "</tr>";
+        });
+        result += '</table>';
+        return result
+    };
+
     function format_row(d) {
-        let result = '<table id="metrics" class="display" style="width:100%">';
+        let result = '<table id="metrics" class="display" style="width:100%; border-right: 10px solid #ddd; border-left: 10px solid #ddd;">';
         result += "<thead><tr><th>Metric</th><th>Absolute</th><th>Relative</th></tr></thead><tbody>";
         d.stats.forEach((value, index) => {
             result += "<tr>";
@@ -330,14 +341,17 @@
             result += "</tr>";
         });
         result += '</tbody></table>';
-        result += '<table id="traces" class="display" style="width:100%">';
-        result += "<thead><tr><th>Trace</th></tr></thead><tbody>";
+        result += '<table id="traces" class="display" style="width:100%; border-right: 10px solid #ddd; border-left: 10px solid #ddd;">';
+        result += "<thead><tr><th></th><th>Trace</th><th>Metric</th><th>Abs</th><th>Rel</th></tr></thead><tbody>";
         d.traces.forEach((value, index) => {
-            value[4].forEach((v, i) => {
-                result += "<tr>";
-                result += '<td style="white-space: pre-wrap">' + v + "</td>";
-                result += "</tr>";
-            })
+            result += "<tr>";
+            result += '<td style="white-space: pre-wrap"></td>';
+            result += '<td style="white-space: pre-wrap">' + value[0] + "</td>";
+            result += '<td style="white-space: pre-wrap">' + value[1] + "</td>";
+            result += '<td style="white-space: pre-wrap">' + value[2] + "</td>";
+            result += '<td style="white-space: pre-wrap">' + value[3] + "</td>";
+            result += '<td style="white-space: pre-wrap">' + value[4] + "</td>";
+            result += "</tr>";
         });
         result += '</tbody></table>';
         return result;
@@ -572,6 +586,37 @@
         } else {
             row.child(format_row(row.data())).show();
             new DataTable("#metrics", {});
+            trace_table = new DataTable("#traces", {
+                columns: [
+                    {
+                        className: "inner-details-control",
+                        orderable: false,
+                        data: null,
+                        defaultContent: "",
+                        render: function () {
+                            return '<span class="plus">[+]</span><span class="minus">[-]</span>';
+                        },
+                        width: "15px"
+                    }, {}, {}, {}, {}, {visible: false},
+                ],
+                createdRow: function( row, data, dataIndex ) {
+                    $( row ).addClass('hidden');
+                },
+            });
+            trace_table.on('click', 'td.inner-details-control', function(el) {
+                var sub_tr = $(this).closest('tr');
+                var sub_row = trace_table.row(sub_tr);
+
+                if (sub_row.child.isShown()) {
+                    sub_row.child.hide();
+                    sub_tr.removeClass('shown');
+                    sub_tr.addClass('hidden');
+                } else {
+                    sub_row.child(format_sub_row(sub_row.data())).show();
+                    sub_tr.removeClass('hidden');
+                    sub_tr.addClass('shown');
+                }
+            });
             tr.removeClass('hidden');
             tr.addClass('shown');
         }
