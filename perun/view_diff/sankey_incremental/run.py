@@ -132,6 +132,30 @@ class SelectionRow:
     trace_stats: list[list[str, str, float, float, str]]
 
 
+class Skeleton:
+    """Represents single fully computed sankey graph: a skeleton
+
+    :ivar stat: stat for which the skeleton is generated
+    :ivar label: list of node labels
+    :ivar color: list of node colors
+    :ivar source: list of sources of edges
+    :ivar target: list of target of edges
+    :ivar value: list of values of edges
+    """
+
+    __slots__ = ["stat", "label", "color", "source", "target", "value", "link_color"]
+
+    def __init__(self, stat: str):
+        """Initializes the skeleton"""
+        self.stat: str = stat
+        self.label: list[str] = []
+        self.color: list[str] = []
+        self.source: list[int] = []
+        self.target: list[int] = []
+        self.link_color: list[str] = []
+        self.value: list[float] = []
+
+
 class Graph:
     """Represents single sankey graph
 
@@ -424,6 +448,57 @@ def process_traces(
                 graph.uid_to_traces[uid].append(full_trace)
 
 
+def generate_skeletons(graph: Graph, traces: dict[str, list[TraceStat]]) -> list[Skeleton]:
+    """Generates skeletons of graphs for each amount"""
+    stat_to_traces = defaultdict(list)
+    processed = set()
+    for val in traces.values():
+        for trace in val:
+            trace_key = ",".join(trace.trace)
+            if trace_key in processed:
+                continue
+            processed.add(trace_key)
+            for stat in Stats.KnownStats:
+                rel_amount = (trace.target_cost[stat] - trace.baseline_cost[stat]) / max(
+                    trace.target_cost[stat], trace.baseline_cost[stat]
+                )
+                if 0 < abs(rel_amount) < 1.0:
+                    stat_to_traces[stat].append([trace.trace, rel_amount])
+
+    skeletons: list[Skeleton] = []
+    processed = set()
+    for stat, stat_traces in stat_to_traces.items():
+        skeleton = Skeleton(stat)
+        sorted_traces = sorted(stat_traces, key=lambda t: t[1])
+        node_map = []
+        for trace, _ in sorted_traces[:10]:
+            trace_len = len(trace)
+            for i in range(0, trace_len - 1):
+                src, tgt = f"{trace[i]}#{i}", f"{trace[i+1]}#{i+1}"
+                if f"{src},{tgt}" in processed:
+                    continue
+                processed.add(f"{src},{tgt}")
+                stats = graph.get_node(src).callers[tgt].stats
+                if src not in node_map:
+                    node_map.append(src)
+                    skeleton.label.append(src.split("#")[0])
+                    skeleton.color.append(ColorPalette.NoHighlight)
+                if tgt not in skeleton.label:
+                    node_map.append(tgt)
+                    skeleton.label.append(tgt.split("#")[0])
+                    skeleton.color.append(ColorPalette.NoHighlight)
+                src_i, tgt_i = node_map.index(src), node_map.index(tgt)
+                src_s, tgt_s = stats.baseline[stat], stats.target[stat]
+                skeleton.source.append(src_i)
+                skeleton.target.append(tgt_i)
+                skeleton.value.append(abs(tgt_s - src_s))
+                skeleton.link_color.append(
+                    ColorPalette.NotInTarget if tgt_s > src_s else ColorPalette.NotInBaseline
+                )
+        skeletons.append(skeleton)
+    return skeletons
+
+
 def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
     """Generates trace stats
 
@@ -579,6 +654,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
 
     trace_stats = generate_trace_stats(graph)
     selection_table = generate_selection(graph, trace_stats)
+    skeletons = generate_skeletons(graph, trace_stats)
     log.minor_success("Sankey graphs", "generated")
 
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
@@ -606,6 +682,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
                 sorted(list(graph.uid_to_nodes.items()), key=lambda x: graph.uid_to_id[x[0]]),
             )
         ],
+        skeletons=skeletons,
         selection_table=selection_table,
     )
     log.minor_success("HTML template", "rendered")
