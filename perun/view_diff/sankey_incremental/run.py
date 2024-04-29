@@ -73,6 +73,33 @@ class ColorPalette:
 
 
 @dataclass
+class TraceStat:
+    """Statistics for single trace
+
+    TODO: Add per partes stats
+
+    :ivar trace: list of called UID
+    :ivar baseline_cost: overall cost of the traces
+    :ivar target_cost: overall cost of the traces
+    :ivar baseline_inverse_exclusive: overall cost minus last call
+    :ivar target_inverse_exclusive: overall cost minus last call
+    """
+
+    __slots__ = [
+        "trace",
+        "baseline_cost",
+        "target_cost",
+        "baseline_inverse_exclusive",
+        "target_inverse_exclusive",
+    ]
+    trace: list[str]
+    baseline_cost: dict[str, float]
+    target_cost: dict[str, float]
+    baseline_inverse_exclusive: dict[str, float]
+    target_inverse_exclusive: dict[str, float]
+
+
+@dataclass
 class SelectionRow:
     """Helper dataclass for displaying selection of data
 
@@ -85,7 +112,16 @@ class SelectionRow:
     :ivar rel_amount: relative change in the units
     """
 
-    __slots__ = ["uid", "index", "fresh", "main_stat", "abs_amount", "rel_amount", "stats"]
+    __slots__ = [
+        "uid",
+        "index",
+        "fresh",
+        "main_stat",
+        "abs_amount",
+        "rel_amount",
+        "stats",
+        "trace_stats",
+    ]
     uid: str
     index: int
     fresh: Literal["new", "removed", "(un)changed"]
@@ -93,6 +129,7 @@ class SelectionRow:
     abs_amount: float
     rel_amount: float
     stats: list[list[str, float, float]]
+    trace_stats: list[list[str, str, float, float, str]]
 
 
 class Graph:
@@ -387,10 +424,98 @@ def process_traces(
                 graph.uid_to_traces[uid].append(full_trace)
 
 
-def generate_selection(graph: Graph) -> list[SelectionRow]:
+def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
+    """Generates trace stats
+
+    :param graph: sankey graph
+    :return: trace stats
+    """
+    trace_stats = defaultdict(list)
+    for uid, traces in graph.uid_to_traces.items():
+        processed = set()
+        for trace in traces:
+            key = ",".join(trace)
+            if key not in processed:
+                baseline_excl = defaultdict(float)
+                target_excl = defaultdict(float)
+                trace_len = len(trace)
+                for i in range(0, trace_len - 2):
+                    stats = graph.get_node(f"{trace[i]}#{i}").callers[f"{trace[i+1]}#{i+1}"].stats
+                    for stat in Stats.KnownStats:
+                        if Config().trace_is_inclusive:
+                            baseline_excl[stat] = (
+                                stats.baseline[stat]
+                                if baseline_excl[stat] == 0
+                                else min(baseline_excl[stat], stats.baseline[stat])
+                            )
+                            target_excl[stat] = (
+                                stats.target[stat]
+                                if target_excl[stat] == 0
+                                else min(target_excl[stat], stats.target[stat])
+                            )
+                        else:
+                            baseline_excl[stat] += stats.baseline[stat]
+                            target_excl[stat] += stats.target[stat]
+                last_stats = (
+                    graph.get_node(f"{trace[trace_len-2]}#{trace_len-2}")
+                    .callers[f"{trace[trace_len-1]}#{trace_len-1}"]
+                    .stats
+                )
+                baseline_overall = {
+                    stat: (last_stats.baseline[stat] + baseline_excl[stat])
+                    if Config().trace_is_inclusive
+                    else min(last_stats.baseline[stat], baseline_excl[stat])
+                    for stat in Stats.KnownStats
+                }
+                target_overall = {
+                    stat: (last_stats.target[stat] + target_excl[stat])
+                    if Config().trace_is_inclusive
+                    else min(last_stats.target[stat], target_excl[stat])
+                    for stat in Stats.KnownStats
+                }
+
+                processed.add(key)
+                trace_stats[uid].append(
+                    TraceStat(trace, baseline_overall, target_overall, baseline_excl, target_excl)
+                )
+    return trace_stats
+
+
+def to_short_trace(trace: list[str]) -> str:
+    """Converts trace to a short version
+
+    :param trace: list of uids
+    :return: short trace
+    """
+    if len(trace) > 1:
+        return "⇢".join([trace[0], trace[-1]])
+    return trace[0]
+
+
+def generate_trace_list(trace: list[str]) -> list[str]:
+    """Generates list of traces
+
+    TODO: Add stats
+
+    :param trace: trace to uid
+    :return: list of rows for trace infok:w
+    """
+    arrows = "↪⤷⤿⭨⮑⮡⮩⮱"  # TEMPORARY
+    data = []
+    for i, uid in enumerate(trace):
+        if i == 0:
+            data.append(uid)
+            continue
+        indent = " " * i + f"{arrows[i % len(arrows)]} "
+        data.append(indent + uid)
+    return data
+
+
+def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) -> list[SelectionRow]:
     """Generates selection table
 
     :param graph: sankey graph
+    :param trace_stats: stats for traces for each uid
     :return: list of selection rows for table
     """
     selection = []
@@ -421,6 +546,22 @@ def generate_selection(graph: Graph) -> list[SelectionRow]:
             state = "removed"
         else:
             state = "(un)changed"
+
+        # Prepare trace stats
+        uid_stats = trace_stats[uid]
+        uid_trace_stats = []
+        for trace in uid_stats:
+            # Trace is in form of [short_trace, stat_type, abs, rel, long_trace]
+            for stat in Stats.KnownStats:
+                abs_amount = trace.target_cost[stat] - trace.baseline_cost[stat]
+                rel_amount = (trace.target_cost[stat] - trace.baseline_cost[stat]) / max(
+                    trace.target_cost[stat], trace.baseline_cost[stat]
+                )
+                long_trace = generate_trace_list(trace.trace)
+                uid_trace_stats.append(
+                    [to_short_trace(trace.trace), stat, abs_amount, rel_amount, long_trace]
+                )
+        uid_trace_stats = sorted(uid_trace_stats, key=itemgetter(3))
         selection.append(
             SelectionRow(
                 uid,
@@ -430,6 +571,7 @@ def generate_selection(graph: Graph) -> list[SelectionRow]:
                 stats[0][1],
                 stats[0][2],
                 stats,
+                uid_trace_stats[:3],
             )
         )
     return selection
@@ -453,7 +595,8 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     process_traces(lhs_profile, "baseline", graph)
     process_traces(rhs_profile, "target", graph)
 
-    selection_table = generate_selection(graph)
+    trace_stats = generate_trace_stats(graph)
+    selection_table = generate_selection(graph, trace_stats)
     log.minor_success("Sankey graphs", "generated")
 
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
