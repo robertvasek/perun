@@ -143,7 +143,7 @@ class Skeleton:
     :ivar value: list of values of edges
     """
 
-    __slots__ = ["stat", "label", "color", "source", "target", "value", "link_color"]
+    __slots__ = ["stat", "label", "color", "source", "target", "value", "link_color", "height"]
 
     def __init__(self, stat: str):
         """Initializes the skeleton"""
@@ -154,6 +154,7 @@ class Skeleton:
         self.target: list[int] = []
         self.link_color: list[str] = []
         self.value: list[float] = []
+        self.height: int = 0
 
 
 class Graph:
@@ -459,20 +460,24 @@ def generate_skeletons(graph: Graph, traces: dict[str, list[TraceStat]]) -> list
                 continue
             processed.add(trace_key)
             for stat in Stats.KnownStats:
+                abs_amount = trace.target_cost[stat] - trace.baseline_cost[stat]
                 rel_amount = (trace.target_cost[stat] - trace.baseline_cost[stat]) / max(
                     trace.target_cost[stat], trace.baseline_cost[stat]
                 )
                 if 0 < abs(rel_amount) < 1.0:
-                    stat_to_traces[stat].append([trace.trace, rel_amount])
+                    stat_to_traces[stat].append([trace.trace, abs_amount])
 
     skeletons: list[Skeleton] = []
     processed = set()
     for stat, stat_traces in stat_to_traces.items():
         skeleton = Skeleton(stat)
-        sorted_traces = sorted(stat_traces, key=lambda t: t[1])
+        sorted_traces = sorted(
+            sorted(stat_traces, key=lambda t: t[1])[-10:], key=lambda key: ",".join(key[0])
+        )
         node_map = []
-        for trace, _ in sorted_traces[:10]:
+        for trace, rel in sorted_traces:
             trace_len = len(trace)
+            skeleton.height = max(skeleton.height, trace_len)
             for i in range(0, trace_len - 1):
                 src, tgt = f"{trace[i]}#{i}", f"{trace[i+1]}#{i+1}"
                 if f"{src},{tgt}" in processed:

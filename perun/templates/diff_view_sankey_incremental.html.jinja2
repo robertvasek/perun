@@ -218,7 +218,7 @@
     {%- for skeleton in skeletons %}
     let {{ skeleton.stat }}_data = [{
         type: "sankey",
-        orientation: "h",
+        orientation: "v",
         node: {
             pad: 15,
             thickness: 20,
@@ -240,7 +240,8 @@
         title: "Top {{ skeleton.stat }}",
         font: {
             size: 10,
-        }
+        },
+        height: {{ skeleton.height * 75 }}
     }
     {%-endfor %}
 
