@@ -670,7 +670,7 @@
         } else {
             let d = row.data();
             row.child(format_row(d)).show();
-            new DataTable("#metrics" + d.index, {});
+            new DataTable("#metrics" + d.index, {paging: false, info: false, searching: false});
             trace_table = new DataTable("#traces" + d.index, {
                 columns: [
                     {
@@ -687,6 +687,9 @@
                 createdRow: function( row, data, dataIndex ) {
                     $( row ).addClass('hidden');
                 },
+                paging: false,
+                info: false,
+                searching: false
             });
             trace_table.on('click', 'td.inner-details-control', function(el) {
                 var sub_tr = $(this).closest('tr');
