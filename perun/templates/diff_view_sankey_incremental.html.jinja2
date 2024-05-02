@@ -62,6 +62,20 @@
             font-weight: bold;
         }
 
+        div.tools table.nested {
+            border: none;
+        }
+
+        tr.highlight {
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            background-color: #eee;
+        }
+
+        table:hover tr.hightlight {
+            background-color: #ccc;
+        }
+
         /* Style the tab */
         .tab {
           overflow: hidden;
@@ -364,23 +378,19 @@
                 className: "dt-body-right",
                 render: function (data, type) {
                     if (type === 'display') {
-                        const floatValue = parseFloat(data);
-                        const intValue = parseInt(data);
-                        if (!isNaN(intValue) && intValue.toString() === data) {
-                            let formatted_int = intValue.toLocaleString();
-                            return `${formatted_int}`;
-                        } else if(!isNaN(floatValue) && floatValue.toString() === data) {
-                            let formatted_float = floatValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                            return `${formatted_float}`;
-                        } else {
-                            return data;
-                        }
+                        return format_value(data);
                     }
-
                     return data;
                 },
             },
-            { data: "rel" },
+            {
+                data: "rel",
+                render: function(data, type) {
+                    if (type === 'display') {
+                        return format_relative(data);
+                    }
+                    return data;
+                }},
             { data: "index", visible: false},
         ],
         order: [[3, "desc"]],
@@ -411,6 +421,43 @@
     {{ widgets.checkbox_handler() }}
     {{ widgets.range_handlers() }}
 
+    function format_value(val) {
+        let result = "<span class="
+        if (typeof val !== "number") {
+            val = Number(val);
+        }
+        if (val > 0) {
+            result += "increase";
+        } else if (val < 0) {
+            result += "decrease";
+        }
+        result += '">'
+        result += val.toLocaleString();
+        result += "</span>";
+        return result;
+    }
+
+    function format_relative(value) {
+        if (typeof value !== "number") {
+            value = Number(value);
+        }
+        if (Math.abs(value) >= 0 && Math.abs(value) <= 1) {
+            value = value * 100
+        }
+        let fixedValue = Number(value).toFixed(2)
+        let result = "<span class=";
+        if (value > 0 && value <= 100) {
+            result += "increase";
+        } else if (value >= -100 && value < 0) {
+            result += "decrease";
+        } else {
+            result += "equal";
+        }
+        result += '">'
+        result += fixedValue + "%</span>";
+        return result;
+    }
+
     function format_stat(baseline, target) {
         let result = "";
         if (baseline === target) {
@@ -424,7 +471,7 @@
     };
 
     function format_sub_row(d, uid) {
-        let result = '<table style="width: 100%;">';
+        let result = '<table style="width: 100%; border: none;" class="nested">';
         let parts = d[5].split('#');
         let traces = parts[0].split(';'), baseline = parts[1].split(';'), target = parts[2].split(';');
         traces.forEach((v, i) => {
@@ -436,7 +483,12 @@
                 let diff = baseline_stat - target_stat;
                 result += '  '.repeat(i) + "⎸ " + format_stat(Number(baseline_stat), Number(target_stat));
             }
-            result += '</td></tr><tr><td style="white-space: pre-wrap">';
+            result += '</td></tr>';
+            result += '<tr'
+            if (node === uid) {
+                result += ' class="highlight"';
+            }
+            result += '><td style="white-space: pre-wrap">';
             if (i !== 0) {
                 result += '  '.repeat(i) + "⤷ ";
             }
@@ -704,7 +756,23 @@
         } else {
             let d = row.data();
             row.child(format_row(d)).show();
-            new DataTable("#metrics" + d.index, {paging: false, info: false, searching: false});
+            new DataTable("#metrics" + d.index, {paging: false, info: false, searching: false, columns: [
+                    {}, {
+                        render: function (data, type) {
+                            if (type == "display") {
+                                return format_value(data);
+                            }
+                            return data;
+                        }
+                    }, {
+                        render: function (data, type) {
+                            if (type == "display") {
+                                return format_relative(data);
+                            }
+                            return data;
+                        }
+                    }
+                ]});
             trace_table = new DataTable("#traces" + d.index, {
                 columns: [
                     {
@@ -716,7 +784,21 @@
                             return '<span class="plus">[+]</span><span class="minus">[-]</span>';
                         },
                         width: "15px"
-                    }, {}, {}, {}, {}, {visible: false},
+                    }, {}, {}, {
+                        render: function (data, type) {
+                            if (type === "display") {
+                                return format_value(data);
+                            }
+                            return data;
+                        }
+                    }, {
+                        render: function (data, type) {
+                            if (type == "display") {
+                                return format_relative(data);
+                            }
+                            return data;
+                        }
+                    }, {visible: false},
                 ],
                 createdRow: function( row, data, dataIndex ) {
                     $( row ).addClass('hidden');
