@@ -69,6 +69,8 @@ class ColorPalette:
     Increase: str = "rgba(255, 0, 0, 0.7)"
     Decrease: str = "rgba(0, 255, 0, 0.7)"
     Equal: str = "rgba(0, 0, 255, 0.7)"
+    DarkTarget: str = "rgba(255, 201, 74, 1)"
+    DarkBaseline: str = "rgba(49, 48, 77, 1)"
     DarkIncrease: str = "#ea5545"
     DarkDecrease: str = "#87bc45"
     DarkEqual: str = "#27aeef"

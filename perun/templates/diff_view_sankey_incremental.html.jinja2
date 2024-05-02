@@ -115,7 +115,7 @@
         {{ profile_overview.css_style() }}
         {{ widgets.range_picker_style() }}
 
-        #label_base {
+        #label_baseline {
             border-bottom: 5px solid {{ palette.Baseline }};
         }
         #label_target {
@@ -371,7 +371,21 @@
                 width: "15px"
             },
             { data: "uid" , className: "details-uid"},
-            { data: "fresh" },
+            {
+                data: "fresh",
+                render: function (data, type) {
+                    if (type ==='display') {
+                        if (data === "new") {
+                            return '<span style="font-weight: bold; color: {{ palette.DarkTarget }}">' + data + "</span>";
+                        } else if (data == "removed") {
+                            return '<span style="font-weight: bold; color: {{ palette.DarkBaseline }}">' + data + "</span>";
+                        } else {
+                            return '<span style="font-weight: bold; color: {{ palette.Equal }}">' + data + "</span>";
+                        }
+                    }
+                    return data;
+                }
+            },
             { data: "type" },
             {
                 data: "abs",
@@ -422,14 +436,14 @@
     {{ widgets.range_handlers() }}
 
     function format_value(val) {
-        let result = "<span class="
+        let result = "<span"
         if (typeof val !== "number") {
             val = Number(val);
         }
         if (val > 0) {
-            result += "increase";
+            result += ' style="font-weight: bold; color: {{ palette.DarkIncrease }}';
         } else if (val < 0) {
-            result += "decrease";
+            result += ' style="font-weight: bold; color: {{ palette.DarkDecrease }}';
         }
         result += '">'
         result += val.toLocaleString();
@@ -445,13 +459,13 @@
             value = value * 100
         }
         let fixedValue = Number(value).toFixed(2)
-        let result = "<span class=";
+        let result = '<span style="font-weight: bold; ';
         if (value > 0 && value <= 100) {
-            result += "increase";
+            result += 'color: {{ palette.DarkIncrease }}"';
         } else if (value >= -100 && value < 0) {
-            result += "decrease";
+            result += 'color: {{ palette.DarkDecrease }}"';
         } else {
-            result += "equal";
+            result += 'color: {{ palette.DarkEqual}}"';
         }
         result += '">'
         result += fixedValue + "%</span>";
