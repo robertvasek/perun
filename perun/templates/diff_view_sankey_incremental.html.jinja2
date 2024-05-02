@@ -108,13 +108,13 @@
             border-bottom: 5px solid {{ palette.Target }};
         }
         #label_incr {
-            border-bottom: 5px solid {{ palette.NotInBaseline }};
+            border-bottom: 5px solid {{ palette.Increase }};
         }
         #label_both {
-            border-bottom: 5px solid {{ palette.InBoth }};
+            border-bottom: 5px solid {{ palette.Equal }};
         }
         #label_decr {
-            border-bottom: 5px solid {{ palette.NotInTarget }};
+            border-bottom: 5px solid {{ palette.Decrease }};
         }
         tr.shown span.minus {
             display: block;
@@ -127,6 +127,18 @@
         }
         tr.hidden span.minus {
             display: none;
+        }
+        .increase {
+            font-weight: bold;
+            color: {{ palette.DarkIncrease }};
+        }
+        .decrease {
+            font-weight: bold;
+            color: {{ palette.DarkDecrease }};
+        }
+        .equal {
+            font-weight: bold;
+            color: {{ palette.DarkEqual }};
         }
     </style>
 </head>
@@ -355,7 +367,7 @@
                         const floatValue = parseFloat(data);
                         const intValue = parseInt(data);
                         if (!isNaN(intValue) && intValue.toString() === data) {
-                            let formatted_int= intValue.toLocaleString();
+                            let formatted_int = intValue.toLocaleString();
                             return `${formatted_int}`;
                         } else if(!isNaN(floatValue) && floatValue.toString() === data) {
                             let formatted_float = floatValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
@@ -399,15 +411,37 @@
     {{ widgets.checkbox_handler() }}
     {{ widgets.range_handlers() }}
 
-    function format_sub_row(d) {
-        let result = '<table style="width: 100%;">';
-        d[5].split(',').forEach((v, i) => {
-        result += '<tr><td style="white-space: pre-wrap">';
-        if (i !== 0) {
-            result += '  '.repeat(i) + "⮡ ";
+    function format_stat(baseline, target) {
+        let result = "";
+        if (baseline === target) {
+            result += '<span class="equal">' + formatSize(baseline) + '</span>';
+        } else if (baseline < target) {
+            result += '<span class="increase">' + formatSize(baseline) + ' ↗ ' + formatSize(target) + '</span>';
+        } else {
+            result += '<span class="decrease">' + formatSize(baseline) + ' ↘ ' + formatSize(target) + '</span>';
         }
-        result += nodes[v];
-        result += "</td></tr>";
+        return result;
+    };
+
+    function format_sub_row(d, uid) {
+        let result = '<table style="width: 100%;">';
+        let parts = d[5].split('#');
+        let traces = parts[0].split(';'), baseline = parts[1].split(';'), target = parts[2].split(';');
+        traces.forEach((v, i) => {
+            let node = nodes[v];
+            result += '<tr><td style="white-space: pre-wrap">';
+            if (i != 0 && i != traces.length) {
+                let baseline_stat = baseline[i-1],
+                    target_stat = target[i-1];
+                let diff = baseline_stat - target_stat;
+                result += '  '.repeat(i) + "⎸ " + format_stat(Number(baseline_stat), Number(target_stat));
+            }
+            result += '</td></tr><tr><td style="white-space: pre-wrap">';
+            if (i !== 0) {
+                result += '  '.repeat(i) + "⤷ ";
+            }
+            result += (node === uid) ? '<span style="font-weight: bold">' + node + '</span>' : node;
+            result += "</td></tr>";
         });
         result += '</table>';
         return result
@@ -700,7 +734,7 @@
                     sub_tr.removeClass('shown');
                     sub_tr.addClass('hidden');
                 } else {
-                    sub_row.child(format_sub_row(sub_row.data())).show();
+                    sub_row.child(format_sub_row(sub_row.data(), d.uid)).show();
                     sub_tr.removeClass('hidden');
                     sub_tr.addClass('shown');
                 }

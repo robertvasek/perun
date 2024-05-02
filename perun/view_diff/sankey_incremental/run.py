@@ -58,6 +58,7 @@ class Config:
         By default we consider, that the traces are not inclusive
         """
         self.trace_is_inclusive: bool = False
+        self.top_n_traces: int = 3
 
 
 class ColorPalette:
@@ -65,9 +66,12 @@ class ColorPalette:
 
     Baseline: str = "rgba(49, 48, 77, 0.4)"
     Target: str = "rgba(255, 201, 74, 0.4)"
-    NotInBaseline: str = "rgba(255, 0, 0, 0.4)"
-    NotInTarget: str = "rgba(0, 255, 0, 0.4)"
-    InBoth: str = "rgba(0, 0, 255, 0.4)"
+    Increase: str = "rgba(255, 0, 0, 0.7)"
+    Decrease: str = "rgba(0, 255, 0, 0.7)"
+    Equal: str = "rgba(0, 0, 255, 0.7)"
+    DarkIncrease: str = "#ea5545"
+    DarkDecrease: str = "#87bc45"
+    DarkEqual: str = "#27aeef"
     Highlight: str = "rgba(0, 0, 0, 0.7)"
     NoHighlight: str = "rgba(0, 0, 0, 0.2)"
 
@@ -76,27 +80,25 @@ class ColorPalette:
 class TraceStat:
     """Statistics for single trace
 
-    TODO: Add per partes stats
-
     :ivar trace: list of called UID
     :ivar baseline_cost: overall cost of the traces
     :ivar target_cost: overall cost of the traces
-    :ivar baseline_inverse_exclusive: overall cost minus last call
-    :ivar target_inverse_exclusive: overall cost minus last call
+    :ivar baseline_partial_costs: list of partial costs of the trace (i.e. for each call) for baseline
+    :ivar target_partial_costs: list of partial costs of the trace for target
     """
 
     __slots__ = [
         "trace",
         "baseline_cost",
         "target_cost",
-        "baseline_inverse_exclusive",
-        "target_inverse_exclusive",
+        "baseline_partial_costs",
+        "target_partial_costs",
     ]
     trace: list[str]
     baseline_cost: dict[str, float]
     target_cost: dict[str, float]
-    baseline_inverse_exclusive: dict[str, float]
-    target_inverse_exclusive: dict[str, float]
+    baseline_partial_costs: dict[str, list[float]]
+    target_partial_costs: dict[str, list[float]]
 
 
 @dataclass
@@ -128,7 +130,9 @@ class SelectionRow:
     main_stat: str
     abs_amount: float
     rel_amount: float
+    # stat_type, abs, rel
     stats: list[list[str, float, float]]
+    # trace, stat_type, abs, rel, long_trace
     trace_stats: list[list[str, str, float, float, str]]
 
 
@@ -498,7 +502,7 @@ def generate_skeletons(graph: Graph, traces: dict[str, list[TraceStat]]) -> list
                 skeleton.target.append(tgt_i)
                 skeleton.value.append(abs(tgt_s - src_s))
                 skeleton.link_color.append(
-                    ColorPalette.NotInTarget if tgt_s > src_s else ColorPalette.NotInBaseline
+                    ColorPalette.Increase if tgt_s > src_s else ColorPalette.Decrease
                 )
         skeletons.append(skeleton)
     return skeletons
@@ -516,47 +520,40 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
         for trace in traces:
             key = ",".join(trace)
             if key not in processed:
-                baseline_excl = defaultdict(float)
-                target_excl = defaultdict(float)
                 trace_len = len(trace)
-                for i in range(0, trace_len - 2):
+                baseline_overall = defaultdict(float)
+                baseline_partial = {
+                    stat: [0.0 for _ in range(0, trace_len - 1)] for stat in Stats.KnownStats
+                }
+                target_overall = defaultdict(float)
+                target_partial = {
+                    stat: [0.0 for _ in range(0, trace_len - 1)] for stat in Stats.KnownStats
+                }
+                for i in range(0, trace_len - 1):
                     stats = graph.get_node(f"{trace[i]}#{i}").callers[f"{trace[i+1]}#{i+1}"].stats
                     for stat in Stats.KnownStats:
+                        baseline_partial[stat][i] += stats.baseline[stat]
+                        target_partial[stat][i] += stats.target[stat]
                         if Config().trace_is_inclusive:
-                            baseline_excl[stat] = (
+                            baseline_overall[stat] = (
                                 stats.baseline[stat]
-                                if baseline_excl[stat] == 0
-                                else min(baseline_excl[stat], stats.baseline[stat])
+                                if baseline_overall[stat] == 0
+                                else min(baseline_overall[stat], stats.baseline[stat])
                             )
-                            target_excl[stat] = (
+                            target_overall[stat] = (
                                 stats.target[stat]
-                                if target_excl[stat] == 0
-                                else min(target_excl[stat], stats.target[stat])
+                                if target_overall[stat] == 0
+                                else min(target_overall[stat], stats.target[stat])
                             )
                         else:
-                            baseline_excl[stat] += stats.baseline[stat]
-                            target_excl[stat] += stats.target[stat]
-                last_stats = (
-                    graph.get_node(f"{trace[trace_len-2]}#{trace_len-2}")
-                    .callers[f"{trace[trace_len-1]}#{trace_len-1}"]
-                    .stats
-                )
-                baseline_overall = {
-                    stat: (last_stats.baseline[stat] + baseline_excl[stat])
-                    if Config().trace_is_inclusive
-                    else min(last_stats.baseline[stat], baseline_excl[stat])
-                    for stat in Stats.KnownStats
-                }
-                target_overall = {
-                    stat: (last_stats.target[stat] + target_excl[stat])
-                    if Config().trace_is_inclusive
-                    else min(last_stats.target[stat], target_excl[stat])
-                    for stat in Stats.KnownStats
-                }
+                            baseline_overall[stat] += stats.baseline[stat]
+                            target_overall[stat] += stats.target[stat]
 
                 processed.add(key)
                 trace_stats[uid].append(
-                    TraceStat(trace, baseline_overall, target_overall, baseline_excl, target_excl)
+                    TraceStat(
+                        trace, baseline_overall, target_overall, baseline_partial, target_partial
+                    )
                 )
     return trace_stats
 
@@ -614,16 +611,30 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
                         str(graph.uid_to_id[trace.trace[-1]]),
                     ]
                 )
+                long_trace = ";".join([f"{graph.uid_to_id[t]}" for t in trace.trace])
+                long_baseline_stats = ";".join(
+                    [
+                        common_kit.compact_convert_num_to_str(s, 2)
+                        for s in trace.baseline_partial_costs[stat]
+                    ]
+                )
+                long_target_stats = ";".join(
+                    [
+                        common_kit.compact_convert_num_to_str(s, 2)
+                        for s in trace.target_partial_costs[stat]
+                    ]
+                )
                 uid_trace_stats.append(
                     [
                         short_id,
                         stat,
                         abs_amount,
                         rel_amount,
-                        [graph.uid_to_id[t] for t in trace.trace],
+                        "#".join([long_trace, long_baseline_stats, long_target_stats]),
                     ]
                 )
         uid_trace_stats = sorted(uid_trace_stats, key=itemgetter(3))
+        long_trace_stats = uid_trace_stats[: Config().top_n_traces]
         selection.append(
             SelectionRow(
                 uid,
@@ -633,7 +644,7 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
                 stats[0][1],
                 stats[0][2],
                 stats,
-                uid_trace_stats[:3],
+                long_trace_stats,
             )
         )
     return selection
