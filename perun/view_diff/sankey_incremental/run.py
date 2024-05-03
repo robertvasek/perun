@@ -421,8 +421,10 @@ def process_edge(
         amount = common_kit.try_convert(resource[key], [float])
         if amount is None or key in ("time",):
             continue
-        src_stats.add_stat(profile_type, key, amount)
-        tgt_stats.add_stat(profile_type, key, amount)
+        # TODO: Extract
+        readable_key = "Inclusive Samples"
+        src_stats.add_stat(profile_type, readable_key, amount)
+        tgt_stats.add_stat(profile_type, readable_key, amount)
 
 
 def process_traces(

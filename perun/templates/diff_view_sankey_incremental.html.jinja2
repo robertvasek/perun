@@ -174,7 +174,7 @@
     <div class="tools">
         <div class="tab">
             {%- for metric in stat_list %}
-            <button class="tablinks" onclick="openTab(event, '{{ metric }}')" {% if loop.index0 == 0 %}id="defaultOpen"{% endif %}>Top {{ metric }}</button>
+            <button class="tablinks" onclick="openTab(event, '{{ metric|replace(' ', '_') }}')" {% if loop.index0 == 0 %}id="defaultOpen"{% endif %}>Top {{ metric }}</button>
             {%- endfor %}
             <button class="tablinks" onclick="openTab(event, 'all')">Browse All</button>
         </div>
@@ -193,8 +193,8 @@
         </table>
         </div>
         {%- for metric in stat_list %}
-        <div id="{{ metric }}" class="tabcontent">
-            <div id="sankey_graph_{{ metric }}"><!-- DO NOT CHANGE: SANKEY GRAPH IS RENDERED HERE--></div>
+        <div id="{{ metric|replace(' ', '_') }}" class="tabcontent">
+            <div id="sankey_graph_{{ metric|replace(' ', '_') }}"><!-- DO NOT CHANGE: SANKEY GRAPH IS RENDERED HERE--></div>
         </div>
         {%- endfor %}
         <table>
@@ -242,7 +242,7 @@
     }
 
     {%- for skeleton in skeletons %}
-    let {{ skeleton.stat }}_data = [{
+    let {{ skeleton.stat|replace(' ', '_') }}_data = [{
         type: "sankey",
         orientation: "v",
         node: {
@@ -262,7 +262,7 @@
             color: {{ skeleton.link_color }}
         }
     }]
-    let {{ skeleton.stat }}_layout = {
+    let {{ skeleton.stat|replace(' ', '_') }}_layout = {
         title: "Top {{ skeleton.stat }}",
         font: {
             size: 10,
@@ -524,7 +524,8 @@
             result += "</tr>";
         });
         result += '</tbody></table>';
-        result += '<table id="traces' + d.index + '" class="display" style="width:100%; border-right: 10px solid #ddd; border-left: 10px solid #ddd;">';
+        result += '<h4 style="text-align: center; width: 100%; border-bottom: 1px solid #ddd;">Top ' + d.traces.length + ' Traces</h4>';
+        result += '<table id="traces' + d.index + '" class="display" style="margin-top: -30px; width:100%; border-right: 10px solid #ddd; border-left: 10px solid #ddd;">';
         result += "<thead><tr><th></th><th>Trace</th><th>Metric</th><th>Abs</th><th>Rel</th></tr></thead><tbody>";
         d.traces.forEach((value, index) => {
             result += "<tr>";
@@ -917,7 +918,7 @@
     document.getElementById("defaultOpen").click();
 
     {%- for metric in stat_list %}
-    Plotly.react('sankey_graph_{{ metric }}', {{ metric }}_data, {{ metric }}_layout)
+    Plotly.react('sankey_graph_{{ metric|replace(' ', '_') }}', {{ metric|replace(' ', '_') }}_data, {{ metric|replace(' ', '_') }}_layout);;;
     {%- endfor %}
 
     newplot()
