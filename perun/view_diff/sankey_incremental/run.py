@@ -58,7 +58,7 @@ class Config:
         By default we consider, that the traces are not inclusive
         """
         self.trace_is_inclusive: bool = False
-        self.top_n_traces: int = 3
+        self.top_n_traces: int = 5
 
 
 class ColorPalette:

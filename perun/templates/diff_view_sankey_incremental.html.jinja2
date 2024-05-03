@@ -82,7 +82,7 @@
             background-color: #eee;
         }
 
-        table:hover tr.hightlight {
+        table:hover tr.highlight {
             background-color: #ccc;
         }
 
@@ -827,7 +827,7 @@
         } else {
             let d = row.data();
             row.child(format_row(d)).show();
-            new DataTable("#metrics" + d.index, {paging: false, info: false, searching: false, order: [[2, 'desc']], columns: [
+            new DataTable("#metrics" + d.index, {paging: false, info: false, searching: false, order: [[1, 'desc']], columns: [
                     {}, {
                         render: function (data, type) {
                             if (type == "display") {
