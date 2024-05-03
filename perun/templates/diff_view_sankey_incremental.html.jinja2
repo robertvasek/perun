@@ -484,10 +484,42 @@
         return result;
     };
 
-    function format_sub_row(d, uid) {
+    function format_path_prex(path_stats, index, path_cost) {
+        let result = '<span class="';
+        let prefix_sum = path_stats.slice(0, index).reduce((acc, v) => acc + v, 0);
+        let prefix_rate = (path_cost === 0) ? 0 : path_stats / path_cost;
+        if (prefix_rate < 0.5) {
+            result += 'decrease';
+        } else if (prefix_rate > 0.5) {
+            result += 'increase';
+        } else {
+            result += 'equal';
+        }
+        result += '">' + format_value(prefix_sum) + ' (' + (prefix_rate * 100).toFixed(2) + '%)</span>';
+        return result;
+    }
+
+    function format_bottleneck(stat, min) {
+        // TODO: Add gradient colours
+        let result = '<span class="';
+        let bottleneck_rate = (stat === 0) ? 0 : min / stat;
+        if (bottleneck_rate < 0.5) {
+            result += 'decrease';
+        } else if (bottleneck_rate > 0.5) {
+            result += 'increase';
+        } else {
+            result += 'equal';
+        }
+        result += '">' + (bottleneck_rate * 100).toFixed(2) + '%</span>';
+        return result;
+    };
+
+    function format_sub_row(d, uid, stat_type) {
         let result = '<table style="width: 100%; border: none;" class="nested">';
         let parts = d[5].split('#');
-        let traces = parts[0].split(';'), baseline = parts[1].split(';'), target = parts[2].split(';');
+        let traces = parts[0].split(';'), baseline = parts[1].split(';').map(Number), target = parts[2].split(';').map(Number);
+        let min_baseline = Math.min(...baseline), min_target = Math.min(...target);
+        let sum_baseline = baseline.reduce((acc, v) => acc + v, 0), sum_target = target.reduce((acc, v) => acc + v, 0);
         traces.forEach((v, i) => {
             let node = nodes[v];
             result += '<tr><td style="white-space: pre-wrap">';
@@ -495,7 +527,19 @@
                 let baseline_stat = baseline[i-1],
                     target_stat = target[i-1];
                 let diff = baseline_stat - target_stat;
-                result += '  '.repeat(i) + "⎸ " + format_stat(Number(baseline_stat), Number(target_stat));
+                result += '  '.repeat(i) + "⎸ " + format_stat(baseline_stat, target_stat);
+                if (stat_type.includes("inclusive")) {
+                    result += "    ";
+                    result += format_bottleneck(baseline_stat, min_baseline);
+                    result += " | ";
+                    result += format_bottleneck(target_stat, min_target);
+                } else if (stat_type.includes("exclusive")) {
+                    result += "    ";
+                    result += format_path_prex(baseline, i, sum_baseline);
+                    result += " | ";
+                    result += format_path_prex(target, i, sum_target);
+                }
+                result += " "
             }
             result += '</td></tr>';
             result += '<tr'
@@ -831,7 +875,7 @@
                     sub_tr.removeClass('shown');
                     sub_tr.addClass('hidden');
                 } else {
-                    sub_row.child(format_sub_row(sub_row.data(), d.uid)).show();
+                    sub_row.child(format_sub_row(sub_row.data(), d.uid, d.type.toLowerCase())).show();
                     sub_tr.removeClass('hidden');
                     sub_tr.addClass('shown');
                 }
