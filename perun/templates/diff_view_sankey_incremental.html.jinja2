@@ -66,6 +66,16 @@
             border: none;
         }
 
+        table#sankey_tools {
+            background: #00A000;
+            width: 100%;
+            margin: 0 1%;
+        }
+        table#sankey_tools tbody {
+            background: #60add5;
+            width: 100%;
+        }
+
         tr.highlight {
             border-top: 1px solid #ddd;
             border-bottom: 1px solid #ddd;
@@ -197,27 +207,29 @@
             <div id="sankey_graph_{{ metric|replace(' ', '_') }}"><!-- DO NOT CHANGE: SANKEY GRAPH IS RENDERED HERE--></div>
         </div>
         {%- endfor %}
-        <table>
-            <tbody>
-                <tr>
-                    <td class="key" style="width: 20%;">Threshold:</td>
-                    <td colspan="6">{{ widgets.range_picker() }}</td>
-                </tr>
-                {{ widgets.checkboxes([('baseline', 'Baseline'), ('target', 'Target'), ('incr', 'Incr (vs base)'), ('both', 'Equal'), ('decr', 'Decr (vs base)')], 'show_edges', 'Show') }}
-                {% if stat_list|length > 1 %}
-                <tr>
-                    <td class="key" style="width: 20%;">Metric:</td>
-                    <td colspan="6">
-                        <select class="dt-input" id="metricSelection">
-                            {%- for metric in stat_list %}
-                                <option value="{{ loop.index0 }}">{{ metric }}</option>
-                            {% endfor %}
-                        </select>
-                    </td>
-                </tr>
-            {% endif %}
-            </tbody>
-        </table>
+        <div id="sankey_tools" style="display: none">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class="key" style="width: 20%;">Threshold:</td>
+                        <td colspan="6">{{ widgets.range_picker() }}</td>
+                    </tr>
+                    {{ widgets.checkboxes([('baseline', 'Baseline'), ('target', 'Target'), ('incr', 'Incr (vs base)'), ('both', 'Equal'), ('decr', 'Decr (vs base)')], 'show_edges', 'Show') }}
+                    {% if stat_list|length > 1 %}
+                    <tr>
+                        <td class="key" style="width: 20%;">Metric:</td>
+                        <td colspan="6">
+                            <select class="dt-input" id="metricSelection">
+                                {%- for metric in stat_list %}
+                                    <option value="{{ loop.index0 }}">{{ metric }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
    <div id="sankey_graph"><!-- DO NOT CHANGE: SANKEY GRAPH IS RENDERED HERE--></div>
@@ -889,6 +901,10 @@
         if (type === 'row') {
             let data = selection_table.rows(indexes).data();
             if (data.length > 0) {
+                var div = document.getElementById('sankey_tools');
+                if (div.style.display === "none") {
+                    div.style.display = "block";
+                }
                 selected_uid = data[0].index;
                 selected_uid_text = data[0].uid;
                 layout.title = selected_uid_text;
