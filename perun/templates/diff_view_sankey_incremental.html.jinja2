@@ -419,7 +419,7 @@
                 }},
             { data: "index", visible: false},
         ],
-        order: [[3, "desc"]],
+        order: [[4, "desc"]],
         iDisplayLength: 10,
         select: true,
         createdRow: function( row, data, dataIndex ) {
@@ -827,7 +827,7 @@
         } else {
             let d = row.data();
             row.child(format_row(d)).show();
-            new DataTable("#metrics" + d.index, {paging: false, info: false, searching: false, columns: [
+            new DataTable("#metrics" + d.index, {paging: false, info: false, searching: false, order: [[2, 'desc']], columns: [
                     {}, {
                         render: function (data, type) {
                             if (type == "display") {
@@ -876,7 +876,8 @@
                 },
                 paging: false,
                 info: false,
-                searching: false
+                searching: false,
+                order: [[3, "desc"]]
             });
             trace_table.on('click', 'td.inner-details-control', function(el) {
                 var sub_tr = $(this).closest('tr');

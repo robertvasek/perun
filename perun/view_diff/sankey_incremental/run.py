@@ -637,7 +637,7 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
                         "#".join([long_trace, long_baseline_stats, long_target_stats]),
                     ]
                 )
-        uid_trace_stats = sorted(uid_trace_stats, key=itemgetter(3))
+        uid_trace_stats = sorted(uid_trace_stats, key=itemgetter(3), reverse=True)
         long_trace_stats = uid_trace_stats[: Config().top_n_traces]
         selection.append(
             SelectionRow(
