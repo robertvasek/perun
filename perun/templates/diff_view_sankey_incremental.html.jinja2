@@ -67,12 +67,10 @@
         }
 
         table#sankey_tools {
-            background: #00A000;
             width: 100%;
             margin: 0 1%;
         }
         table#sankey_tools tbody {
-            background: #60add5;
             width: 100%;
         }
 
@@ -164,6 +162,7 @@
             font-weight: bold;
             color: {{ palette.DarkEqual }};
         }
+        {{ widgets.tooltip_style() }}
     </style>
 </head>
 <body>
@@ -547,6 +546,7 @@
             result += 'equal';
         }
         result += '">' + format_value(prefix_sum) + ' (' + (prefix_rate * 100).toFixed(2) + '%)</span>';
+        result += '{{ widgets.tooltip("Prefix cost: the sum up to the current uid") }}'
         return result;
     }
 
@@ -562,6 +562,7 @@
             result += 'equal';
         }
         result += '">' + (bottleneck_rate * 100).toFixed(2) + '%</span>';
+        result += '{{ widgets.tooltip('<span style="font-weight: bold">Bottleneck rate:</span> the ratio between the cost of the whole path to all paths leading to the current uid') }}'
         return result;
     };
 
