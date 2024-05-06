@@ -333,7 +333,7 @@
                     name: 'Move Nodes',
                     icon: selection_icon,
                     click: function(gd) {
-                        modification_mode = "nonek";
+                        modification_mode = "none";
                         Plotly.update(gd, {arrangement: "snap"});
                     }
                 }, {
@@ -646,6 +646,68 @@
         refreshHandlers();
     }
 
+    function hideNodes(worklist) {
+        for (let i = sankey_data[0].link.source.length - 1; i >= 0; i--) {
+            if (worklist.includes(sankey_data[0].link.source[i]) || worklist.includes(sankey_data[0].link.target[i])) {
+                let key = sankey_data[0].link.source[i] + "," + sankey_data[0].link.target[i];
+                processed_edges.delete(key);
+                sankey_data[0].link.source.splice(i, 1);
+                sankey_data[0].link.target.splice(i, 1);
+                sankey_data[0].link.value.splice(i, 1);
+                sankey_data[0].link.color.splice(i, 1);
+                sankey_data[0].link.customdata.splice(i, 1);
+            }
+        }
+    }
+
+    function addToWorklist(worklist, nodedata) {
+        let callees = callee_graph[nodedata.index][nodedata.pos]
+        if (callees !== undefined) {
+            for (callee in callees) {
+                if (!hasNode(callee, nodedata.pos-1))
+                    continue
+
+                target = getNode(callee, nodedata.pos-1)
+                if (custom_data[target].type === "none" || (nodedata.type !== custom_data[target].type && custom_data[target].type !== 'root')) {
+                    console.log(worklist, target);
+                    if (!worklist.includes(target)) {
+                        worklist.push(target);
+                        addToWorklist(worklist, sankey_data[0].node.customdata[target]);
+                    }
+                }
+            }
+        }
+        let callers = caller_graph[nodedata.index][nodedata.pos]
+        if (callers !== undefined) {
+            for (caller in callers) {
+                if (!hasNode(caller, nodedata.pos+1))
+                    continue
+
+                target = getNode(caller, nodedata.pos+1)
+                if (custom_data[target].type === "none" || (nodedata.type !== custom_data[target].type && custom_data[target].type !== 'root')) {
+                    console.log(worklist, target);
+                    if (!worklist.includes(target)) {
+                        worklist.push(target);
+                        addToWorklist(worklist, sankey_data[0].node.customdata[target]);
+                    }
+                }
+            }
+        }
+    }
+
+
+    function foldnode(nodedata) {
+        clickedNode = getNode(nodedata.index, nodedata.pos, false);
+        custom_data = sankey_data[0].node.customdata;
+        if (!nodedata.hidden && nodedata.type !== "root") {
+            sankey_data[0].node.label[nodedata.id] = "[+] (" + nodedata.label + ")";
+            nodedata.hidden = true;
+            worklist = []
+            addToWorklist(worklist, nodedata)
+            hideNodes(worklist, nodedata.type)
+        }
+    }
+
     function unfoldnode(nodedata) {
         clickedNode = getNode(nodedata.index, nodedata.pos, false);
         if (nodedata.hidden) {
@@ -664,7 +726,11 @@
             for (let i = 0; i < idata.points.length; i++) {
                 clicked = idata.points[i];
                 if (clicked.customdata !== undefined) {
-                    unfoldnode(clicked.customdata)
+                    if (modification_mode === 'fold') {
+                        foldnode(clicked.customdata)
+                    } else {
+                        unfoldnode(clicked.customdata)
+                    }
                 }
             }
             // This will call render as well
@@ -681,6 +747,15 @@
             edges.value[i] = (fromInput <= newValue && newValue <= toInput) ? newValue : 0;
         }
         render();
+    }
+
+    function hasNode(node, pos) {
+        node_len = shown_nodes.length;
+        for (let i = 0; i < node_len; i++) {
+            if (shown_nodes[i][0] === node && shown_nodes[i][1] === pos) {
+                return i;
+            }
+        }
     }
 
     // Graph Operations
