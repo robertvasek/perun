@@ -354,13 +354,13 @@
                     name: "Minimize Graph",
                     icon: minimize_icon,
                     click: function (gd) {
-
+                        initializeGraph();
                     }
                 }, {
-                    name: "Maximize Graph",
+                    name: "Expand By One Level",
                     icon: maximize_icon,
                     click: function (gd) {
-
+                        expandOneLevel();
                     }
                 }, {
                     name: 'Rotate Graph',
@@ -646,6 +646,16 @@
         refreshHandlers();
     }
 
+    function unfoldnode(nodedata) {
+        clickedNode = getNode(nodedata.index, nodedata.pos, false);
+        if (nodedata.hidden) {
+            addAllEdgesFor(clickedNode, nodedata.pos, callee_graph[nodedata.index][nodedata.pos], false, nodedata.type);
+            addAllEdgesFor(clickedNode, nodedata.pos, caller_graph[nodedata.index][nodedata.pos], true, nodedata.type);
+            sankey_data[0].node.label[nodedata.id] = nodedata.label;
+            nodedata.hidden = false;
+        }
+    }
+
     function refreshHandlers() {
         plot.on('plotly_afterplot', function () {
             //annotateEdges();
@@ -654,13 +664,7 @@
             for (let i = 0; i < idata.points.length; i++) {
                 clicked = idata.points[i];
                 if (clicked.customdata !== undefined) {
-                    clickedNode = getNode(clicked.customdata.index, clicked.customdata.pos, false);
-                    if (clicked.customdata.hidden) {
-                        addAllEdgesFor(clickedNode, clicked.customdata.pos, callee_graph[clicked.customdata.index][clicked.customdata.pos], false);
-                        addAllEdgesFor(clickedNode, clicked.customdata.pos, caller_graph[clicked.customdata.index][clicked.customdata.pos], true);
-                        sankey_data[0].node.label[clicked.customdata.id] = clicked.customdata.label;
-                        clicked.customdata.hidden = false;
-                    }
+                    unfoldnode(clicked.customdata)
                 }
             }
             // This will call render as well
@@ -692,11 +696,11 @@
         if (isroot) {
             sankey_data[0].node.color.push("rgba(0, 0, 0, 0.7)");
             sankey_data[0].node.label.push(nodes[node]);
-            sankey_data[0].node.customdata.push({label: nodes[node], index: node, pos: pos, hidden: false, root: true, id: node_len});
+            sankey_data[0].node.customdata.push({label: nodes[node], index: node, pos: pos, hidden: false, type: "root", id: node_len});
         } else {
             sankey_data[0].node.color.push("rgba(0, 0, 0, 0.2)");
             sankey_data[0].node.label.push("[+] (" + nodes[node] + ")");
-            sankey_data[0].node.customdata.push({label: nodes[node], index: node, pos: pos, hidden: true, root: false, id: node_len});
+            sankey_data[0].node.customdata.push({label: nodes[node], index: node, pos: pos, hidden: true, type: "none", id: node_len});
         }
         shown_nodes.push([node, pos])
         return node_len;
@@ -805,6 +809,35 @@
             return Math.min(baseline_stat, target_stat);
     }
 
+    function expandOneLevel() {
+        let nodes = sankey_data[0].node,
+            caller_worklist = [],
+            callee_worklist = [];
+        // Collect the data
+        for (let i = 0; i < nodes.customdata.length; i++) {
+            let nodedata = nodes.customdata[i];
+            if (nodedata.hidden) {
+                if (nodedata.type === "callee") {
+                    callee_worklist.push(nodedata);
+                } else if (nodedata.type === "caller") {
+                    caller_worklist.push(nodedata);
+                }
+            }
+        }
+
+        // Worklists
+        while (caller_worklist.length != 0) {
+            item = caller_worklist.shift();
+            unfoldnode(item);
+        }
+        while (callee_worklist.length != 0) {
+            item = callee_worklist.shift();
+            unfoldnode(item);
+        }
+
+        filterEdges();
+    }
+
     function addEdge(src, target, edge_stats) {
         // Baseline data
         let key = src + "," + target;
@@ -832,13 +865,28 @@
         processed_edges.add(key);
     }
 
-    function addAllEdgesFor(node, pos, edges, isfwd) {
+    function adjustType(target, type) {
+        tgt_data = sankey_data[0].node.customdata[target];
+        if (tgt_data.type === "none") {
+            tgt_data.type = type;
+        };
+    }
+
+    function addAllEdgesFor(node, pos, edges, isfwd, newtype) {
         if (edges !== undefined) {
             for (edge in edges) {
                 if (isfwd) {
-                    addEdge(node, getNode(edge, pos+1, false), stats[edges[edge]]);
+                    let target = getNode(edge, pos+1, false);
+                    addEdge(node, target, stats[edges[edge]]);
+                    if (newtype === "caller") {
+                        adjustType(target, newtype)
+                    }
                 } else {
-                    addEdge(getNode(edge, pos-1, false), node, stats[edges[edge]]);
+                    let target = getNode(edge, pos-1, false);
+                    addEdge(target, node, stats[edges[edge]]);
+                    if (newtype === "callee") {
+                        adjustType(target, newtype)
+                    }
                 }
             }
         }
@@ -849,8 +897,8 @@
         for (let i = 0; i < node_map[index].length; i++) {
             pos = node_map[index][i];
             rootNode = getNode(index, pos, true);
-            addAllEdgesFor(rootNode, pos, callee_graph[index][pos], false);
-            addAllEdgesFor(rootNode, pos, caller_graph[index][pos], true);
+            addAllEdgesFor(rootNode, pos, callee_graph[index][pos], false, "callee");
+            addAllEdgesFor(rootNode, pos, caller_graph[index][pos], true, "caller");
         }
     }
 
@@ -937,6 +985,14 @@
         }
     });
 
+    function initializeGraph() {
+        clearGraph();
+        addRootNode(selected_uid);
+        newplot();
+        fillSliders(steps[0], steps[0], steps[steps.length-1], steps[0], steps[steps.length-1], steps[steps.length-1]);
+        filterEdges();
+    }
+
     selection_table.on('select', function(e, dt, type, indexes) {
         if (type === 'row') {
             let data = selection_table.rows(indexes).data();
@@ -948,11 +1004,7 @@
                 selected_uid = data[0].index;
                 selected_uid_text = data[0].uid;
                 layout.title = selected_uid_text;
-                clearGraph();
-                addRootNode(selected_uid);
-                newplot();
-                fillSliders(steps[0], steps[0], steps[steps.length-1], steps[0], steps[steps.length-1], steps[steps.length-1]);
-                filterEdges();
+                initializeGraph();
             }
         }
     })

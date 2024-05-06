@@ -312,8 +312,8 @@ class Node:
     """Single node in sankey graph
 
     :ivar uid: unique identifier of the node (the label)
-    :ivar callers: mapp of positions to edge relation for callers
-    :ivar callees: mapp of positions to edge relation for callees
+    :ivar callers: map of positions to edge relation for callers
+    :ivar callees: map of positions to edge relation for callees
     """
 
     __slots__ = ["uid", "callers", "callees"]
