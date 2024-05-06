@@ -550,17 +550,18 @@
         return result;
     }
 
+    function getColor(n) {
+        let R = (255 * n) / 100,
+            G = (255 * (100 - n)) / 100
+            B = 0;
+        return "rgba(" + R + ", " + G + ", " + B + ", 1.0)";
+    }
+
     function format_bottleneck(stat, min) {
         // TODO: Add gradient colours
-        let result = '<span class="';
+        let result = '<span style="font-weight: bold; color: ';
         let bottleneck_rate = (stat === 0) ? 0 : min / stat;
-        if (bottleneck_rate < 0.5) {
-            result += 'decrease';
-        } else if (bottleneck_rate > 0.5) {
-            result += 'increase';
-        } else {
-            result += 'equal';
-        }
+        result += getColor(bottleneck_rate * 100);
         result += '">' + (bottleneck_rate * 100).toFixed(2) + '%</span>';
         result += '{{ widgets.tooltip('<span style="font-weight: bold">Bottleneck rate:</span> the ratio between the cost of the whole path to all paths leading to the current uid') }}'
         return result;
