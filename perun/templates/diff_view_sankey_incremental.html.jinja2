@@ -398,8 +398,8 @@
                     "uid": "{{ val.uid }}",
                     "index": "{{ val.index }}",
                     "fresh": "{{ val.fresh }}",
-                    "stats": {{ val.stats}},
-                    "traces": {{ val.trace_stats}},
+                    "stats": {{ val.stats|map('list')|list }},
+                    "traces": {{ val.trace_stats|map('list')|list }},
                     "type": "{{ val.main_stat }}",
                     "abs": "{{ val.abs_amount }}",
                     "rel": "{{ val.rel_amount }}"

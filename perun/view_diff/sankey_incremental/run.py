@@ -32,7 +32,7 @@ from perun.utils.common import diff_kit, common_kit
 from perun.view_diff.flamegraph import run as flamegraph_run
 
 
-def singleton_class(cls: Type) -> Callable[[], Config]:
+def singleton_class(cls: Type[Any]) -> Callable[[], Config]:
     """Helper class for creating singleton objects"""
     instances = {}
 
@@ -52,7 +52,7 @@ class Config:
     :ivar trace_is_inclusive: if set to true, then the amounts are distributed among the whole traces
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes the config
 
         By default we consider, that the traces are not inclusive
@@ -133,9 +133,9 @@ class SelectionRow:
     abs_amount: float
     rel_amount: float
     # stat_type, abs, rel
-    stats: list[list[str, float, float]]
+    stats: list[tuple[str, float, float]]
     # trace, stat_type, abs, rel, long_trace
-    trace_stats: list[list[str, str, float, float, str]]
+    trace_stats: list[tuple[str, str, float, float, str]]
 
 
 class Skeleton:
@@ -215,7 +215,7 @@ class Graph:
             self.stats_to_id[stats] = len(self.stats_to_id)
         return self.stats_to_id[stats]
 
-    def translate_node(self, node) -> str:
+    def translate_node(self, node: str) -> str:
         """Translates the node to its unique id
 
         :param node: node which we are translating to id
@@ -370,7 +370,7 @@ class Stats:
     __slots__ = ["baseline", "target"]
     KnownStats: set[str] = set()
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes the stat"""
         self.baseline: dict[str, float] = defaultdict(float)
         self.target: dict[str, float] = defaultdict(float)
@@ -459,7 +459,7 @@ def process_traces(
 
 def generate_skeletons(graph: Graph, traces: dict[str, list[TraceStat]]) -> list[Skeleton]:
     """Generates skeletons of graphs for each amount"""
-    stat_to_traces = defaultdict(list)
+    stat_to_traces: dict[str, list[tuple[list[str], float]]] = defaultdict(list)
     processed = set()
     for val in traces.values():
         for trace in val:
@@ -473,21 +473,24 @@ def generate_skeletons(graph: Graph, traces: dict[str, list[TraceStat]]) -> list
                     trace.target_cost[stat], trace.baseline_cost[stat]
                 )
                 if 0 < abs(rel_amount) < 1.0:
-                    stat_to_traces[stat].append([trace.trace, abs_amount])
+                    stat_to_traces[stat].append((trace.trace, abs_amount))
 
     skeletons: list[Skeleton] = []
     processed = set()
     for stat, stat_traces in stat_to_traces.items():
         skeleton = Skeleton(stat)
-        sorted_traces = sorted(
-            sorted(stat_traces, key=lambda t: t[1])[-10:], key=lambda key: ",".join(key[0])
+        sorted_all_traces: list[tuple[list[str], float]] = sorted(stat_traces, key=lambda t: t[1])[
+            -10:
+        ]
+        sorted_traces: list[tuple[list[str], float]] = sorted(
+            sorted_all_traces, key=lambda key: ",".join(key[0])
         )
         node_map = []
-        for trace, rel in sorted_traces:
-            trace_len = len(trace)
+        for sorted_trace, _ in sorted_traces:
+            trace_len = len(sorted_trace)
             skeleton.height = max(skeleton.height, trace_len)
             for i in range(0, trace_len - 1):
-                src, tgt = f"{trace[i]}#{i}", f"{trace[i+1]}#{i+1}"
+                src, tgt = f"{sorted_trace[i]}#{i}", f"{sorted_trace[i+1]}#{i+1}"
                 if f"{src},{tgt}" in processed:
                     continue
                 processed.add(f"{src},{tgt}")
@@ -525,12 +528,12 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
             key = ",".join(trace)
             if key not in processed:
                 trace_len = len(trace)
-                baseline_overall = defaultdict(float)
-                baseline_partial = {
+                baseline_overall: dict[str, float] = defaultdict(float)
+                baseline_partial: dict[str, list[float]] = {
                     stat: [0.0 for _ in range(0, trace_len - 1)] for stat in Stats.KnownStats
                 }
-                target_overall = defaultdict(float)
-                target_partial = {
+                target_overall: dict[str, float] = defaultdict(float)
+                target_partial: dict[str, list[float]] = {
                     stat: [0.0 for _ in range(0, trace_len - 1)] for stat in Stats.KnownStats
                 }
                 for i in range(0, trace_len - 1):
@@ -571,9 +574,9 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
     """
     selection = []
     for uid, nodes in graph.uid_to_nodes.items():
-        baseline_overall = defaultdict(float)
-        target_overall = defaultdict(float)
-        stats = []
+        baseline_overall: dict[str, float] = defaultdict(float)
+        target_overall: dict[str, float] = defaultdict(float)
+        stats: list[tuple[str, float, float]] = []
         for node in nodes:
             for known_stat in Stats.KnownStats:
                 stat = " ".join(["callee", known_stat])
@@ -589,14 +592,14 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
             if baseline != 0 or target != 0:
                 abs_diff = target - baseline
                 rel_diff = round(100 * abs_diff / max(baseline, target), 2)
-                stats.append([stat, abs_diff, rel_diff])
+                stats.append((stat, abs_diff, rel_diff))
         stats = sorted(stats, key=itemgetter(2))
+
+        state: Literal["new", "removed", "(un)changed"] = "(un)changed"
         if all(val == 0 for val in baseline_overall.values()):
             state = "new"
         elif all(val == 0 for val in target_overall.values()):
             state = "removed"
-        else:
-            state = "(un)changed"
 
         # Prepare trace stats
         uid_stats = trace_stats[uid]
@@ -629,13 +632,13 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
                     ]
                 )
                 uid_trace_stats.append(
-                    [
+                    (
                         short_id,
                         stat,
                         abs_amount,
                         rel_amount,
                         "#".join([long_trace, long_baseline_stats, long_target_stats]),
-                    ]
+                    )
                 )
         uid_trace_stats = sorted(uid_trace_stats, key=itemgetter(3), reverse=True)
         long_trace_stats = uid_trace_stats[: Config().top_n_traces]

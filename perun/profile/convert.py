@@ -102,7 +102,7 @@ def models_to_pandas_dataframe(profile: Profile) -> pandas.DataFrame:
     return pandas.DataFrame(values)
 
 
-def to_flame_graph_format(profile: Profile, profile_key="amount") -> list[str]:
+def to_flame_graph_format(profile: Profile, profile_key: str = "amount") -> list[str]:
     """Transforms the **memory** profile w.r.t. :ref:`profile-spec` into the
     format supported by perl script of Brendan Gregg.
 

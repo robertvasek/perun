@@ -156,7 +156,7 @@ class SankeyGraph:
     ]
     uid: str
     label: list[str]
-    customdata: list[list[str, str]]
+    customdata: list[list[str]]
     node_colors: list[str]
     linkage: dict[Literal["split", "merged"], Linkage]
     width: int
@@ -386,7 +386,9 @@ def delete_node(point, pred, succ):
     succ.preds.pop(point.id)
 
 
-def minimize_sankey_maps(sankey_map: [str, dict[str, SankeyNode]]) -> [str, dict[str, SankeyNode]]:
+def minimize_sankey_maps(
+    sankey_map: dict[str, dict[str, SankeyNode]]
+) -> dict[str, dict[str, SankeyNode]]:
     """Merges chains of unbranched code
 
     :param sankey_map: map of sankey graphs;

@@ -131,7 +131,9 @@ class TraceClassifierLayer:
                 [TraceClusterMember], TraceCluster
             ] = self.find_first_fit_cluster_for
         elif strategy == ClassificationStrategy.IDENTITY:
-            self.find_cluster: Callable[[TraceClusterMember], TraceCluster] = self.find_identity_for
+            self.find_cluster: Callable[  # type: ignore
+                [TraceClusterMember], TraceCluster
+            ] = self.find_identity_for
         else:
             assert strategy == ClassificationStrategy.BEST_FIT
             self.find_cluster: Callable[  # type: ignore
@@ -470,7 +472,7 @@ def fast_compute_distance(
     return cache[key]
 
 
-def fold_recursive_calls_in_trace(trace: list[str], generalize=False):
+def fold_recursive_calls_in_trace(trace: list[str], generalize: bool = False) -> list[str]:
     """Folds consecutive recursive calls to single uid
 
     If generalize is set to True, then each consecutive calls to certain UID will be

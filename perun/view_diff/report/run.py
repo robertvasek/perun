@@ -47,7 +47,7 @@ class TableRecord:
     trace: str
     cluster: traces_kit.TraceCluster
     short_trace: str
-    trace_list: [str]
+    trace_list: list[str]
     abs_amount: float
     rel_amount: float
     type: str
@@ -161,7 +161,7 @@ def profile_to_data(
         """
         return trace_info_map[value]
 
-    df["trace"] = df["trace"].apply(process_traces)
+    df["trace"] = df["trace"].apply(process_traces)  # type: ignore
 
     # TODO: This could be more effective
     data = []

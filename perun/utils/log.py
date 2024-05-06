@@ -839,7 +839,7 @@ def format_file_size(size: Optional[float]) -> str:
     return f"{size:.1f} PiB"
 
 
-def format_size(size: Optional[float], base_unit: str = "") -> str:
+def format_size(size: float, base_unit: str = "") -> str:
     """Function converts to format_file_size for returning human readable sizes
 
     Note that this could be made generic and merge, but since in file sizes,
