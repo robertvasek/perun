@@ -1,5 +1,5 @@
 project(
-    'perun-toolsuite',
+    'perun',
     'c',
     version: '0.21.8',
     license: 'GPL-3',
