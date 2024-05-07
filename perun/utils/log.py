@@ -839,28 +839,6 @@ def format_file_size(size: Optional[float]) -> str:
     return f"{size:.1f} PiB"
 
 
-def format_size(size: float, base_unit: str = "") -> str:
-    """Function converts to format_file_size for returning human readable sizes
-
-    Note that this could be made generic and merge, but since in file sizes,
-    we would need to somehow add workaroud for 'i', the sea-lion tyrant has
-    decided, this will be an isolate function.
-
-    :param size: the size
-    :param base_unit: unit of the size
-
-    :return str: the formatted output
-    """
-    space = " " if base_unit != "" else ""
-    for unit in ["", "k", "M", "G", "T"]:
-        if abs(size) < 1000.0:
-            if unit == "":
-                return f"{size:8.0f}{space}{base_unit}  "
-            return f"{size:8.1f}{space}{unit}{base_unit}"
-        size /= 1000.0
-    return f"{size:.1f} P{base_unit}"
-
-
 def collector_to_command(collector_info: dict[str, Any]) -> str:
     """Converts the collector info dictionary into prettier one line command
 
