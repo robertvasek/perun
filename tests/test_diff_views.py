@@ -96,7 +96,33 @@ def test_diff_sankey(pcs_with_root):
 
     # Next try to create it using the click
     result = runner.invoke(
-        cli.showdiff, [baseline_profilename, target_profilename, "sankey", "-o", "diff.html"]
+        cli.showdiff,
+        [
+            baseline_profilename,
+            target_profilename,
+            "sankey",
+            "-f",
+            "10",
+            "-m",
+            "-c" "amount",
+            "-o",
+            "diff.html",
+        ],
+    )
+    assert result.exit_code == 0
+
+    assert "diff.html" in os.listdir(os.getcwd())
+
+
+def test_diff_incremental_sankey(pcs_with_root):
+    """Test creating sankey diff graph out of the two profile"""
+    runner = CliRunner()
+    baseline_profilename = test_utils.load_profilename("diff_profiles", "kperf-baseline.perf")
+    target_profilename = test_utils.load_profilename("diff_profiles", "kperf-target.perf")
+
+    # Next try to create it using the click
+    result = runner.invoke(
+        cli.showdiff, [baseline_profilename, target_profilename, "sankey-incr", "-o", "diff.html"]
     )
     assert result.exit_code == 0
 
