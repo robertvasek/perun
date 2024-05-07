@@ -6,9 +6,9 @@ cmd       | cmd
 workload  | workload
 collector | kernel
 
-| ---\          /======|
+| ---|          |======|
      |-----|====
-|---/          \------|
+|---|          |------|
 
 """
 from __future__ import annotations
@@ -680,6 +680,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     skeletons = generate_skeletons(graph, trace_stats)
     log.minor_success("Sankey graphs", "generated")
 
+    # Note: we keep the autoescape=false, since we kindof believe we are not trying to fuck us up
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
     template = env.get_template("diff_view_sankey_incremental.html.jinja2")
     content = template.render(
