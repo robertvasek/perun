@@ -70,7 +70,9 @@ def create_unit_from_template(template_type: str, no_edit: bool, **kwargs: Any) 
     log.minor_status("Target Perun development dir", status=log.path_style(perun_dev_dir))
 
     # Initialize the jinja2 environment and load all templates for template_type set
-    env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"), autoescape=True)
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader("perun-toolsuite", "templates"), autoescape=True
+    )
     list_of_templates = env.list_templates(filter_func=template_name_filter)
 
     # Specify the target dir (for packages we create a new directory)

@@ -211,7 +211,7 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
         ("[%]", "The relative measured value (in percents overall)."),
     ]
 
-    env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
+    env = jinja2.Environment(loader=jinja2.PackageLoader("perun-toolsuite", "templates"))
     template = env.get_template("diff_view_report.html.jinja2")
     content = template.render(
         lhs_tag="Baseline (base)",

@@ -181,7 +181,7 @@ def generate_flamegraph_difference(
         log.minor_success(f"Diff flamegraph ({data_type})", "generated")
         flamegraphs.append((escaped_lhs, escaped_rhs, escaped_diff))
 
-    env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
+    env = jinja2.Environment(loader=jinja2.PackageLoader("perun-toolsuite", "templates"))
     template = env.get_template("diff_view_flamegraph.html.jinja2")
     content = template.render(
         flamegraphs=flamegraphs,
