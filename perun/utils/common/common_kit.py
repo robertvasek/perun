@@ -437,11 +437,24 @@ def get_module(module_name: str) -> types.ModuleType:
     return MODULE_CACHE[module_name]
 
 
+def compact_convert_list_to_str(
+    number_list: list[int | float], float_precision: int = 2
+) -> list[str]:
+    """Converts list to list of compact strings
+
+    :param number_list: list of numbers
+    :param float_precision: float precision of the numbers
+    :return list of compact strings
+    """
+    return [compact_convert_num_to_str(num, 2) for num in number_list]
+
+
 def compact_convert_num_to_str(number: int | float, float_precision: int = 2) -> str:
-    """Converts the number to smallest string possible
+    """Converts the number to the smallest string possible
 
     :param number: converted number
     :param float_precision: float precision, i.e. number of decimal places in number
+    :return compact string
     """
     if isinstance(number, int):
         return str(number)

@@ -644,38 +644,35 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
 def extract_stats_from_trace(
     graph: Graph, uid_stats: list[TraceStat], cache: dict[str, tuple[str, str, float, float, str]]
 ) -> list[tuple[str, str, float, float, str]]:
-    """Extracts stats from trace"""
+    """Extracts stats from trace
+
+    :param graph: sankey graph
+    :param uid_stats: stats for each uid in the graph
+    :param cache: helper cache for reducing the statistics
+    """
     uid_trace_stats = []
     for trace in uid_stats:
         # Trace is in form of [short_trace, stat_type, abs, rel, long_trace]
         for stat in Stats.KnownStats:
             key = f"{trace.trace_key}#{stat}"
-            if key in cache:
-                uid_trace_stats.append(cache[key])
-                continue
-            target_cost, baseline_cost = trace.target_cost[stat], trace.baseline_cost[stat]
-            if target_cost == 0 and baseline_cost == 0:
-                continue
-            abs_amount = target_cost - baseline_cost
-            rel_amount = abs_amount / max(target_cost, baseline_cost)
+            if key not in cache:
+                target_cost, baseline_cost = trace.target_cost[stat], trace.baseline_cost[stat]
+                if target_cost == 0 and baseline_cost == 0:
+                    continue
+                abs_amount = target_cost - baseline_cost
+                rel_amount = abs_amount / max(target_cost, baseline_cost)
 
-            short_id = f"{graph.uid_to_id[trace.trace[0]]};{graph.uid_to_id[trace.trace[-1]]}"
-            long_trace = ";".join([f"{graph.uid_to_id[t]}" for t in trace.trace])
-            long_baseline_stats = ";".join(
-                [
-                    common_kit.compact_convert_num_to_str(s, 2)
-                    for s in trace.baseline_partial_costs[stat]
-                ]
-            )
-            long_target_stats = ";".join(
-                [
-                    common_kit.compact_convert_num_to_str(s, 2)
-                    for s in trace.target_partial_costs[stat]
-                ]
-            )
-            long_data = f"{long_trace}#{long_baseline_stats}#{long_target_stats}"
-            uid_trace_stats.append((short_id, stat, abs_amount, rel_amount, long_data))
-            cache[key] = (short_id, stat, abs_amount, rel_amount, long_data)
+                short_id = f"{graph.uid_to_id[trace.trace[0]]};{graph.uid_to_id[trace.trace[-1]]}"
+                long_trace = ";".join([f"{graph.uid_to_id[t]}" for t in trace.trace])
+                long_baseline_stats = ";".join(
+                    common_kit.compact_convert_list_to_str(trace.baseline_partial_costs[stat])
+                )
+                long_target_stats = ";".join(
+                    common_kit.compact_convert_list_to_str(trace.target_partial_costs[stat])
+                )
+                long_data = f"{long_trace}#{long_baseline_stats}#{long_target_stats}"
+                cache[key] = (short_id, stat, abs_amount, rel_amount, long_data)
+            uid_trace_stats.append(cache[key])
     uid_trace_stats = sorted(uid_trace_stats, key=itemgetter(3), reverse=True)
     long_trace_stats = uid_trace_stats[: Config().top_n_traces]
     return long_trace_stats
