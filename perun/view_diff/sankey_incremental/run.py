@@ -479,10 +479,11 @@ def generate_skeletons(graph: Graph, traces: dict[str, list[TraceStat]]) -> list
                 continue
             processed.add(trace_key)
             for stat in Stats.KnownStats:
-                abs_amount = trace.target_cost[stat] - trace.baseline_cost[stat]
-                rel_amount = (trace.target_cost[stat] - trace.baseline_cost[stat]) / max(
-                    trace.target_cost[stat], trace.baseline_cost[stat]
-                )
+                target_cost, baseline_cost = trace.target_cost[stat], trace.baseline_cost[stat]
+                if target_cost == 0 and baseline_cost == 0:
+                    continue
+                abs_amount = target_cost - baseline_cost
+                rel_amount = abs_amount / max(target_cost, baseline_cost)
                 if 0 < abs(rel_amount) < 1.0:
                     stat_to_traces[stat].append((trace.trace, abs_amount))
 
@@ -655,11 +656,11 @@ def extract_stats_from_trace(
             if key in cache:
                 uid_trace_stats.append(cache[key])
                 continue
-
-            abs_amount = trace.target_cost[stat] - trace.baseline_cost[stat]
-            rel_amount = (trace.target_cost[stat] - trace.baseline_cost[stat]) / max(
-                trace.target_cost[stat], trace.baseline_cost[stat]
-            )
+            target_cost, baseline_cost = trace.target_cost[stat], trace.baseline_cost[stat]
+            if target_cost == 0 and baseline_cost == 0:
+                continue
+            abs_amount = target_cost - baseline_cost
+            rel_amount = abs_amount / max(target_cost, baseline_cost)
 
             short_id = f"{graph.uid_to_id[trace.trace[0]]};{graph.uid_to_id[trace.trace[-1]]}"
             long_trace = ";".join([f"{graph.uid_to_id[t]}" for t in trace.trace])
@@ -693,6 +694,8 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     # We automatically set the value of True for kperf, which samples
     if lhs_profile.get("collector_info", {}).get("name") == "kperf":
         Config().trace_is_inclusive = True
+    else:
+        Config().trace_is_inclusive = kwargs.get("trace_is_inclusive", False)
 
     log.major_info("Generating Sankey Graph Difference")
 

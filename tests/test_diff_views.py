@@ -145,3 +145,19 @@ def test_diff_incremental_sankey(pcs_with_root):
     assert result.exit_code == 0
 
     assert "diff.html" in os.listdir(os.getcwd())
+
+    baseline_profilename = test_utils.load_profilename("diff_profiles", "ktrace-baseline.perf")
+    target_profilename = test_utils.load_profilename("diff_profiles", "ktrace-target.perf")
+    result = runner.invoke(
+        cli.showdiff,
+        [
+            baseline_profilename,
+            target_profilename,
+            "sankey-incr",
+            "-o",
+            "diff-ktrace.html",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "diff-ktrace.html" in os.listdir(os.getcwd())
