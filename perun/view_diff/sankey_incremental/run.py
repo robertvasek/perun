@@ -130,16 +130,26 @@ class SelectionRow:
         "stats",
         "trace_stats",
     ]
-    uid: str
-    index: int
-    fresh: Literal["new", "removed", "(un)changed"]
-    main_stat: str
-    abs_amount: float
-    rel_amount: float
-    # stat_type, abs, rel
-    stats: list[tuple[str, float, float]]
-    # trace, stat_type, abs, rel, long_trace
-    trace_stats: list[tuple[str, str, float, float, str]]
+
+    def __init__(
+        self,
+        uid: str,
+        index: int,
+        fresh: Literal["new", "removed", "(un)changed"],
+        stats: list[tuple[str, float, float]],
+        trace_stats: list[tuple[str, str, float, float, str]],
+    ) -> None:
+        """Initializes the selection row"""
+        self.uid: str = uid
+        self.index: int = index
+        self.fresh: Literal["new", "removed", "(un)changed"] = fresh
+        self.main_stat: str = stats[0][0]
+        self.abs_amount: float = stats[0][1]
+        self.rel_amount: float = stats[0][2]
+        # stat_type, abs, rel
+        self.stats: list[tuple[str, float, float]] = stats
+        # trace, stat_type, abs, rel, long_trace
+        self.trace_stats: list[tuple[str, str, float, float, str]] = trace_stats
 
 
 class Skeleton:
@@ -449,9 +459,8 @@ def process_traces(
     :param graph: sankey graph
     """
     for _, resource in progressbar.progressbar(profile.all_resources()):
-        full_trace = [convert.to_uid(t) for t in resource["trace"]] + [
-            convert.to_uid(resource["uid"])
-        ]
+        full_trace = [convert.to_uid(t) for t in resource["trace"]]
+        full_trace.append(convert.to_uid(resource["uid"]))
         trace_len = len(full_trace)
         if trace_len > 1:
             if Config().trace_is_inclusive:
@@ -511,7 +520,7 @@ def generate_skeletons(graph: Graph, traces: dict[str, list[TraceStat]]) -> list
                     node_map.append(src)
                     skeleton.label.append(src.split("#")[0])
                     skeleton.color.append(ColorPalette.NoHighlight)
-                if tgt not in skeleton.label:
+                if tgt not in node_map:
                     node_map.append(tgt)
                     skeleton.label.append(tgt.split("#")[0])
                     skeleton.color.append(ColorPalette.NoHighlight)
@@ -546,12 +555,12 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
                     trace_stats[uid].append(trace_cache[key])
                     continue
                 trace_len = len(trace)
-                baseline_overall: dict[str, float] = defaultdict(float)
-                baseline_partial: dict[str, list[float]] = {
+                base_sum: dict[str, float] = defaultdict(float)
+                base_partial: dict[str, list[float]] = {
                     stat: [0.0 for _ in range(0, trace_len - 1)] for stat in Stats.KnownStats
                 }
-                target_overall: dict[str, float] = defaultdict(float)
-                target_partial: dict[str, list[float]] = {
+                tgt_sum: dict[str, float] = defaultdict(float)
+                tgt_partial: dict[str, list[float]] = {
                     stat: [0.0 for _ in range(0, trace_len - 1)] for stat in Stats.KnownStats
                 }
                 for i in range(0, trace_len - 1):
@@ -560,26 +569,17 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
                     if tgt in node.callers:
                         stats = node.callers[tgt].stats
                         for stat in Stats.KnownStats:
-                            baseline_partial[stat][i] += stats.baseline[stat]
-                            target_partial[stat][i] += stats.target[stat]
+                            base_stat, tgt_stat = stats.baseline[stat], stats.target[stat]
+                            base_partial[stat][i] += base_stat
+                            tgt_partial[stat][i] += tgt_stat
                             if Config().trace_is_inclusive:
-                                baseline_overall[stat] = (
-                                    stats.baseline[stat]
-                                    if baseline_overall[stat] == 0
-                                    else min(baseline_overall[stat], stats.baseline[stat])
-                                )
-                                target_overall[stat] = (
-                                    stats.target[stat]
-                                    if target_overall[stat] == 0
-                                    else min(target_overall[stat], stats.target[stat])
-                                )
+                                base_sum[stat] = common_kit.try_min(base_sum.get(stat), base_stat)
+                                tgt_sum[stat] = common_kit.try_min(tgt_sum.get(stat), tgt_stat)
                             else:
-                                baseline_overall[stat] += stats.baseline[stat]
-                                target_overall[stat] += stats.target[stat]
+                                base_sum[stat] += base_stat
+                                tgt_sum[stat] += tgt_stat
 
-                trace_stat = TraceStat(
-                    trace, key, baseline_overall, target_overall, baseline_partial, target_partial
-                )
+                trace_stat = TraceStat(trace, key, base_sum, tgt_sum, base_partial, tgt_partial)
                 trace_cache[key] = trace_stat
                 trace_stats[uid].append(trace_stat)
     return trace_stats
@@ -627,16 +627,7 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
             # Prepare trace stats
             long_trace_stats = extract_stats_from_trace(graph, trace_stats[uid], trace_stat_cache)
             selection.append(
-                SelectionRow(
-                    uid,
-                    graph.uid_to_id[uid],
-                    state,
-                    stats[0][0],
-                    stats[0][1],
-                    stats[0][2],
-                    stats,
-                    long_trace_stats,
-                )
+                SelectionRow(uid, graph.uid_to_id[uid], state, stats, long_trace_stats)
             )
     return selection
 

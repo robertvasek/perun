@@ -298,6 +298,16 @@ def try_convert(value: Any, list_of_types: list[type]) -> Any:
             return checked_type(value)
 
 
+def try_min(lhs: Optional[int | float], rhs: int | float) -> int | float:
+    """Returns minimum if lhs is not None
+
+    :param lhs: optional left side
+    :param rhs: right side
+    :return minimum of two numbers or right number
+    """
+    return rhs if lhs is None else min(lhs, rhs)
+
+
 def identity(*args: Any) -> Any:
     """Identity function, that takes the arguments and return them as they are
 
