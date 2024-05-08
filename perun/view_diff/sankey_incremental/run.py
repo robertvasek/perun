@@ -557,26 +557,25 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
                 for i in range(0, trace_len - 1):
                     src, tgt = f"{trace[i]}#{i}", f"{trace[i + 1]}#{i + 1}"
                     node = graph.get_node(src)
-                    if tgt not in node.callers:
-                        continue
-                    stats = node.callers[tgt].stats
-                    for stat in Stats.KnownStats:
-                        baseline_partial[stat][i] += stats.baseline[stat]
-                        target_partial[stat][i] += stats.target[stat]
-                        if Config().trace_is_inclusive:
-                            baseline_overall[stat] = (
-                                stats.baseline[stat]
-                                if baseline_overall[stat] == 0
-                                else min(baseline_overall[stat], stats.baseline[stat])
-                            )
-                            target_overall[stat] = (
-                                stats.target[stat]
-                                if target_overall[stat] == 0
-                                else min(target_overall[stat], stats.target[stat])
-                            )
-                        else:
-                            baseline_overall[stat] += stats.baseline[stat]
-                            target_overall[stat] += stats.target[stat]
+                    if tgt in node.callers:
+                        stats = node.callers[tgt].stats
+                        for stat in Stats.KnownStats:
+                            baseline_partial[stat][i] += stats.baseline[stat]
+                            target_partial[stat][i] += stats.target[stat]
+                            if Config().trace_is_inclusive:
+                                baseline_overall[stat] = (
+                                    stats.baseline[stat]
+                                    if baseline_overall[stat] == 0
+                                    else min(baseline_overall[stat], stats.baseline[stat])
+                                )
+                                target_overall[stat] = (
+                                    stats.target[stat]
+                                    if target_overall[stat] == 0
+                                    else min(target_overall[stat], stats.target[stat])
+                                )
+                            else:
+                                baseline_overall[stat] += stats.baseline[stat]
+                                target_overall[stat] += stats.target[stat]
 
                 trace_stat = TraceStat(
                     trace, key, baseline_overall, target_overall, baseline_partial, target_partial
@@ -618,29 +617,27 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
                 stats.append((stat, abs_diff, rel_diff))
         stats = sorted(stats, key=itemgetter(2))
 
-        if not stats:
-            continue
+        if stats:
+            state: Literal["new", "removed", "(un)changed"] = "(un)changed"
+            if all(val == 0 for val in baseline_overall.values()):
+                state = "new"
+            elif all(val == 0 for val in target_overall.values()):
+                state = "removed"
 
-        state: Literal["new", "removed", "(un)changed"] = "(un)changed"
-        if all(val == 0 for val in baseline_overall.values()):
-            state = "new"
-        elif all(val == 0 for val in target_overall.values()):
-            state = "removed"
-
-        # Prepare trace stats
-        long_trace_stats = extract_stats_from_trace(graph, trace_stats[uid], trace_stat_cache)
-        selection.append(
-            SelectionRow(
-                uid,
-                graph.uid_to_id[uid],
-                state,
-                stats[0][0],
-                stats[0][1],
-                stats[0][2],
-                stats,
-                long_trace_stats,
+            # Prepare trace stats
+            long_trace_stats = extract_stats_from_trace(graph, trace_stats[uid], trace_stat_cache)
+            selection.append(
+                SelectionRow(
+                    uid,
+                    graph.uid_to_id[uid],
+                    state,
+                    stats[0][0],
+                    stats[0][1],
+                    stats[0][2],
+                    stats,
+                    long_trace_stats,
+                )
             )
-        )
     return selection
 
 

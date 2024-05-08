@@ -85,9 +85,7 @@ class TraceInfo:
         :param other: other traceinfo
         :return: whether two objects are equal
         """
-        if isinstance(other, TraceInfo):
-            return self.long_str == other.long_str
-        return False
+        return isinstance(other, TraceInfo) and self.long_str == other.long_str
 
     def __hash__(self):
         """Hash of the trace info is hash of its long string
