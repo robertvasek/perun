@@ -49,7 +49,7 @@ def singleton_class(cls: Type[Any]) -> Callable[[], Config]:
 class Config:
     """Singleton config for generation of sankey graphs
 
-    :ivar trace_is_inclusive: if set to true, then the amounts are distributed among the whole traces
+    :ivar trace_is_inclusive: whether then the amounts are distributed among the whole traces
     """
 
     def __init__(self) -> None:
@@ -85,7 +85,9 @@ class TraceStat:
     :ivar trace: list of called UID
     :ivar baseline_cost: overall cost of the traces
     :ivar target_cost: overall cost of the traces
-    :ivar baseline_partial_costs: list of partial costs of the trace (i.e. for each call) for baseline
+    :ivar baseline_partial_costs: list of partial costs of the trace for baseline;
+        the partial costs are the particular results for each of the pair of caller
+        and callee in the trace.
     :ivar target_partial_costs: list of partial costs of the trace for target
     """
 
@@ -112,8 +114,8 @@ class SelectionRow:
     :ivar uid: uid of the selected graph
     :ivar index: index in the sorted list of data
     :ivar abs_amount: absolute change in the units
-    :ivar fresh: the state of the uid (whether it is new (added in target), removed (removed in target), or
-        possibly unchanged
+    :ivar fresh: the state of the uid - 1) new (added in target),
+        2) removed (removed in target), or 3) possibly unchanged
     :ivar main_stat: type of the
     :ivar rel_amount: relative change in the units
     """
@@ -264,7 +266,8 @@ class Graph:
     def to_jinja_string(self, link_type: Literal["callers", "callees"] = "callers") -> str:
         """Since jinja seems to be awfully slow with this, we render the result ourselves
 
-        1. Target nodes of "uid#pos" are simplified to "uid", since you can infer pos to be pos+1 of source
+        1. Target nodes of "uid#pos" are simplified to "uid",
+            since you can infer pos to be pos+1 of source
         2. Stats are merged together: first half is for baseline, second half is for target
 
         TODO: switch callees to callers and callers to callees
