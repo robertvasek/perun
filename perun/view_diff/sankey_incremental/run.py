@@ -304,7 +304,8 @@ class Graph:
                         or int(node.get_order()) == int(link.target.get_order()) + 1
                     )
                     output += comma_control(commas, 2) + f"{self.translate_node(link.target.uid)}:"
-                    stats = f"[{','.join(link.stats.to_array('baseline') + link.stats.to_array('target'))}]"
+                    base_and_tgt = link.stats.to_array("baseline") + link.stats.to_array("target")
+                    stats = f"[{','.join(base_and_tgt)}]"
                     output += str(self.translate_stats(stats))
                 output += "}"
             output += "}"
@@ -556,7 +557,6 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
                     src, tgt = f"{trace[i]}#{i}", f"{trace[i + 1]}#{i + 1}"
                     node = graph.get_node(src)
                     if tgt not in node.callers:
-                        #  log.warn(f"no resources for '{tgt.split('#')[0]}' called by {src.split('#')[0]}")
                         continue
                     stats = node.callers[tgt].stats
                     for stat in Stats.KnownStats:
