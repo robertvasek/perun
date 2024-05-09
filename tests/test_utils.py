@@ -287,6 +287,10 @@ def test_common(capsys):
     assert common_kit.perun_confirm("Confirm_something") == common_kit.DEFAULT_CONFIRMATION
     common_kit.ALWAYS_CONFIRM = prev_value
 
+    assert common_kit.compact_convert_num_to_str(1) == "1"
+    assert common_kit.compact_convert_num_to_str(10.0) == "10"
+    assert common_kit.compact_convert_num_to_str(10.123) == "10.12"
+
 
 def test_predicates(capsys):
     """Test predicates used for testing"""
