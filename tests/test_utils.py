@@ -19,6 +19,7 @@ from perun import collect, postprocess, view
 from perun.collect.trace.optimizations.structs import Complexity
 from perun.fuzz import filetype
 from perun.logic import commands, config
+from perun.profile import convert
 from perun.testing import asserts
 from perun.utils import log
 from perun.utils.common import common_kit, cli_kit, traces_kit
@@ -290,6 +291,9 @@ def test_common(capsys):
     assert common_kit.compact_convert_num_to_str(1) == "1"
     assert common_kit.compact_convert_num_to_str(10.0) == "10"
     assert common_kit.compact_convert_num_to_str(10.123) == "10.12"
+
+    assert convert.to_string_line("uid") == "uid"
+    assert convert.flatten(["hello", "world"]) == "hello,world"
 
 
 def test_predicates(capsys):
