@@ -5,6 +5,7 @@ perun_utils_files = files(
     'decorators.py',
     'exceptions.py',
     'log.py',
+    'mapping.py',
     'metrics.py',
     'streams.py',
     'structs.py',

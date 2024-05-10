@@ -27,7 +27,7 @@ import progressbar
 # Perun Imports
 from perun.profile import convert
 from perun.profile.factory import Profile
-from perun.utils import log
+from perun.utils import log, mapping
 from perun.utils.common import diff_kit, common_kit
 from perun.view_diff.flamegraph import run as flamegraph_run
 
@@ -286,15 +286,15 @@ class Graph:
         :return string representation of the caller or callee relation
         """
 
-        def comma_control(commas: list[bool], pos: int) -> str:
+        def comma_control(commas_list: list[bool], pos: int) -> str:
             """Helper function for comma control
 
             :param pos: position in the nesting
-            :param commas: list of boolean flags for comma control (true = we should output)
+            :param commas_list: list of boolean flags for comma control (true = we should output)
             """
-            if commas[pos]:
+            if commas_list[pos]:
                 return ","
-            commas[pos] = True
+            commas_list[pos] = True
             return ""
 
         output = "{"
@@ -408,7 +408,6 @@ class Stats:
 
     def to_array(self, stat_type: Literal["baseline", "target"]) -> list[str]:
         """Converts stats to single compact array"""
-        # TODO: Add different type for int/float
         stats = self.baseline if stat_type == "baseline" else self.target
         return [
             common_kit.compact_convert_num_to_str(stats.get(stat, 0), 2)
@@ -435,14 +434,9 @@ def process_edge(
     tgt_stats = graph.get_callee_stats(tgt, src)
     for key in resource:
         amount = common_kit.try_convert(resource[key], [float])
-        if amount is None or key not in [
-            "Total Exclusive T [ms]",
-            "Total Inclusive T [ms]",
-            "amount",
-        ]:
+        if amount is None or key == "time":
             continue
-        # TODO: Extract
-        readable_key = "Inclusive Samples" if (key == "amount") else key
+        readable_key = mapping.get_readable_key(key)
         src_stats.add_stat(profile_type, readable_key, amount)
         tgt_stats.add_stat(profile_type, readable_key, amount)
 

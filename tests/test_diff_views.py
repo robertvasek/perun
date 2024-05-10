@@ -153,6 +153,7 @@ def test_diff_incremental_sankey(pcs_with_root):
     result = runner.invoke(
         cli.showdiff, [baseline_profilename, target_profilename, "sankey-incr", "-o", "diff.html"]
     )
+    print(result.output)
     assert result.exit_code == 0
 
     assert "diff.html" in os.listdir(os.getcwd())
