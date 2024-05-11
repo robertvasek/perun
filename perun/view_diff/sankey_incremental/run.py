@@ -27,6 +27,7 @@ import progressbar
 # Perun Imports
 from perun.profile import convert
 from perun.profile.factory import Profile
+from perun.templates import filters
 from perun.utils import log, mapping
 from perun.utils.common import diff_kit, common_kit
 from perun.view_diff.flamegraph import run as flamegraph_run
@@ -690,6 +691,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
 
     # Note: we keep the autoescape=false, since we kindof believe we are not trying to fuck us up
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
+    env.filters['sanitize_variable_name'] = filters.sanitize_variable_name
     template = env.get_template("diff_view_sankey_incremental.html.jinja2")
     content = template.render(
         title="Differences of profiles (with sankey)",

@@ -183,7 +183,7 @@
     <div class="tools">
         <div class="tab">
             {%- for metric in stat_list %}
-            <button class="tablinks" onclick="openTab(event, '{{ metric|replace(' ', '_') }}')" {% if loop.index0 == 0 %}id="defaultOpen"{% endif %}>Top {{ metric }}</button>
+            <button class="tablinks" onclick="openTab(event, '{{ metric|sanitize_variable_name }}')" {% if loop.index0 == 0 %}id="defaultOpen"{% endif %}>Top {{ metric }}</button>
             {%- endfor %}
             <button class="tablinks" onclick="openTab(event, 'all')">Browse All</button>
         </div>
@@ -202,8 +202,8 @@
         </table>
         </div>
         {%- for metric in stat_list %}
-        <div id="{{ metric|replace(' ', '_') }}" class="tabcontent">
-            <div id="sankey_graph_{{ metric|replace(' ', '_') }}"><!-- DO NOT CHANGE: SANKEY GRAPH IS RENDERED HERE--></div>
+        <div id="{{ metric|sanitize_variable_name }}" class="tabcontent">
+            <div id="sankey_graph_{{ metric|sanitize_variable_name }}"><!-- DO NOT CHANGE: SANKEY GRAPH IS RENDERED HERE--></div>
         </div>
         {%- endfor %}
         <div id="sankey_tools" style="display: none">
@@ -270,7 +270,7 @@
 
 
     {%- for skeleton in skeletons %}
-    let {{ skeleton.stat|replace(' ', '_') }}_data = [{
+    let {{ skeleton.stat|sanitize_variable_name }}_data = [{
         type: "sankey",
         orientation: "v",
         node: {
@@ -290,7 +290,7 @@
             color: {{ skeleton.link_color }}
         }
     }]
-    let {{ skeleton.stat|replace(' ', '_') }}_layout = {
+    let {{ skeleton.stat|sanitize_variable_name  }}_layout = {
         title: "Top {{ skeleton.stat }}",
         font: {
             size: 10,
@@ -1147,7 +1147,7 @@
     document.getElementById("defaultOpen").click();
 
     {%- for metric in stat_list %}
-    Plotly.react('sankey_graph_{{ metric|replace(' ', '_') }}', {{ metric|replace(' ', '_') }}_data, {{ metric|replace(' ', '_') }}_layout);;;
+    Plotly.react('sankey_graph_{{ metric|sanitize_variable_name }}', {{ metric|sanitize_variable_name }}_data, {{ metric|sanitize_variable_name }}_layout);;;
     {%- endfor %}
 
     newplot()
