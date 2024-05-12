@@ -103,10 +103,10 @@ class TraceStat:
     ]
     trace: list[str]
     trace_key: str
-    baseline_cost: dict[str, float]
-    target_cost: dict[str, float]
-    baseline_partial_costs: dict[str, list[float]]
-    target_partial_costs: dict[str, list[float]]
+    baseline_cost: list[float]
+    target_cost: list[float]
+    baseline_partial_costs: list[list[float]]
+    target_partial_costs: list[list[float]]
 
 
 @dataclass
@@ -150,7 +150,7 @@ class SelectionRow:
         self.rel_amount: float = common_kit.to_compact_num(stats[0][2])
         # stat_type, abs, rel
         self.stats: list[list[str, float, float]] = [
-            [stat[0], common_kit.to_compact_num(stat[1], common_kit.to_compact_num(stat[2]))]
+            [stat[0], common_kit.to_compact_num(stat[1]), common_kit.to_compact_num(stat[2])]
             for stat in stats
         ]
         # trace, stat_type, abs, rel, long_trace
@@ -480,7 +480,8 @@ def process_traces(
 
 def generate_skeletons(graph: Graph, traces: dict[str, list[TraceStat]]) -> list[Skeleton]:
     """Generates skeletons of graphs for each amount"""
-    stat_to_traces: dict[str, list[tuple[list[str], float]]] = defaultdict(list)
+    stat_len = len(Stats.KnownStats)
+    stat_to_traces: list[list[tuple[list[str], float]]] = [[] for _ in range(0, stat_len)] 
     processed = set()
     log.minor_info("Generating skeletons")
     for val in progressbar.progressbar(traces.values()):
@@ -489,18 +490,19 @@ def generate_skeletons(graph: Graph, traces: dict[str, list[TraceStat]]) -> list
             if trace_key in processed:
                 continue
             processed.add(trace_key)
-            for stat in Stats.KnownStats:
-                target_cost, baseline_cost = trace.target_cost[stat], trace.baseline_cost[stat]
+            for j in range(0, stat_len):
+                target_cost, baseline_cost = trace.target_cost[j], trace.baseline_cost[j]
                 if target_cost == 0 and baseline_cost == 0:
                     continue
                 abs_amount = target_cost - baseline_cost
                 rel_amount = abs_amount / max(target_cost, baseline_cost)
                 if 0 < abs(rel_amount) < 1.0:
-                    stat_to_traces[stat].append((trace.trace, abs_amount))
+                    stat_to_traces[j].append((trace.trace, abs_amount))
 
     skeletons: list[Skeleton] = []
     processed = set()
-    for stat, stat_traces in stat_to_traces.items():
+    for i, stat in enumerate(Stats.KnownStats):
+        stat_traces = stat_to_traces[i]
         skeleton = Skeleton(stat)
         sorted_all_traces: list[tuple[list[str], float]] = sorted(stat_traces, key=lambda t: t[1])[
             -10:
@@ -558,29 +560,30 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
                     trace_stats[uid].append(trace_cache[key])
                     continue
                 trace_len = len(trace)
-                base_sum: dict[str, float] = defaultdict(float)
-                base_partial: dict[str, list[float]] = {
-                    stat: [0.0 for _ in range(0, trace_len - 1)] for stat in Stats.KnownStats
-                }
-                tgt_sum: dict[str, float] = defaultdict(float)
-                tgt_partial: dict[str, list[float]] = {
-                    stat: [0.0 for _ in range(0, trace_len - 1)] for stat in Stats.KnownStats
-                }
+                stat_len = len(Stats.KnownStats)
+                base_sum: list[float] = defaultdict(float)
+                base_partial: list[list[float]] = [
+                    [0.0 for _ in range(0, trace_len - 1)] for _ in range(0, stat_len)
+                ]
+                tgt_sum: list[float] = defaultdict(float)
+                tgt_partial: list[list[float]] = [
+                    [0.0 for _ in range(0, trace_len - 1)] for _ in range(0, stat_len)
+                ]
                 for i in range(0, trace_len - 1):
                     src, tgt = f"{trace[i]}#{i}", f"{trace[i + 1]}#{i + 1}"
                     node = graph.get_node(src)
                     if tgt in node.callers:
                         stats = node.callers[tgt].stats
-                        for stat in Stats.KnownStats:
+                        for j, stat in enumerate(Stats.KnownStats):
                             base_stat, tgt_stat = stats.baseline[stat], stats.target[stat]
-                            base_partial[stat][i] += base_stat
-                            tgt_partial[stat][i] += tgt_stat
+                            base_partial[j][i] += base_stat
+                            tgt_partial[j][i] += tgt_stat
                             if Config().trace_is_inclusive:
-                                base_sum[stat] = common_kit.try_min(base_sum.get(stat), base_stat)
-                                tgt_sum[stat] = common_kit.try_min(tgt_sum.get(stat), tgt_stat)
+                                base_sum[j] = common_kit.try_min(base_sum.get(stat), base_stat)
+                                tgt_sum[j] = common_kit.try_min(tgt_sum.get(stat), tgt_stat)
                             else:
-                                base_sum[stat] += base_stat
-                                tgt_sum[stat] += tgt_stat
+                                base_sum[j] += base_stat
+                                tgt_sum[j] += tgt_stat
 
                 trace_stat = TraceStat(trace, key, base_sum, tgt_sum, base_partial, tgt_partial)
                 trace_cache[key] = trace_stat
@@ -647,10 +650,10 @@ def extract_stats_from_trace(
     uid_trace_stats = []
     for trace in uid_stats:
         # Trace is in form of [short_trace, stat_type, abs, rel, long_trace]
-        for stat in Stats.KnownStats:
+        for i, stat in enumerate(Stats.KnownStats):
             key = f"{trace.trace_key}#{stat}"
             if key not in cache:
-                target_cost, baseline_cost = trace.target_cost[stat], trace.baseline_cost[stat]
+                target_cost, baseline_cost = trace.target_cost[i], trace.baseline_cost[i]
                 if target_cost == 0 and baseline_cost == 0:
                     continue
                 abs_amount = target_cost - baseline_cost
@@ -659,10 +662,10 @@ def extract_stats_from_trace(
                 short_id = f"{graph.uid_to_id[trace.trace[0]]};{graph.uid_to_id[trace.trace[-1]]}"
                 long_trace = ";".join([f"{graph.uid_to_id[t]}" for t in trace.trace])
                 long_baseline_stats = ";".join(
-                    common_kit.compact_convert_list_to_str(trace.baseline_partial_costs[stat])
+                    common_kit.compact_convert_list_to_str(trace.baseline_partial_costs[i])
                 )
                 long_target_stats = ";".join(
-                    common_kit.compact_convert_list_to_str(trace.target_partial_costs[stat])
+                    common_kit.compact_convert_list_to_str(trace.target_partial_costs[i])
                 )
                 long_data = f"{long_trace}#{long_baseline_stats}#{long_target_stats}"
                 cache[key] = (short_id, stat, abs_amount, rel_amount, long_data)
