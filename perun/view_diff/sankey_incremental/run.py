@@ -11,6 +11,7 @@ collector | kernel
 |---|          |------|
 
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -145,12 +146,18 @@ class SelectionRow:
         self.index: int = index
         self.fresh: Literal["new", "removed", "(un)changed"] = fresh
         self.main_stat: str = stats[0][0]
-        self.abs_amount: float = stats[0][1]
-        self.rel_amount: float = stats[0][2]
+        self.abs_amount: float = common_kit.to_compact_num(stats[0][1])
+        self.rel_amount: float = common_kit.to_compact_num(stats[0][2])
         # stat_type, abs, rel
-        self.stats: list[tuple[str, float, float]] = stats
+        self.stats: list[list[str, float, float]] = [
+            [stat[0], common_kit.to_compact_num(stat[1], common_kit.to_compact_num(stat[2]))]
+            for stat in stats
+        ]
         # trace, stat_type, abs, rel, long_trace
-        self.trace_stats: list[tuple[str, str, float, float, str]] = trace_stats
+        self.trace_stats: list[list[str, str, float, float, str]] = [
+            [t[0], t[1], common_kit.to_compact_num(t[2]), common_kit.to_compact_num(t[3]), t[4]]
+            for t in trace_stats
+        ]
 
 
 class Skeleton:
@@ -174,7 +181,7 @@ class Skeleton:
         self.source: list[int] = []
         self.target: list[int] = []
         self.link_color: list[str] = []
-        self.value: list[float] = []
+        self.value: list[str] = []
         self.height: int = 0
 
 
@@ -523,7 +530,7 @@ def generate_skeletons(graph: Graph, traces: dict[str, list[TraceStat]]) -> list
                 src_s, tgt_s = stats.baseline[stat], stats.target[stat]
                 skeleton.source.append(src_i)
                 skeleton.target.append(tgt_i)
-                skeleton.value.append(abs(tgt_s - src_s))
+                skeleton.value.append(common_kit.compact_convert_num_to_str(abs(tgt_s - src_s)))
                 skeleton.link_color.append(
                     ColorPalette.Increase if tgt_s > src_s else ColorPalette.Decrease
                 )
@@ -545,6 +552,7 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
         for trace in [trace for trace in traces if len(trace) > 1]:
             key = ",".join(trace)
             if key not in processed:
+                # High memory consumption
                 processed.add(key)
                 if key in trace_cache:
                     trace_stats[uid].append(trace_cache[key])
@@ -691,7 +699,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
 
     # Note: we keep the autoescape=false, since we kindof believe we are not trying to fuck us up
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
-    env.filters['sanitize_variable_name'] = filters.sanitize_variable_name
+    env.filters["sanitize_variable_name"] = filters.sanitize_variable_name
     template = env.get_template("diff_view_sankey_incremental.html.jinja2")
     content = template.render(
         title="Differences of profiles (with sankey)",

@@ -1,4 +1,5 @@
 """Set of helper constants and helper named tuples for perun pcs"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -466,12 +467,22 @@ def compact_convert_num_to_str(number: int | float, float_precision: int = 2) ->
     :param float_precision: float precision, i.e. number of decimal places in number
     :return compact string
     """
+    return str(to_compact_num(number, float_precision))
+
+
+def to_compact_num(number: int | float, float_precision: int = 2) -> int | float:
+    """Converts the number to the smallest string possible
+
+    :param number: converted number
+    :param float_precision: float precision, i.e. number of decimal places in number
+    :return compact num
+    """
     if isinstance(number, int):
-        return str(number)
+        return number
     elif number.is_integer():
-        return str(int(number))
+        return int(number)
     else:
-        return str(round(number, float_precision))
+        return round(number, float_precision)
 
 
 MODULE_CACHE: dict[str, types.ModuleType] = {}

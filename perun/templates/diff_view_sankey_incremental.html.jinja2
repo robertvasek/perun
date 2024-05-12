@@ -182,9 +182,11 @@
 <div class="middle">
     <div class="tools">
         <div class="tab">
+            {%- if skeletons %}
             {%- for metric in stat_list %}
             <button class="tablinks" onclick="openTab(event, '{{ metric|sanitize_variable_name }}')" {% if loop.index0 == 0 %}id="defaultOpen"{% endif %}>Top {{ metric }}</button>
             {%- endfor %}
+            {%- endif %}
             <button class="tablinks" onclick="openTab(event, 'all')">Browse All</button>
         </div>
         <div id="all" class="tabcontent">
@@ -214,18 +216,18 @@
                         <td colspan="6">{{ widgets.range_picker() }}</td>
                     </tr>
                     {{ widgets.checkboxes([('baseline', 'Baseline'), ('target', 'Target'), ('incr', 'Incr (vs base)'), ('both', 'Equal'), ('decr', 'Decr (vs base)')], 'show_edges', 'Show') }}
-                    {% if stat_list|length > 1 %}
+                    {%- if stat_list|length > 1 %}
                     <tr>
                         <td class="key" style="width: 20%;">Metric:</td>
                         <td colspan="6">
                             <select class="dt-input" id="metricSelection">
                                 {%- for metric in stat_list %}
                                     <option value="{{ loop.index0 }}">{{ metric }}</option>
-                                {% endfor %}
+                                {%- endfor %}
                             </select>
                         </td>
                     </tr>
-                {% endif %}
+                {%- endif %}
                 </tbody>
             </table>
         </div>
@@ -297,7 +299,7 @@
         },
         height: {{ skeleton.height * 75 }}
     }
-    {%-endfor %}
+    {%- endfor %}
 
     let sankey_data = [{
         type: "sankey",
@@ -392,9 +394,7 @@
 
     // Selection table
     let table = {
-        "data": [
-            {% for val in selection_table %}
-                {
+        "data": [{%- for val in selection_table %}{
                     "uid": "{{ val.uid }}",
                     "index": "{{ val.index }}",
                     "fresh": "{{ val.fresh }}",
@@ -403,8 +403,7 @@
                     "type": "{{ val.main_stat }}",
                     "abs": "{{ val.abs_amount }}",
                     "rel": "{{ val.rel_amount }}"
-                },
-            {%- endfor %}
+                }, {%- endfor %}
         ]
     };
     let selection_table = $("#table").DataTable({
@@ -1144,11 +1143,13 @@
 
     document.querySelector('#fromSlider').addEventListener('change', filterEdges);
     document.querySelector('#toSlider').addEventListener('change', filterEdges);
-    document.getElementById("defaultOpen").click();
 
+    {%- if skeletons %}
+    document.getElementById("defaultOpen").click();
     {%- for metric in stat_list %}
-    Plotly.react('sankey_graph_{{ metric|sanitize_variable_name }}', {{ metric|sanitize_variable_name }}_data, {{ metric|sanitize_variable_name }}_layout);;;
+    Plotly.react('sankey_graph_{{ metric|sanitize_variable_name }}', {{ metric|sanitize_variable_name }}_data, {{ metric|sanitize_variable_name }}_layout);
     {%- endfor %}
+    {%- endif %}
 
     newplot()
 </script>

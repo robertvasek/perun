@@ -3,10 +3,12 @@
 Store is a collection of helper functions that can be used to pack content, compute checksums,
 or load and store into the directories or filenames.
 """
+
 from __future__ import annotations
 
 # Standard Imports
 from typing import BinaryIO, Optional
+import gc
 import hashlib
 import json
 import os
