@@ -140,18 +140,18 @@ class SelectionRow:
         uid: str,
         index: int,
         fresh: Literal["new", "removed", "(un)changed"],
-        stats: list[tuple[str, float, float]],
+        stats: list[tuple[int, float, float]],
         trace_stats: list[tuple[str, str, float, float, str]],
     ) -> None:
         """Initializes the selection row"""
         self.uid: str = uid
         self.index: int = index
         self.fresh: Literal["new", "removed", "(un)changed"] = fresh
-        self.main_stat: str = stats[0][0]
+        self.main_stat: int = stats[0][0]
         self.abs_amount: float = common_kit.to_compact_num(stats[0][1])
         self.rel_amount: float = common_kit.to_compact_num(stats[0][2])
         # stat_type, abs, rel
-        self.stats: list[tuple[str, float, float]] = [
+        self.stats: list[tuple[int, float, float]] = [
             (stat[0], common_kit.to_compact_num(stat[1]), common_kit.to_compact_num(stat[2]))
             for stat in stats
         ]
@@ -611,33 +611,32 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
     selection = []
     log.minor_info("Generating selection table")
     trace_stat_cache: dict[str, tuple[str, str, float, float, str]] = {}
+    stat_len = len(Stats.KnownStats)
     for uid, nodes in progressbar.progressbar(graph.uid_to_nodes.items()):
-        baseline_overall: dict[str, float] = defaultdict(float)
-        target_overall: dict[str, float] = defaultdict(float)
-        stats: list[tuple[str, float, float]] = []
+        baseline_overall: array.array[float] = array.array("d", [0.0] * stat_len * 2)
+        target_overall: array.array[float] = array.array("d", [0.0] * stat_len * 2)
+        stats: list[tuple[int, float, float]] = []
         for node in nodes:
-            for known_stat in Stats.KnownStats:
-                stat = f"callee {known_stat}"
+            for i, known_stat in enumerate(Stats.KnownStats):
                 for link in node.callees.values():
-                    baseline_overall[stat] += link.stats.baseline[known_stat]
-                    target_overall[stat] += link.stats.target[known_stat]
-                stat = f"caller {known_stat}"
+                    baseline_overall[i] += link.stats.baseline[known_stat]
+                    target_overall[i] += link.stats.target[known_stat]
                 for link in node.callers.values():
-                    baseline_overall[stat] += link.stats.baseline[known_stat]
-                    target_overall[stat] += link.stats.target[known_stat]
-        for stat in baseline_overall:
-            baseline, target = baseline_overall[stat], target_overall[stat]
+                    baseline_overall[i + stat_len] += link.stats.baseline[known_stat]
+                    target_overall[i + stat_len] += link.stats.target[known_stat]
+        for i in range(0, stat_len * 2):
+            baseline, target = baseline_overall[i], target_overall[i]
             if baseline != 0 or target != 0:
                 abs_diff = target - baseline
                 rel_diff = round(100 * abs_diff / max(baseline, target), 2)
-                stats.append((stat, abs_diff, rel_diff))
+                stats.append((i, abs_diff, rel_diff))
         stats = sorted(stats, key=itemgetter(2))
 
         if stats:
             state: Literal["new", "removed", "(un)changed"] = "(un)changed"
-            if all(val == 0 for val in baseline_overall.values()):
+            if all(val == 0 or val == 0.0 for val in baseline_overall):
                 state = "new"
-            elif all(val == 0 for val in target_overall.values()):
+            elif all(val == 0 or val == 0.0 for val in target_overall):
                 state = "removed"
 
             # Prepare trace stats
