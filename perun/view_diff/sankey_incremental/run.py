@@ -307,13 +307,13 @@ class Graph:
             commas_list[pos] = True
             return ""
 
-        output = "{"
+        output = ["{"]
         commas = [False, False, False]
         for uid, nodes in progressbar.progressbar(self.uid_to_nodes.items()):
-            output += comma_control(commas, 0) + f"{self.translate_node(uid)}:" + "{"
+            output.extend([comma_control(commas, 0), f"{self.translate_node(uid)}:", "{"])
             commas[1] = False
             for node in nodes:
-                output += comma_control(commas, 1) + f"{node.get_order()}:" + "{"
+                output.extend([comma_control(commas, 1), f"{node.get_order()}:", "{"])
                 commas[2] = False
                 for link in node.get_links(link_type).values():
                     assert link_type == "callees" or int(node.get_order()) + 1 == int(
@@ -323,14 +323,16 @@ class Graph:
                         link_type == "callers"
                         or int(node.get_order()) == int(link.target.get_order()) + 1
                     )
-                    output += comma_control(commas, 2) + f"{self.translate_node(link.target.uid)}:"
+                    output.extend(
+                        [comma_control(commas, 2), f"{self.translate_node(link.target.uid)}:"]
+                    )
                     base_and_tgt = link.stats.to_array("baseline") + link.stats.to_array("target")
                     stats = f"[{','.join(base_and_tgt)}]"
-                    output += str(self.translate_stats(stats))
-                output += "}"
-            output += "}"
-        output += "}"
-        return output
+                    output.append(str(self.translate_stats(stats)))
+                output.append("}")
+            output.append("}")
+        output.append("}")
+        return "".join(output)
 
 
 @dataclass

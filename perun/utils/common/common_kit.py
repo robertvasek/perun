@@ -4,6 +4,8 @@ from __future__ import annotations
 
 # Standard Imports
 from typing import Optional, Any, Iterable, Callable, Literal, TYPE_CHECKING
+import contextlib
+import gc
 import importlib
 import itertools
 import operator
@@ -484,6 +486,23 @@ def to_compact_num(number: int | float, float_precision: int = 2) -> int | float
         return int(number)
     else:
         return round(number, float_precision)
+
+
+@contextlib.contextmanager
+def disposable_resources(disposable: Any) -> Any:
+    """Helper context manager that disposes of the passed object
+
+    :param disposable: object that should be disposed immediately
+    :return: object
+    """
+    try:
+        yield disposable
+    except Exception:
+        # Re-raise the encountered exception
+        raise
+    finally:
+        del disposable
+        gc.collect()
 
 
 MODULE_CACHE: dict[str, types.ModuleType] = {}

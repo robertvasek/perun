@@ -349,7 +349,8 @@ def load_profile_from_handle(
 
     # Try to load the json, if there is issue with the profile
     try:
-        return Profile(json.loads(body))
+        with common_kit.disposable_resources(json.loads(body)) as json_profile:
+            return Profile(json_profile)
     except ValueError:
         raise IncorrectProfileFormatException(
             file_name, f"profile '{file_name}' is not in profile format"
