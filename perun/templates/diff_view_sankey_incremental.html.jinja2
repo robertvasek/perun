@@ -393,19 +393,7 @@
         plot = document.getElementById('sankey_graph');
 
     // Selection table
-    let table = {
-        "data": [{%- for val in selection_table %}{
-                    "uid": "{{ val.uid }}",
-                    "index": "{{ val.index }}",
-                    "fresh": "{{ val.fresh }}",
-                    "stats": {{ val.stats|map('list')|list }},
-                    "traces": {{ val.trace_stats|map('list')|list }},
-                    "type": "{{ val.main_stat }}",
-                    "abs": "{{ val.abs_amount }}",
-                    "rel": "{{ val.rel_amount }}"
-                }, {%- endfor %}
-        ]
-    };
+    let table = {"data":[{%- for val in selection_table %}{"uid":"{{ val.uid }}","index":"{{ val.index }}","fresh": "{{ val.fresh }}","stats": {{ val.stats|map('list')|list }},"traces": {{ val.trace_stats|map('list')|list }},"type": "{{ val.main_stat }}","abs": "{{ val.abs_amount }}","rel": "{{ val.rel_amount }}" },{%- endfor %}]};
     let selection_table = $("#table").DataTable({
         data: table.data,
         columns: [

@@ -97,14 +97,14 @@ class TraceStat:
 
     __slots__ = [
         "trace",
-        "trace_key",
+        "trace_id",
         "baseline_cost",
         "target_cost",
         "baseline_partial_costs",
         "target_partial_costs",
     ]
     trace: list[str]
-    trace_key: str
+    trace_id: int
     baseline_cost: array.array[float]
     target_cost: array.array[float]
     baseline_partial_costs: list[array.array[float]]
@@ -551,6 +551,7 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
     trace_stats = defaultdict(list)
     log.minor_info("Generating stats for traces")
     trace_cache: dict[str, TraceStat] = {}
+    trace_counter: int = 0
     for uid, traces in progressbar.progressbar(graph.uid_to_traces.items()):
         processed = set()
         for trace in [trace for trace in traces if len(trace) > 1]:
@@ -591,7 +592,10 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
                                 base_sum[j] += base_stat
                                 tgt_sum[j] += tgt_stat
 
-                trace_stat = TraceStat(trace, key, base_sum, tgt_sum, base_partial, tgt_partial)
+                trace_stat = TraceStat(
+                    trace, trace_counter, base_sum, tgt_sum, base_partial, tgt_partial
+                )
+                trace_counter += 1
                 trace_cache[key] = trace_stat
                 trace_stats[uid].append(trace_stat)
     return trace_stats
@@ -657,7 +661,7 @@ def extract_stats_from_trace(
     for trace in uid_stats:
         # Trace is in form of [short_trace, stat_type, abs, rel, long_trace]
         for i, stat in enumerate(Stats.KnownStats):
-            key = f"{trace.trace_key}#{stat}"
+            key = f"{trace.trace_id}#{stat}"
             if key not in cache:
                 target_cost, baseline_cost = trace.target_cost[i], trace.baseline_cost[i]
                 if target_cost == 0 and baseline_cost == 0:
