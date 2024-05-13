@@ -19,8 +19,10 @@ from operator import itemgetter
 from typing import Any, Literal, Type, Callable
 from collections import defaultdict
 from dataclasses import dataclass
+import sys
 
 # Third-Party Imports
+import array
 import click
 import jinja2
 import progressbar
@@ -103,10 +105,10 @@ class TraceStat:
     ]
     trace: list[str]
     trace_key: str
-    baseline_cost: list[float]
-    target_cost: list[float]
-    baseline_partial_costs: list[list[float]]
-    target_partial_costs: list[list[float]]
+    baseline_cost: array.array[float]
+    target_cost: array.array[float]
+    baseline_partial_costs: list[array.array[float]]
+    target_partial_costs: list[array.array[float]]
 
 
 @dataclass
@@ -149,13 +151,13 @@ class SelectionRow:
         self.abs_amount: float = common_kit.to_compact_num(stats[0][1])
         self.rel_amount: float = common_kit.to_compact_num(stats[0][2])
         # stat_type, abs, rel
-        self.stats: list[list[str, float, float]] = [
-            [stat[0], common_kit.to_compact_num(stat[1]), common_kit.to_compact_num(stat[2])]
+        self.stats: list[tuple[str, float, float]] = [
+            (stat[0], common_kit.to_compact_num(stat[1]), common_kit.to_compact_num(stat[2]))
             for stat in stats
         ]
         # trace, stat_type, abs, rel, long_trace
-        self.trace_stats: list[list[str, str, float, float, str]] = [
-            [t[0], t[1], common_kit.to_compact_num(t[2]), common_kit.to_compact_num(t[3]), t[4]]
+        self.trace_stats: list[tuple[str, str, float, float, str]] = [
+            (t[0], t[1], common_kit.to_compact_num(t[2]), common_kit.to_compact_num(t[3]), t[4])
             for t in trace_stats
         ]
 
@@ -481,7 +483,7 @@ def process_traces(
 def generate_skeletons(graph: Graph, traces: dict[str, list[TraceStat]]) -> list[Skeleton]:
     """Generates skeletons of graphs for each amount"""
     stat_len = len(Stats.KnownStats)
-    stat_to_traces: list[list[tuple[list[str], float]]] = [[] for _ in range(0, stat_len)] 
+    stat_to_traces: list[list[tuple[list[str], float]]] = [[] for _ in range(0, stat_len)]
     processed = set()
     log.minor_info("Generating skeletons")
     for val in progressbar.progressbar(traces.values()):
@@ -561,13 +563,17 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
                     continue
                 trace_len = len(trace)
                 stat_len = len(Stats.KnownStats)
-                base_sum: list[float] = defaultdict(float)
-                base_partial: list[list[float]] = [
-                    [0.0 for _ in range(0, trace_len - 1)] for _ in range(0, stat_len)
+                base_sum: array.array[float] = array.array(
+                    "d", [sys.float_info.max if Config().trace_is_inclusive else 0.0] * stat_len
+                )
+                base_partial: list[array.array[float]] = [
+                    array.array("d", [0.0] * (trace_len - 1)) for _ in range(0, stat_len)
                 ]
-                tgt_sum: list[float] = defaultdict(float)
-                tgt_partial: list[list[float]] = [
-                    [0.0 for _ in range(0, trace_len - 1)] for _ in range(0, stat_len)
+                tgt_sum: array.array[float] = array.array(
+                    "d", [sys.float_info.max if Config().trace_is_inclusive else 0.0] * stat_len
+                )
+                tgt_partial: list[array.array[float]] = [
+                    array.array("d", [0.0] * (trace_len - 1)) for _ in range(0, stat_len)
                 ]
                 for i in range(0, trace_len - 1):
                     src, tgt = f"{trace[i]}#{i}", f"{trace[i + 1]}#{i + 1}"
@@ -579,8 +585,8 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
                             base_partial[j][i] += base_stat
                             tgt_partial[j][i] += tgt_stat
                             if Config().trace_is_inclusive:
-                                base_sum[j] = common_kit.try_min(base_sum.get(stat), base_stat)
-                                tgt_sum[j] = common_kit.try_min(tgt_sum.get(stat), tgt_stat)
+                                base_sum[j] = common_kit.try_min(base_sum[j], base_stat)
+                                tgt_sum[j] = common_kit.try_min(tgt_sum[j], tgt_stat)
                             else:
                                 base_sum[j] += base_stat
                                 tgt_sum[j] += tgt_stat

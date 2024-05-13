@@ -12,6 +12,7 @@ import re
 import signal
 
 # Third-Party Imports
+import array
 import click
 
 # Perun Imports
@@ -449,7 +450,7 @@ def get_module(module_name: str) -> types.ModuleType:
 
 
 def compact_convert_list_to_str(
-    number_list: list[int | float], float_precision: int = 2
+    number_list: list[int | float] | array.array[float] | array.array[int], float_precision: int = 2
 ) -> list[str]:
     """Converts list to list of compact strings
 
