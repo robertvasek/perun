@@ -8,7 +8,6 @@ import contextlib
 import gc
 import importlib
 import itertools
-import math
 import operator
 import os
 import re

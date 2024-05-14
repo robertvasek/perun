@@ -8,7 +8,6 @@ from __future__ import annotations
 
 # Standard Imports
 from typing import BinaryIO, Optional
-import gc
 import hashlib
 import json
 import os
