@@ -658,7 +658,8 @@ def extract_stats_from_trace(
     :param uid_stats: stats for each uid in the graph
     :param cache: helper cache for reducing the statistics
     """
-    uid_trace_stats = []
+    uid_trace_stats: list[tuple[str, str, float, float, str]] = []
+    top_n_limit, sort_by_key = Config().top_n_traces, 3
     for trace in uid_stats:
         # Trace is in form of [short_trace, stat_type, abs, rel, long_trace]
         for i, stat in enumerate(Stats.KnownStats):
@@ -680,10 +681,10 @@ def extract_stats_from_trace(
                 )
                 long_data = f"{long_trace}#{long_baseline_stats}#{long_target_stats}"
                 cache[key] = (short_id, stat, abs_amount, rel_amount, long_data)
-            uid_trace_stats.append(cache[key])
-    uid_trace_stats = sorted(uid_trace_stats, key=itemgetter(3), reverse=True)
-    long_trace_stats = uid_trace_stats[: Config().top_n_traces]
-    return long_trace_stats
+            common_kit.add_to_sorted(
+                uid_trace_stats, cache[key], itemgetter(sort_by_key), top_n_limit
+            )
+    return uid_trace_stats
 
 
 def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -> None:
