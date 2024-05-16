@@ -1,4 +1,5 @@
 """Flamegraph difference of the profile"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -132,6 +133,53 @@ def generate_header(profile: Profile) -> list[tuple[str, Any, str]]:
     ]
 
 
+def generate_flamegraphs(
+    lhs_profile: Profile, rhs_profile: Profile, data_types: list[str], height: int, width: int
+) -> list[tuple[str, str, str]]:
+    """Constructs a list of tuples of flamegraphs for list of data_types
+
+    :param lhs_profile: baseline profile
+    :param rhs_profile: target profile
+    :param data_types: list of data types (resources)
+    :param height: height of the flame graph
+    :param width: width of the flame graph
+    """
+    flamegraphs = []
+    for i, data_type in enumerate(data_types):
+        lhs_graph = flamegraph_factory.draw_flame_graph(
+            lhs_profile,
+            height,
+            width,
+            title="Baseline Flamegraph",
+            profile_key=data_type,
+        )
+        escaped_lhs = escape_content(f"lhs_{i}", lhs_graph)
+        log.minor_success(f"Baseline flamegraph ({data_type})", "generated")
+
+        rhs_graph = flamegraph_factory.draw_flame_graph(
+            rhs_profile,
+            height,
+            width,
+            title="Target Flamegraph",
+            profile_key=data_type,
+        )
+        escaped_rhs = escape_content(f"rhs_{i}", rhs_graph)
+        log.minor_success(f"Target flamegraph ({data_type})", "generated")
+
+        diff_graph = flamegraph_factory.draw_flame_graph_difference(
+            lhs_profile,
+            rhs_profile,
+            height,
+            width,
+            title="Difference Flamegraph",
+            profile_key=data_type,
+        )
+        escaped_diff = escape_content(f"diff_{i}", diff_graph)
+        log.minor_success(f"Diff flamegraph ({data_type})", "generated")
+        flamegraphs.append((escaped_lhs, escaped_rhs, escaped_diff))
+    return flamegraphs
+
+
 def generate_flamegraph_difference(
     lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any
 ) -> None:
@@ -147,39 +195,13 @@ def generate_flamegraph_difference(
     data_type = list(data_types)[0]
 
     log.major_info("Generating Flamegraph Difference")
-    flamegraphs = []
-    for i, data_type in enumerate(data_types):
-        lhs_graph = flamegraph_factory.draw_flame_graph(
-            lhs_profile,
-            kwargs.get("height", DEFAULT_HEIGHT),
-            kwargs.get("width", DEFAULT_WIDTH),
-            title="Baseline Flamegraph",
-            profile_key=data_type,
-        )
-        escaped_lhs = escape_content(f"lhs_{i}", lhs_graph)
-        log.minor_success(f"Baseline flamegraph ({data_type})", "generated")
-
-        rhs_graph = flamegraph_factory.draw_flame_graph(
-            rhs_profile,
-            kwargs.get("height", DEFAULT_HEIGHT),
-            kwargs.get("width", DEFAULT_WIDTH),
-            title="Target Flamegraph",
-            profile_key=data_type,
-        )
-        escaped_rhs = escape_content(f"rhs_{i}", rhs_graph)
-        log.minor_success(f"Target flamegraph ({data_type})", "generated")
-
-        diff_graph = flamegraph_factory.draw_flame_graph_difference(
-            lhs_profile,
-            rhs_profile,
-            kwargs.get("height", DEFAULT_HEIGHT),
-            kwargs.get("width", DEFAULT_WIDTH),
-            title="Difference Flamegraph",
-            profile_key=data_type,
-        )
-        escaped_diff = escape_content(f"diff_{i}", diff_graph)
-        log.minor_success(f"Diff flamegraph ({data_type})", "generated")
-        flamegraphs.append((escaped_lhs, escaped_rhs, escaped_diff))
+    flamegraphs = generate_flamegraphs(
+        lhs_profile,
+        rhs_profile,
+        data_types,
+        kwargs.get("height", DEFAULT_HEIGHT),
+        kwargs.get("width", DEFAULT_WIDTH),
+    )
 
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
     template = env.get_template("diff_view_flamegraph.html.jinja2")
