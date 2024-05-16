@@ -223,7 +223,7 @@
                 </thead>
             </table>
         </div>
-        {% for (metric, lhs_flamegraph, rhs_flamegraph, diff_flamegraph) in flamegraphs %}
+        {%- for (metric, lhs_flamegraph, rhs_flamegraph, diff_flamegraph) in flamegraphs %}
         <div id="{{ metric|sanitize_variable_name }}" class="tabcontent">
             <div class="left column">
                 <div class='svg-container'>
@@ -1156,6 +1156,45 @@
     document.querySelector('#fromSlider').addEventListener('change', filterEdges);
     document.querySelector('#toSlider').addEventListener('change', filterEdges);
 
+    for (let i = 0; i < number_of_metrics; i++) {
+        var lhs_elements = document.querySelectorAll(".lhs_" + i + "_func_g");
+        lhs_elements.forEach(function (element) {
+            element.addEventListener('click', function() {
+                var textElement = element.querySelector('text');
+                var innerText = textElement.textContent.trim();
+                var div = document.getElementById('sankey_tools');
+                if (div.style.display === "none") {
+                    div.style.display = "block";
+                }
+                let index = nodes.indexOf(innerText);
+                if (index != -1) {
+                    selected_uid = index;
+                    selected_uid_text = innerText;
+                    layout.title = selected_uid_text;
+                    initializeGraph();
+                }
+            })
+        })
+        var rhs_elements = document.querySelectorAll(".rhs_" + i + "_func_g");
+        rhs_elements.forEach(function (element) {
+            element.addEventListener('click', function() {
+                var textElement = element.querySelector('text');
+                var innerText = textElement.textContent.trim();
+                var div = document.getElementById('sankey_tools');
+                if (div.style.display === "none") {
+                    div.style.display = "block";
+                }
+                let index = nodes.indexOf(innerText);
+                console.log(index, nodes, innerText);
+                if (index != -1) {
+                    selected_uid = index;
+                    selected_uid_text = innerText;
+                    layout.title = selected_uid_text;
+                    initializeGraph();
+                }
+            })
+        })
+    };
     {%- if flamegraphs %}
     document.getElementById("defaultOpen").click();
     {%- endif %}
