@@ -436,13 +436,7 @@
                 data: "type",
                 render: function(data, type) {
                     if (type === 'display') {
-                        let metric_len = stat_map.length;
-                        let metric = data % metric_len;
-                        if (metric === data) {
-                            return 'callee ' + stat_map[metric];
-                        } else {
-                            return 'caller ' + stat_map[metric];
-                        }
+                        return stat_id_to_name(data);
                     }
                     return data;
                 }
@@ -536,8 +530,8 @@
 
     function format_path_prex(path_stats, index, path_cost) {
         let result = '<span class="';
-        let prefix_sum = path_stats.slice(0, index).reduce((acc, v) => acc + v, 0);
-        let prefix_rate = (path_cost === 0) ? 0 : path_stats / path_cost;
+        let prefix_sum = path_stats.slice(0, index+1).reduce((acc, v) => acc + v, 0);
+        let prefix_rate = (path_cost === 0) ? 0 : (prefix_sum / path_cost);
         if (prefix_rate < 0.5) {
             result += 'decrease';
         } else if (prefix_rate > 0.5) {
@@ -567,8 +561,9 @@
         return result;
     };
 
-    function format_sub_row(d, uid, stat_type) {
+    function format_sub_row(d, uid) {
         let result = '<table style="width: 100%; border: none;" class="nested">';
+        let stat_type = d[2].toLowerCase();
         let parts = d[5].split('#');
         let traces = parts[0].split(';'), baseline = parts[1].split(';').map(Number), target = parts[2].split(';').map(Number);
         let min_baseline = Math.min(...baseline), min_target = Math.min(...target);
@@ -588,9 +583,9 @@
                     result += format_bottleneck(target_stat, min_target);
                 } else if (stat_type.includes("exclusive")) {
                     result += "    ";
-                    result += format_path_prex(baseline, i, sum_baseline);
+                    result += format_path_prex(baseline, i-1, sum_baseline);
                     result += " | ";
-                    result += format_path_prex(target, i, sum_target);
+                    result += format_path_prex(target, i-1, sum_target);
                 }
                 result += " "
             }
@@ -979,6 +974,16 @@
         }
     }
 
+    function stat_id_to_name(stat_id) {
+        let metric_len = stat_map.length;
+        let metric = stat_id % metric_len;
+        if (stat_id <= metric_len) {
+            return 'callee ' + stat_map[metric];
+        } else {
+            return 'caller ' + stat_map[metric];
+        }
+    }
+
     // Event handlers
     selection_table.on('click', 'td.details-control', function(el) {
         var tr = $(this).closest('tr');
@@ -995,13 +1000,7 @@
                     {
                         render: function(data, type) {
                             if (type === 'display') {
-                                let metric_len = stat_map.length;
-                                let metric = data % metric_len;
-                                if (metric === data) {
-                                    return 'callee ' + stat_map[metric];
-                                } else {
-                                    return 'caller ' + stat_map[metric];
-                                }
+                                return stat_id_to_name(data);
                             }
                             return data;
                         }
@@ -1065,7 +1064,7 @@
                     sub_tr.removeClass('shown');
                     sub_tr.addClass('hidden');
                 } else {
-                    sub_row.child(format_sub_row(sub_row.data(), d.uid, d.type.toLowerCase())).show();
+                    sub_row.child(format_sub_row(sub_row.data(), d.uid)).show();
                     sub_tr.removeClass('hidden');
                     sub_tr.addClass('shown');
                 }

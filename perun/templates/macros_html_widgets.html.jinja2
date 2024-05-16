@@ -198,13 +198,13 @@ function formatSize(size, baseUnit = "") {
     for (let unit of units) {
         if (Math.abs(size) < 1000.0) {
             if (unit === "") {
-                return `${size.toFixed(1)}${space}${baseUnit}`;
+                return `${size.toFixed(2)}${space}${baseUnit}`;
             }
-            return `${size.toFixed(1)}${space}${unit}${baseUnit}`;
+            return `${size.toFixed(2)}${space}${unit}${baseUnit}`;
         }
         size /= 1000.0;
     }
-    return `${size.toFixed(1)} P${baseUnit}`;
+    return `${size.toFixed(2)} P${baseUnit}`;
 }
 
 function setInput(label, value) {
