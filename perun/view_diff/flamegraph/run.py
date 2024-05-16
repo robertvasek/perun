@@ -140,6 +140,7 @@ def generate_flamegraphs(
     data_types: list[str],
     height: int = DEFAULT_HEIGHT,
     width: int = DEFAULT_WIDTH,
+    skip_diff: bool = False,
 ) -> list[tuple[str, str, str]]:
     """Constructs a list of tuples of flamegraphs for list of data_types
 
@@ -173,15 +174,18 @@ def generate_flamegraphs(
             escaped_rhs = escape_content(f"rhs_{i}", rhs_graph)
             log.minor_success(f"Target flamegraph ({dtype})", "generated")
 
-            diff_graph = flamegraph_factory.draw_flame_graph_difference(
-                lhs_profile,
-                rhs_profile,
-                height,
-                width,
-                title="Difference Flamegraph",
-                profile_key=data_type,
-            )
-            escaped_diff = escape_content(f"diff_{i}", diff_graph)
+            if skip_diff:
+                escaped_diff = ""
+            else:
+                diff_graph = flamegraph_factory.draw_flame_graph_difference(
+                    lhs_profile,
+                    rhs_profile,
+                    height,
+                    width,
+                    title="Difference Flamegraph",
+                    profile_key=data_type,
+                )
+                escaped_diff = escape_content(f"diff_{i}", diff_graph)
             log.minor_success(f"Diff flamegraph ({dtype})", "generated")
             flamegraphs.append((dtype, escaped_lhs, escaped_rhs, escaped_diff))
         except CalledProcessError as exc:

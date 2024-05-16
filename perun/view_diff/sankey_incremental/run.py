@@ -623,7 +623,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     trace_stats = generate_trace_stats(graph)
     selection_table = generate_selection(graph, trace_stats)
     flamegraphs = flamegraph_run.generate_flamegraphs(
-        lhs_profile, rhs_profile, list(Stats.KnownStats)
+        lhs_profile, rhs_profile, list(Stats.KnownStats), skip_diff=True
     )
     log.minor_success("Sankey graphs", "generated")
 

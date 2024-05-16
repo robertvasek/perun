@@ -115,7 +115,9 @@
         /* Style the tab content */
         .tabcontent {
           display: none;
-          padding: 6px 12px;
+          width: 100%;
+          float: left;
+          padding: 6px 0px;
           border: 1px solid #ccc;
           border-top: none;
         }
@@ -171,7 +173,7 @@
         }
 
         div.column .svg-container {
-            padding-bottom: 84%;
+            padding-bottom: 100%;
         }
 
         .svg-content {
@@ -208,18 +210,18 @@
             <button class="tablinks" onclick="openTab(event, 'all')">Browse All</button>
         </div>
         <div id="all" class="tabcontent">
-        <table id="table" class="display" style="width: 100%;">
-            <thead>
-            <tr>
-                <th></th>
-                <th>Unit</th>
-                <th>Change</th>
-                <th>Metric</th>
-                <th>Absolute</th>
-                <th>Relative</th>
-            </tr>
-            </thead>
-        </table>
+            <table id="table" class="display" style="width: 100%;">
+                <thead>
+                <tr>
+                    <th></th>
+                    <th>Unit</th>
+                    <th>Change</th>
+                    <th>Metric</th>
+                    <th>Absolute</th>
+                    <th>Relative</th>
+                </tr>
+                </thead>
+            </table>
         </div>
         {% for (metric, lhs_flamegraph, rhs_flamegraph, diff_flamegraph) in flamegraphs %}
         <div id="{{ metric|sanitize_variable_name }}" class="tabcontent">

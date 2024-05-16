@@ -174,6 +174,5 @@ def test_diff_incremental_sankey_ktrace(pcs_with_root):
         ],
     )
 
-    print(result.output)
     assert result.exit_code == 0
     assert "diff-ktrace.html" in os.listdir(os.getcwd())
