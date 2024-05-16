@@ -162,31 +162,6 @@ class SelectionRow:
         ]
 
 
-class Skeleton:
-    """Represents single fully computed sankey graph: a skeleton
-
-    :ivar stat: stat for which the skeleton is generated
-    :ivar label: list of node labels
-    :ivar color: list of node colors
-    :ivar source: list of sources of edges
-    :ivar target: list of target of edges
-    :ivar value: list of values of edges
-    """
-
-    __slots__ = ["stat", "label", "color", "source", "target", "value", "link_color", "height"]
-
-    def __init__(self, stat: str):
-        """Initializes the skeleton"""
-        self.stat: str = stat
-        self.label: list[str] = []
-        self.color: list[str] = []
-        self.source: list[int] = []
-        self.target: list[int] = []
-        self.link_color: list[str] = []
-        self.value: list[str] = []
-        self.height: int = 0
-
-
 class Graph:
     """Represents single sankey graph
 
@@ -482,68 +457,6 @@ def process_traces(
                 graph.uid_to_traces[uid].append(full_trace)
 
 
-def generate_skeletons(graph: Graph, traces: dict[str, list[TraceStat]]) -> list[Skeleton]:
-    """Generates skeletons of graphs for each amount"""
-    stat_len = len(Stats.KnownStats)
-    stat_to_traces: list[list[tuple[list[str], float]]] = [[] for _ in range(0, stat_len)]
-    processed = set()
-    log.minor_info("Generating skeletons")
-    for val in progressbar.progressbar(traces.values()):
-        for trace in val:
-            trace_key = ",".join(trace.trace)
-            if trace_key in processed:
-                continue
-            processed.add(trace_key)
-            for j in range(0, stat_len):
-                target_cost, baseline_cost = trace.target_cost[j], trace.baseline_cost[j]
-                if target_cost == 0 and baseline_cost == 0:
-                    continue
-                abs_amount = target_cost - baseline_cost
-                rel_amount = abs_amount / max(target_cost, baseline_cost)
-                if 0 < abs(rel_amount) < 1.0:
-                    stat_to_traces[j].append((trace.trace, abs_amount))
-
-    skeletons: list[Skeleton] = []
-    processed = set()
-    for i, stat in enumerate(Stats.KnownStats):
-        stat_traces = stat_to_traces[i]
-        skeleton = Skeleton(stat)
-        sorted_all_traces: list[tuple[list[str], float]] = sorted(stat_traces, key=lambda t: t[1])[
-            -10:
-        ]
-        sorted_traces: list[tuple[list[str], float]] = sorted(
-            sorted_all_traces, key=lambda key: ",".join(key[0])
-        )
-        node_map = []
-        for sorted_trace, _ in sorted_traces:
-            trace_len = len(sorted_trace)
-            skeleton.height = max(skeleton.height, trace_len)
-            for i in range(0, trace_len - 1):
-                src, tgt = f"{sorted_trace[i]}#{i}", f"{sorted_trace[i + 1]}#{i + 1}"
-                if f"{src},{tgt}" in processed:
-                    continue
-                processed.add(f"{src},{tgt}")
-                stats = graph.get_node(src).callers[tgt].stats
-                if src not in node_map:
-                    node_map.append(src)
-                    skeleton.label.append(src.split("#")[0])
-                    skeleton.color.append(ColorPalette.NoHighlight)
-                if tgt not in node_map:
-                    node_map.append(tgt)
-                    skeleton.label.append(tgt.split("#")[0])
-                    skeleton.color.append(ColorPalette.NoHighlight)
-                src_i, tgt_i = node_map.index(src), node_map.index(tgt)
-                src_s, tgt_s = stats.baseline[stat], stats.target[stat]
-                skeleton.source.append(src_i)
-                skeleton.target.append(tgt_i)
-                skeleton.value.append(common_kit.compact_convert_num_to_str(abs(tgt_s - src_s)))
-                skeleton.link_color.append(
-                    ColorPalette.Increase if tgt_s > src_s else ColorPalette.Decrease
-                )
-        skeletons.append(skeleton)
-    return skeletons
-
-
 def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
     """Generates trace stats
 
@@ -709,7 +622,9 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
 
     trace_stats = generate_trace_stats(graph)
     selection_table = generate_selection(graph, trace_stats)
-    skeletons = generate_skeletons(graph, trace_stats)
+    flamegraphs = flamegraph_run.generate_flamegraphs(
+        lhs_profile, rhs_profile, list(Stats.KnownStats)
+    )
     log.minor_success("Sankey graphs", "generated")
 
     # Note: we keep the autoescape=false, since we kindof believe we are not trying to fuck us up
@@ -739,7 +654,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
                 sorted(list(graph.uid_to_nodes.items()), key=lambda x: graph.uid_to_id[x[0]]),
             )
         ],
-        skeletons=skeletons,
+        flamegraphs=flamegraphs,
         selection_table=selection_table,
     )
     log.minor_success("HTML template", "rendered")

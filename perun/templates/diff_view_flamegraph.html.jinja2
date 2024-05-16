@@ -133,7 +133,7 @@
     </table>
 </div>
 
-{% for (lhs_flamegraph, rhs_flamegraph, diff_flamegraph) in flamegraphs %}
+{% for (_, lhs_flamegraph, rhs_flamegraph, diff_flamegraph) in flamegraphs %}
 <div class="flamegraphs" id="{{ data_types[loop.index0] }}">
     <h2>{{ data_types[loop.index0] }}</h2>
     <div class="left column">

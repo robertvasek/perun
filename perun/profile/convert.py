@@ -12,6 +12,7 @@ Combined with ``perun.profile.factory``, ``perun.profile.query`` and e.g.
 `pandas`_ library one can obtain efficient interpreter for executing more
 complex queries and statistical tests over the profiles.
 """
+
 from __future__ import annotations
 
 # Standard Imports

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 # Standard Imports
+from subprocess import CalledProcessError
 from typing import Any
 import re
 
@@ -11,7 +12,7 @@ import click
 import jinja2
 
 # Perun Imports
-from perun.utils import log
+from perun.utils import log, mapping
 from perun.utils.common import diff_kit
 from perun.profile.factory import Profile
 from perun.profile import convert
@@ -134,7 +135,11 @@ def generate_header(profile: Profile) -> list[tuple[str, Any, str]]:
 
 
 def generate_flamegraphs(
-    lhs_profile: Profile, rhs_profile: Profile, data_types: list[str], height: int, width: int
+    lhs_profile: Profile,
+    rhs_profile: Profile,
+    data_types: list[str],
+    height: int = DEFAULT_HEIGHT,
+    width: int = DEFAULT_WIDTH,
 ) -> list[tuple[str, str, str]]:
     """Constructs a list of tuples of flamegraphs for list of data_types
 
@@ -145,38 +150,42 @@ def generate_flamegraphs(
     :param width: width of the flame graph
     """
     flamegraphs = []
-    for i, data_type in enumerate(data_types):
-        lhs_graph = flamegraph_factory.draw_flame_graph(
-            lhs_profile,
-            height,
-            width,
-            title="Baseline Flamegraph",
-            profile_key=data_type,
-        )
-        escaped_lhs = escape_content(f"lhs_{i}", lhs_graph)
-        log.minor_success(f"Baseline flamegraph ({data_type})", "generated")
+    for i, dtype in enumerate(data_types):
+        try:
+            data_type = mapping.from_readable_key(dtype)
+            lhs_graph = flamegraph_factory.draw_flame_graph(
+                lhs_profile,
+                height,
+                width,
+                title="Baseline Flamegraph",
+                profile_key=data_type,
+            )
+            escaped_lhs = escape_content(f"lhs_{i}", lhs_graph)
+            log.minor_success(f"Baseline flamegraph ({dtype})", "generated")
 
-        rhs_graph = flamegraph_factory.draw_flame_graph(
-            rhs_profile,
-            height,
-            width,
-            title="Target Flamegraph",
-            profile_key=data_type,
-        )
-        escaped_rhs = escape_content(f"rhs_{i}", rhs_graph)
-        log.minor_success(f"Target flamegraph ({data_type})", "generated")
+            rhs_graph = flamegraph_factory.draw_flame_graph(
+                rhs_profile,
+                height,
+                width,
+                title="Target Flamegraph",
+                profile_key=data_type,
+            )
+            escaped_rhs = escape_content(f"rhs_{i}", rhs_graph)
+            log.minor_success(f"Target flamegraph ({dtype})", "generated")
 
-        diff_graph = flamegraph_factory.draw_flame_graph_difference(
-            lhs_profile,
-            rhs_profile,
-            height,
-            width,
-            title="Difference Flamegraph",
-            profile_key=data_type,
-        )
-        escaped_diff = escape_content(f"diff_{i}", diff_graph)
-        log.minor_success(f"Diff flamegraph ({data_type})", "generated")
-        flamegraphs.append((escaped_lhs, escaped_rhs, escaped_diff))
+            diff_graph = flamegraph_factory.draw_flame_graph_difference(
+                lhs_profile,
+                rhs_profile,
+                height,
+                width,
+                title="Difference Flamegraph",
+                profile_key=data_type,
+            )
+            escaped_diff = escape_content(f"diff_{i}", diff_graph)
+            log.minor_success(f"Diff flamegraph ({dtype})", "generated")
+            flamegraphs.append((dtype, escaped_lhs, escaped_rhs, escaped_diff))
+        except CalledProcessError as exc:
+            log.warn(f"could not generate flamegraphs: {exc}")
     return flamegraphs
 
 

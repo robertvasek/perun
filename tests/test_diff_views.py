@@ -1,4 +1,5 @@
 """Basic testing for the diff views"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -143,7 +144,7 @@ def test_diff_sankey(pcs_with_root):
     assert "diff-ktrace.html" in os.listdir(os.getcwd())
 
 
-def test_diff_incremental_sankey(pcs_with_root):
+def test_diff_incremental_sankey_kperf(pcs_with_root):
     """Test creating sankey diff graph out of the two profile"""
     runner = CliRunner()
     baseline_profilename = test_utils.load_profilename("diff_profiles", "kperf-baseline.perf")
@@ -153,11 +154,13 @@ def test_diff_incremental_sankey(pcs_with_root):
     result = runner.invoke(
         cli.showdiff, [baseline_profilename, target_profilename, "sankey-incr", "-o", "diff.html"]
     )
-    print(result.output)
     assert result.exit_code == 0
-
     assert "diff.html" in os.listdir(os.getcwd())
 
+
+def test_diff_incremental_sankey_ktrace(pcs_with_root):
+    """Test creating sankey diff graph out of the two profile"""
+    runner = CliRunner()
     baseline_profilename = test_utils.load_profilename("diff_profiles", "ktrace-baseline.perf")
     target_profilename = test_utils.load_profilename("diff_profiles", "ktrace-target.perf")
     result = runner.invoke(
@@ -171,5 +174,6 @@ def test_diff_incremental_sankey(pcs_with_root):
         ],
     )
 
+    print(result.output)
     assert result.exit_code == 0
     assert "diff-ktrace.html" in os.listdir(os.getcwd())

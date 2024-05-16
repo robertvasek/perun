@@ -162,6 +162,24 @@
             font-weight: bold;
             color: {{ palette.DarkEqual }};
         }
+        .svg-container {
+            display: inline-block;
+            position: relative;
+            width: 100%;
+            vertical-align: top;
+            overflow: hidden;
+        }
+
+        div.column .svg-container {
+            padding-bottom: 84%;
+        }
+
+        .svg-content {
+            display: inline-block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
         {{ widgets.tooltip_style() }}
     </style>
 </head>
@@ -182,7 +200,7 @@
 <div class="middle">
     <div class="tools">
         <div class="tab">
-            {%- if skeletons %}
+            {%- if flamegraphs %}
             {%- for metric in stat_list %}
             <button class="tablinks" onclick="openTab(event, '{{ metric|sanitize_variable_name }}')" {% if loop.index0 == 0 %}id="defaultOpen"{% endif %}>Top {{ metric }}</button>
             {%- endfor %}
@@ -203,9 +221,18 @@
             </thead>
         </table>
         </div>
-        {%- for metric in stat_list %}
+        {% for (metric, lhs_flamegraph, rhs_flamegraph, diff_flamegraph) in flamegraphs %}
         <div id="{{ metric|sanitize_variable_name }}" class="tabcontent">
-            <div id="sankey_graph_{{ metric|sanitize_variable_name }}"><!-- DO NOT CHANGE: SANKEY GRAPH IS RENDERED HERE--></div>
+            <div class="left column">
+                <div class='svg-container'>
+                    {{ lhs_flamegraph}}
+                </div>
+            </div>
+            <div class="right column">
+                <div class='svg-container'>
+                    {{ rhs_flamegraph }}
+                </div>
+            </div>
         </div>
         {%- endfor %}
         <div id="sankey_tools" style="display: none">
@@ -279,36 +306,6 @@
     let stat_map = {{ stat_list }}
     let node_map = {{ node_map }}
     {% endautoescape %}
-
-    {%- for skeleton in skeletons %}
-    let {{ skeleton.stat|sanitize_variable_name }}_data = [{
-        type: "sankey",
-        orientation: "v",
-        node: {
-            pad: 15,
-            thickness: 20,
-            line: {
-                color: "black",
-                width: 1
-            },
-            label: {{ skeleton.label }},
-            color: {{ skeleton.color}},
-        },
-        link: {
-            source: {{ skeleton.source }},
-            target: {{ skeleton.target }},
-            value: {{ skeleton.value }},
-            color: {{ skeleton.link_color }}
-        }
-    }]
-    let {{ skeleton.stat|sanitize_variable_name  }}_layout = {
-        title: "Top {{ skeleton.stat }}",
-        font: {
-            size: 10,
-        },
-        height: {{ skeleton.height * 75 }}
-    }
-    {%- endfor %}
 
     let sankey_data = [{
         type: "sankey",
@@ -1157,11 +1154,8 @@
     document.querySelector('#fromSlider').addEventListener('change', filterEdges);
     document.querySelector('#toSlider').addEventListener('change', filterEdges);
 
-    {%- if skeletons %}
+    {%- if flamegraphs %}
     document.getElementById("defaultOpen").click();
-    {%- for metric in stat_list %}
-    Plotly.react('sankey_graph_{{ metric|sanitize_variable_name }}', {{ metric|sanitize_variable_name }}_data, {{ metric|sanitize_variable_name }}_layout);
-    {%- endfor %}
     {%- endif %}
 
     newplot()
