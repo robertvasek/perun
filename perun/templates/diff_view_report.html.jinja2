@@ -21,7 +21,6 @@
         }
         .right {
             float: right;
-            background-color: #0e84b5;
         }
         .column-head {
             border-bottom: 1px solid #ddd;
@@ -96,6 +95,29 @@
     <table>
         <tbody>
             <tr>
+                <td class="key" title="Displays resources for different type.">Resource Type:</td>
+                <td class="value" title="Displays resources for different type.">
+                    <select class="filter" id="type_selector">
+                    {% for data_type in data_types %}
+                        <option value="{{ data_type }}">{{ data_type }}</option>
+                    {%- endfor %}
+                    </select>
+                </td>
+                <td class="key" title="Displays resources for different clusters.">Cluster Type:</td>
+                <td class="value" title="Displays resources for different clusters.">
+                    <select class="filter" id="cluster_selector">
+                            <option value="all">All</option>
+                        {% for cluster in cluster_types%}
+                            <option value="{{ cluster }}">{{ cluster }}</option>
+                        {%- endfor %}
+                    </select>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table>
+        <tbody>
+            <tr>
                 <td class="key" title="Allows searching across both tables.">Global Search:</td>
                 <td class="value" title="Allows searching across both tables."><input type="text" class="filter" id="filter_uid"></td>
                 <td class="key" title="Highlights values higher than given threshold (as float number).">Relative Threshold:</td>
@@ -118,6 +140,12 @@
         <tfoot>
             <tr>
                 <th></th>
+                {% for _ in lhs_columns %}
+                    <th></th>
+                {%- endfor %}
+            </tr>
+            <tr>
+                <th></th>
                 {% for (column, title) in lhs_columns %}
                     <th title="{{ title }}">{{ column }}</th>
                 {%- endfor %}
@@ -137,12 +165,18 @@
         </tr>
         </thead>
         <tfoot>
-        <tr>
-            <th></th>
-            {% for (column, title) in rhs_columns %}
-                <th title="{{ title }}">{{ column }}</th>
-            {%- endfor %}
-        </tr>
+            <tr>
+                <th></th>
+                {% for _ in rhs_columns %}
+                    <th></th>
+                {%- endfor %}
+            </tr>
+            <tr>
+                <th></th>
+                {% for (column, title) in rhs_columns %}
+                    <th title="{{ title }}">{{ column }}</th>
+                {%- endfor %}
+            </tr>
         </tfoot>
     </table>
 </div>
@@ -167,22 +201,71 @@
                 { data: "uid" },
                 {
                     data: "abs",
+                    className: "dt-body-right",
                     render: function (data, type) {
                         if (type === 'display') {
-                            var formatted_number = parseInt(data, 10).toLocaleString();
-                            return `${formatted_number}`;
+                            const floatValue = parseFloat(data);
+                            const intValue = parseInt(data);
+                            if (!isNaN(intValue) && intValue.toString() === data) {
+                                var formatted_int= intValue.toLocaleString();
+                                return `${formatted_int}`;
+                            } else if(!isNaN(floatValue) && floatValue.toString() === data) {
+                                var formatted_float = floatValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                return `${formatted_float}`;
+                            } else {
+                                return data;
+                            }
                         }
 
                         return data;
                     },
                 },
-                { data: "rel" }
+                { data: "rel" },
+                { data: "type", visible: false},
+                { data: "cluster", visible: false}
             ],
             createdRow: function( row, data, dataIndex ) {
                 $( row ).addClass('hidden');
             },
-            order: [[2, "desc"]],
+            order: [[3, "desc"]],
             iDisplayLength: 50,
+            columnDefs: [
+                {
+                    "targets": "_all",
+                    "render": function(data, type, row, meta) {
+                        if (type !== "display") {
+                            return data;
+                        }
+                        return '<span title="' + row.cluster + '">' + data + '</span';
+                    }
+                }
+            ],
+            footerCallback: function (row, data, start, end, display) {
+                let api = this.api();
+
+                // Remove the formatting to get integer data for summation
+                let intVal = function (i) {
+                    const floatValue = parseFloat(i);
+                    const intValue = parseInt(i);
+                    const isFloatStr = typeof i === 'string' && (i.includes('.') || i.includes(','));
+                    if (!isNaN(floatValue) && isFloatStr) {
+                        return floatValue;
+                    } else if(!isNaN(intValue)) {
+                        return intValue;
+                    } else {
+                        return 0;
+                    }
+                };
+
+                // Total over all pages
+                total = api
+                    .column(2, {page: 'current'})
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                // Update footer
+                api.column(2).footer().innerHTML = total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
         });
         var rhs  = $("#table2").DataTable({
             data: rhs_data.data,
@@ -200,22 +283,71 @@
                 { data: "uid" },
                 {
                     data: "abs",
+                    className: "dt-body-right",
                     render: function (data, type) {
                         if (type === 'display') {
-                            var formatted_number = parseInt(data, 10).toLocaleString();
-                            return `${formatted_number}`;
+                            const floatValue = parseFloat(data);
+                            const intValue = parseInt(data);
+                            if (!isNaN(intValue) && intValue.toString() === data) {
+                                var formatted_int= intValue.toLocaleString();
+                                return `${formatted_int}`;
+                            } else if(!isNaN(floatValue) && floatValue.toString() === data) {
+                                var formatted_float = floatValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                return `${formatted_float}`;
+                            } else {
+                                return data;
+                            }
                         }
 
                         return data;
                     },
                 },
-                { data: "rel" }
+                { data: "rel" },
+                { data: "type", visible: false},
+                { data: "cluster", visible: false}
             ],
             createdRow: function( row, data, dataIndex ) {
                 $( row ).addClass('hidden');
             },
-            order: [[2, "desc"]],
+            order: [[3, "desc"]],
             iDisplayLength: 50,
+            columnDefs: [
+                {
+                    "targets": "_all",
+                    "render": function(data, type, row, meta) {
+                        if (type !== "display") {
+                            return data;
+                        }
+                        return '<span title="' + row.cluster + '">' + data + '</span';
+                    }
+                }
+            ],
+            footerCallback: function (row, data, start, end, display) {
+                let api = this.api();
+
+                // Remove the formatting to get integer data for summation
+                let intVal = function (i) {
+                    const floatValue = parseFloat(i);
+                    const intValue = parseInt(i);
+                    const isFloatStr = typeof i === 'string' && (i.includes('.') || i.includes(','));
+                    if (!isNaN(floatValue) && isFloatStr) {
+                        return floatValue;
+                    } else if(!isNaN(intValue)) {
+                        return intValue;
+                    } else {
+                        return 0;
+                    }
+                };
+
+                // Total over all pages
+                total = api
+                    .column(2, {page: 'current'})
+                    .data()
+                    .reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                // Update footer
+                api.column(2).footer().innerHTML = total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
         });
 
         $('#table1 tbody').on('click', 'td.details-control', function() {
@@ -240,10 +372,21 @@
             if (row.child.isShown()) {
                 row.child.hide();
                 tr.removeClass('shown');
+                tr.addClass('hidden');
             } else {
                 row.child(format(row.data())).show();
+                tr.removeClass('hidden');
                 tr.addClass('shown');
             }
+        });
+
+        document.querySelectorAll('select.filter').forEach((el) => {
+            el.addEventListener('change', () => {
+                filterByType(lhs);
+                filterByType(rhs);
+                filterByClusters(lhs);
+                filterByClusters(rhs);
+            })
         });
 
         document.querySelectorAll('input.filter').forEach((el) => {
@@ -252,8 +395,12 @@
                 filterGlobal(rhs);
                 highlightGlobal(lhs);
                 highlightGlobal(rhs);
+                updateSelect();
             })
         });
+
+        filterByType(lhs);
+        filterByType(rhs);
     });
 
     function format(d) {
@@ -273,6 +420,18 @@
         table.search(filter.value).draw();
     }
 
+    function filterByType(table) {
+        let selector = document.querySelector("#type_selector");
+
+        table.columns(4).search(selector.value, {exact: true}).draw();
+    }
+
+    function filterByClusters(table) {
+        let selector = document.querySelector("#cluster_selector");
+
+        table.columns(5).search(selector.value, {exact: true}).draw();
+    }
+
     function highlightGlobal(table) {
         const inputValue = parseFloat(document.querySelector("#filter_threshold").value)
         table.rows({search: 'applied', filter: 'applied'}).every(function () {
@@ -288,6 +447,41 @@
         })
     }
 
+    function updateSelect() {
+        var uniqueValues = [];
+        $('#table1').DataTable().rows().every(function() {
+           var data = this.data();
+           var value = data[5];
+           if (!uniqueValues.includes(value)) {
+               uniqueValues.push(value);
+           }
+        });
+
+        $('#table2').DataTable().rows().every(function() {
+            var data = this.data();
+            var value = data[5];
+            if (!uniqueValues.includes(value)) {
+                uniqueValues.push(value);
+            }
+        });
+
+        uniqueValues.sort();
+
+        var select = document.getElementById("cluster_selector");
+        select.innerHTML = '';
+        uniqueValues.forEach(function(value) {
+            var option = document.createElement('option');
+            option.text = value;
+            option.value = value;
+            select.add(option);
+        })
+
+        var option = document.createElement('option');
+        option.text = "All";
+        option.value = "all";
+        select.add(option);
+    }
+
     const lhs_data = {
         "data": [
             {% for val in lhs_data %}
@@ -295,7 +489,9 @@
                 "uid": "{{ val.uid }}",
                 "abs": "{{ val.abs_amount }}",
                 "rel": "{{ val.rel_amount }}%",
-                "trace": {{ val.trace_list }}
+                "trace": {{ val.trace_list }},
+                "cluster": "{{ val.cluster.id }}",
+                "type": "{{ val.type }}"
             },
             {%- endfor %}
         ]
@@ -307,7 +503,9 @@
                     "uid": "{{ val.uid }}",
                     "abs": "{{ val.abs_amount }}",
                     "rel": "{{ val.rel_amount }}%",
-                    "trace": {{ val.trace_list }}
+                    "trace": {{ val.trace_list }},
+                    "cluster": "{{ val.cluster.id }}",
+                    "type": "{{ val.type }}"
                 },
             {%- endfor %}
         ]

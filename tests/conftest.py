@@ -1,4 +1,5 @@
 """Shared fixtures for the testing of functionality of Perun commands."""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -19,6 +20,7 @@ from perun.logic import commands, pcs, store
 from perun.utils import decorators, log, metrics, streams
 from perun.utils.common import common_kit
 import perun.testing.utils as test_utils
+import perun.view_diff.sankey_incremental.run as sankey_incremental
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -527,4 +529,5 @@ def setup():
     log.SUPPRESS_PAGING = True
     # We disable the metrics by default, since they might slow down tests
     metrics.Metrics.enabled = False
+    sankey_incremental.Stats.KnownStats.clear()
     yield

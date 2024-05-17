@@ -85,11 +85,14 @@ def print_header(lhs_profile: Profile, rhs_profile: Profile) -> None:
     print(tabulate.tabulate(data))  # type: ignore
 
 
-def get_top_n_records(profile: Profile, **kwargs: Any) -> list[TableRecord]:
+def get_top_n_records(
+    profile: Profile, aggregated_key: str = "amount", **kwargs: Any
+) -> list[TableRecord]:
     """Retrieves top N records in the profile
 
     :param profile: profile for which we are analysing top N records
     :param kwargs: other parameters
+    :param aggregated_key: key for aggregation of the top table
     :return: list of top N records
     """
     df = convert.resources_to_pandas_dataframe(profile)
@@ -97,9 +100,9 @@ def get_top_n_records(profile: Profile, **kwargs: Any) -> list[TableRecord]:
     if filters := kwargs.get("filters"):
         df = filter_df(df, filters)
 
-    grouped_df = df.groupby(["uid", "trace"]).agg({"amount": "sum"}).reset_index()
-    sorted_df = grouped_df.sort_values(by="amount", ascending=False)
-    amount_sum = df["amount"].sum()
+    grouped_df = df.groupby(["uid", "trace"]).agg({aggregated_key: "sum"}).reset_index()
+    sorted_df = grouped_df.sort_values(by=aggregated_key, ascending=False)
+    amount_sum = df[aggregated_key].sum()
     top_n = []
     for _, top in sorted_df.head(kwargs["top_n"]).iterrows():
         top_n.append(
@@ -107,8 +110,8 @@ def get_top_n_records(profile: Profile, **kwargs: Any) -> list[TableRecord]:
                 top["uid"],
                 top["trace"],
                 generate_trace_list(top["trace"], top["uid"]),
-                top["amount"],
-                round(100 * top["amount"] / amount_sum, PRECISION),
+                top[aggregated_key],
+                round(100 * top[aggregated_key] / amount_sum, PRECISION),
             )
         )
     return top_n

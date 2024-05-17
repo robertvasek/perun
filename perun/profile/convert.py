@@ -12,6 +12,7 @@ Combined with ``perun.profile.factory``, ``perun.profile.query`` and e.g.
 `pandas`_ library one can obtain efficient interpreter for executing more
 complex queries and statistical tests over the profiles.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -71,7 +72,7 @@ def resources_to_pandas_dataframe(profile: Profile) -> pandas.DataFrame:
     values["snapshots"] = array.array("I")
 
     # All resources at this point should be flat
-    for snapshot, resource in profile.all_resources(True):
+    for snapshot, resource in profile.all_resources(flatten_values=True):
         values["snapshots"].append(snapshot)
         for resource_key in resource_keys:
             values[resource_key].append(resource.get(resource_key, numpy.nan))
@@ -102,7 +103,7 @@ def models_to_pandas_dataframe(profile: Profile) -> pandas.DataFrame:
     return pandas.DataFrame(values)
 
 
-def to_flame_graph_format(profile: Profile) -> list[str]:
+def to_flame_graph_format(profile: Profile, profile_key: str = "amount") -> list[str]:
     """Transforms the **memory** profile w.r.t. :ref:`profile-spec` into the
     format supported by perl script of Brendan Gregg.
 
@@ -127,20 +128,23 @@ def to_flame_graph_format(profile: Profile) -> list[str]:
     identifiers joined using ``;`` character).
 
     :param Profile profile: the memory profile
+    :param profile_key: key that is used to obtain the data
     :returns: list of lines, each representing one allocation call stack
     """
     stacks = []
     for _, snapshot in profile.all_snapshots():
         for alloc in snapshot:
             if "subtype" not in alloc.keys() or alloc["subtype"] != "free":
-                stack_str = to_uid(alloc["uid"]) + ";"
-                for frame in alloc["trace"][::-1]:
-                    line = to_string_line(frame)
-                    stack_str += line + ";"
-                if stack_str and stack_str.endswith(";"):
-                    final = stack_str[:-1]
-                    final += " " + str(alloc["amount"]) + "\n"
-                    stacks.append(final)
+                # Workaround for total time used in some collectors, so it is not outputted
+                if alloc["uid"] != "%TOTAL_TIME%":
+                    stack_str = to_uid(alloc["uid"]) + ";"
+                    for frame in alloc["trace"][::-1]:
+                        line = to_string_line(frame)
+                        stack_str += line + ";"
+                    if stack_str and stack_str.endswith(";"):
+                        final = stack_str[:-1]
+                        final += " " + str(alloc[profile_key]) + "\n"
+                        stacks.append(final)
 
     return stacks
 
@@ -157,13 +161,15 @@ def to_uid(record: dict[str, Any] | str) -> str:
         return to_string_line(record)
 
 
-def to_string_line(frame: dict[str, Any]) -> str:
+def to_string_line(frame: dict[str, Any] | str) -> str:
     """Create string representing call stack's frame
 
     :param dict frame: call stack's frame
     :returns str: line representing call stack's frame
     """
-    if "function" in frame.keys() and "source" in frame.keys() and "line" in frame.keys():
+    if isinstance(frame, str):
+        return frame
+    elif "function" in frame.keys() and "source" in frame.keys() and "line" in frame.keys():
         return f"{frame['function']}()~{frame['source']}~{frame['line']}"
     else:
         assert "func" in frame.keys()

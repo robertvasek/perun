@@ -1,7 +1,9 @@
 """Flamegraph difference of the profile"""
+
 from __future__ import annotations
 
 # Standard Imports
+from subprocess import CalledProcessError
 from typing import Any
 import re
 
@@ -10,7 +12,7 @@ import click
 import jinja2
 
 # Perun Imports
-from perun.utils import log
+from perun.utils import log, mapping
 from perun.utils.common import diff_kit
 from perun.profile.factory import Profile
 from perun.profile import convert
@@ -20,6 +22,7 @@ from perun.view_diff.table import run as table_run
 
 DEFAULT_HEIGHT: int = 14
 DEFAULT_WIDTH: int = 600
+TAGS_TO_INDEX: list[str] = []
 
 
 def escape_content(tag: str, content: str) -> str:
@@ -29,6 +32,8 @@ def escape_content(tag: str, content: str) -> str:
     :param content: generated svg content
     :return: escaped content
     """
+    if tag not in TAGS_TO_INDEX:
+        TAGS_TO_INDEX.append(tag)
     functions = [
         r"(?<!\w)(c)\(",
         r"(?<!\w)(find_child)\(",
@@ -50,7 +55,6 @@ def escape_content(tag: str, content: str) -> str:
         r"(?<!\w)(zoom_parent)\(",
         r"(?<!\w)(zoom_reset)\(",
     ]
-    tag_to_index = ["lhs", "rhs", "diff"]
     other = [
         (r"func_g", f"{tag}_func_g"),
         (r"\"unzoom\"", f'"{tag}_unzoom"'),
@@ -63,7 +67,7 @@ def escape_content(tag: str, content: str) -> str:
         (r"svg\.", f"{tag}_svg."),
         (r"svg =", f"{tag}_svg ="),
         (r"svg;", f"{tag}_svg;"),
-        (r"\[0\]", f"[{tag_to_index.index(tag)}]"),
+        (r"\[0\]", f"[{TAGS_TO_INDEX.index(tag)}]"),
         (r"document.", f"{tag}_svg."),
         (f"({tag}_(svg|details|searchbtn|matchedtxt)) = {tag}_svg.", "\\1 = document."),
         # Huge thanks to following article:
@@ -130,7 +134,66 @@ def generate_header(profile: Profile) -> list[tuple[str, Any, str]]:
     ]
 
 
-def generate_flamegraph_diffrence(
+def generate_flamegraphs(
+    lhs_profile: Profile,
+    rhs_profile: Profile,
+    data_types: list[str],
+    height: int = DEFAULT_HEIGHT,
+    width: int = DEFAULT_WIDTH,
+    skip_diff: bool = False,
+) -> list[tuple[str, str, str, str]]:
+    """Constructs a list of tuples of flamegraphs for list of data_types
+
+    :param lhs_profile: baseline profile
+    :param rhs_profile: target profile
+    :param data_types: list of data types (resources)
+    :param height: height of the flame graph
+    :param width: width of the flame graph
+    """
+    flamegraphs = []
+    for i, dtype in enumerate(data_types):
+        try:
+            data_type = mapping.from_readable_key(dtype)
+            lhs_graph = flamegraph_factory.draw_flame_graph(
+                lhs_profile,
+                height,
+                width,
+                title="Baseline Flamegraph",
+                profile_key=data_type,
+            )
+            escaped_lhs = escape_content(f"lhs_{i}", lhs_graph)
+            log.minor_success(f"Baseline flamegraph ({dtype})", "generated")
+
+            rhs_graph = flamegraph_factory.draw_flame_graph(
+                rhs_profile,
+                height,
+                width,
+                title="Target Flamegraph",
+                profile_key=data_type,
+            )
+            escaped_rhs = escape_content(f"rhs_{i}", rhs_graph)
+            log.minor_success(f"Target flamegraph ({dtype})", "generated")
+
+            if skip_diff:
+                escaped_diff = ""
+            else:
+                diff_graph = flamegraph_factory.draw_flame_graph_difference(
+                    lhs_profile,
+                    rhs_profile,
+                    height,
+                    width,
+                    title="Difference Flamegraph",
+                    profile_key=data_type,
+                )
+                escaped_diff = escape_content(f"diff_{i}", diff_graph)
+            log.minor_success(f"Diff flamegraph ({dtype})", "generated")
+            flamegraphs.append((dtype, escaped_lhs, escaped_rhs, escaped_diff))
+        except CalledProcessError as exc:
+            log.warn(f"could not generate flamegraphs: {exc}")
+    return flamegraphs
+
+
+def generate_flamegraph_difference(
     lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any
 ) -> None:
     """Generates differences of two profiles as two side-by-side flamegraphs
@@ -139,46 +202,34 @@ def generate_flamegraph_diffrence(
     :param rhs_profile: target profile
     :param kwargs: additional arguments
     """
-    log.major_info("Generating Flamegraph Difference")
-    lhs_graph = flamegraph_factory.draw_flame_graph(
-        lhs_profile,
-        kwargs.get("height", DEFAULT_HEIGHT),
-        kwargs.get("width", DEFAULT_WIDTH),
-        title="Baseline Flamegraph",
-    )
-    log.minor_success("Baseline flamegraph", "generated")
-    rhs_graph = flamegraph_factory.draw_flame_graph(
-        rhs_profile,
-        kwargs.get("height", DEFAULT_HEIGHT),
-        kwargs.get("width", DEFAULT_WIDTH),
-        title="Target Flamegraph",
-    )
-    log.minor_success("Target flamegraph", "generated")
+    lhs_types = list(lhs_profile.all_resource_fields())
+    rhs_types = list(rhs_profile.all_resource_fields())
+    data_types = diff_kit.get_candidate_keys(set(lhs_types).union(set(rhs_types)))
+    data_type = list(data_types)[0]
 
-    diff_graph = flamegraph_factory.draw_flame_graph_difference(
+    log.major_info("Generating Flamegraph Difference")
+    flamegraphs = generate_flamegraphs(
         lhs_profile,
         rhs_profile,
+        data_types,
         kwargs.get("height", DEFAULT_HEIGHT),
         kwargs.get("width", DEFAULT_WIDTH),
-        title="Difference Flamegraph",
     )
-    log.minor_success("Diff flamegraph", "generated")
 
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
     template = env.get_template("diff_view_flamegraph.html.jinja2")
     content = template.render(
-        lhs_flamegraph=escape_content("lhs", lhs_graph),
+        flamegraphs=flamegraphs,
         lhs_header=generate_header(lhs_profile),
         lhs_tag="Baseline (base)",
-        lhs_top=table_run.get_top_n_records(lhs_profile, top_n=10),
+        lhs_top=table_run.get_top_n_records(lhs_profile, top_n=10, aggregated_key=data_type),
         lhs_uids=get_uids(lhs_profile),
-        rhs_flamegraph=escape_content("rhs", rhs_graph),
         rhs_header=generate_header(rhs_profile),
         rhs_tag="Target (tgt)",
-        rhs_top=table_run.get_top_n_records(rhs_profile, top_n=10),
+        rhs_top=table_run.get_top_n_records(rhs_profile, top_n=10, aggregated_key=data_type),
         rhs_uids=get_uids(rhs_profile),
         title="Differences of profiles (with flamegraphs)",
-        diff_flamegraph=escape_content("diff", diff_graph),
+        data_types=data_types,
     )
     log.minor_success("Difference report", "generated")
     output_file = diff_kit.save_diff_view(
@@ -208,4 +259,4 @@ def flamegraph(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
     """ """
     assert ctx.parent is not None and f"impossible happened: {ctx} has no parent"
     profile_list = ctx.parent.params["profile_list"]
-    generate_flamegraph_diffrence(profile_list[0], profile_list[1], **kwargs)
+    generate_flamegraph_difference(profile_list[0], profile_list[1], **kwargs)

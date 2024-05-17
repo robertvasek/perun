@@ -19,6 +19,7 @@ from perun import collect, postprocess, view
 from perun.collect.trace.optimizations.structs import Complexity
 from perun.fuzz import filetype
 from perun.logic import commands, config
+from perun.profile import convert
 from perun.testing import asserts
 from perun.utils import log
 from perun.utils.common import common_kit, cli_kit, traces_kit
@@ -29,6 +30,7 @@ from perun.utils.exceptions import (
 )
 from perun.utils.structs import Unit, OrderedEnum, HandledSignals
 from perun.utils.external import environment, commands as external_commands, processes, executable
+from perun.view_diff.report.run import TraceInfo
 
 
 def assert_all_registered_modules(package_name, package, must_have_function_names):
@@ -286,6 +288,13 @@ def test_common(capsys):
     assert common_kit.perun_confirm("Confirm_something") == common_kit.DEFAULT_CONFIRMATION
     common_kit.ALWAYS_CONFIRM = prev_value
 
+    assert common_kit.compact_convert_num_to_str(1) == "1"
+    assert common_kit.compact_convert_num_to_str(10.0) == "10"
+    assert common_kit.compact_convert_num_to_str(10.123) == "10.12"
+
+    assert convert.to_string_line("uid") == "uid"
+    assert convert.flatten(["hello", "world"]) == "hello,world"
+
 
 def test_predicates(capsys):
     """Test predicates used for testing"""
@@ -412,17 +421,17 @@ def test_trace_manager():
     classifier = traces_kit.TraceClassifier(stratification_strategy=lambda x: ",".join(x[:3]))
     classification = classifier.classify_trace(trace_a)
     assert (
-        classification.as_str
+        classification.pivot.as_str
         == "unmap_vmas,unmap_single_vma,unmap_page_range,zap_pte_range,page_remove_rmap,__mod_lruvec_page_state,__mod_lruvec_state,__mod_memcg_lruvec_state"
     )
     classification = classifier.classify_trace(trace_b)
     assert (
-        classification.as_str
+        classification.pivot.as_str
         == "unmap_vmas,unmap_single_vma,unmap_page_range,zap_pte_range,page_remove_rmap,__mod_lruvec_page_state,__mod_lruvec_state,__mod_memcg_lruvec_state"
     )
     classification = classifier.classify_trace(trace_c)
     assert (
-        classification.as_str
+        classification.pivot.as_str
         == "exit_mmap,unmap_page_range,zap_pte_range,page_remove_rmap,__mod_lruvec_page_state,__mod_lruvec_state,__mod_memcg_lruvec_state"
     )
 
@@ -437,30 +446,42 @@ def test_trace_manager():
     )
     classifier = traces_kit.TraceClassifier(threshold=1)
     classification = classifier_best.classify_trace(trace_a)
-    assert classification.as_str == "main,a_a,b_a"
+    assert classification.pivot.as_str == "main,a_a,b_a"
     classification = classifier.classify_trace(trace_a)
-    assert classification.as_str == "main,a_a,b_a"
+    assert classification.pivot.as_str == "main,a_a,b_a"
 
     classification = classifier_best.classify_trace(trace_b)
-    assert classification.as_str == "main,a_a,b_b,c_a,d_a,e_a"
+    assert classification.pivot.as_str == "main,a_a,b_b,c_a,d_a,e_a"
     classification = classifier.classify_trace(trace_b)
-    assert classification.as_str == "main,a_a,b_b,c_a,d_a,e_a"
+    assert classification.pivot.as_str == "main,a_a,b_b,c_a,d_a,e_a"
 
     classification = classifier_best.classify_trace(trace_e)
-    assert classification.as_str == "main,a_a,b_b,c_a"
+    assert classification.pivot.as_str == "main,a_a,b_b,c_a"
     classification = classifier_best.classify_trace(trace_c)
-    assert classification.as_str == "main,a_a,b_b,c_a"
+    assert classification.pivot.as_str == "main,a_a,b_b,c_a"
     classification = classifier.classify_trace(trace_c)
-    assert classification.as_str == "main,a_a,b_a"
+    assert classification.pivot.as_str == "main,a_a,b_a"
     # Returns the same cluster again
     classification = classifier.classify_trace(trace_c)
-    assert classification.as_str == "main,a_a,b_a"
+    assert classification.pivot.as_str == "main,a_a,b_a"
 
     classification = classifier_best.classify_trace(trace_d)
-    assert classification.as_str == "main,a_a,b_b,c_a,d_a,e_a"
+    assert classification.pivot.as_str == "main,a_a,b_b,c_a,d_a,e_a"
 
     assert traces_kit.fast_compute_distance(trace_a, trace_b, cache={}, threshold=1) == 2
     assert int(traces_kit.fast_compute_distance(trace_a, trace_b, cache={}, threshold=3)) == 3
+
+    assert traces_kit.fold_recursive_calls_in_trace(["a", "a", "b", "c"]) == ["a^2", "b", "c"]
+    assert traces_kit.fold_recursive_calls_in_trace(["a", "a", "b", "c"], generalize=True) == [
+        "a^*",
+        "b",
+        "c",
+    ]
+    assert traces_kit.fold_recursive_calls_in_trace(["a", "a", "a", "b", "c"], generalize=True) == [
+        "a^*",
+        "b",
+        "c",
+    ]
 
 
 def test_machine_info(monkeypatch):
@@ -476,3 +497,13 @@ def test_machine_info(monkeypatch):
 
     spec = environment.get_machine_specification()
     assert spec != {}
+
+
+def test_helper_structures():
+    classifier = traces_kit.TraceClassifier(
+        strategy=traces_kit.ClassificationStrategy("identity"),
+        threshold=0.5,
+    )
+    ti = TraceInfo("a,b", "a,b", classifier.classify_trace(["a", "b"]))
+    with pytest.raises(TypeError):
+        _ = ti < "hi"

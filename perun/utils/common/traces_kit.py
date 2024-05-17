@@ -1,7 +1,10 @@
 """Set of helpers for working with traces """
 from __future__ import annotations
 
+import itertools
+
 # Standard Imports
+from collections import defaultdict
 from enum import Enum
 from typing import Any, Callable, Optional
 import functools
@@ -24,6 +27,7 @@ class ClassificationStrategy(Enum):
 
     FIRST_FIT = "first-fit"
     BEST_FIT = "best-fit"
+    IDENTITY = "identity"
 
 
 DEFAULT_THRESHOLD: float = 2.0
@@ -39,13 +43,22 @@ class TraceCluster:
         threshold of the classifier.
     """
 
-    __slots__ = ["members", "pivot"]
+    __slots__ = ["members", "pivot", "id"]
+    cluster_dict: dict[str, int] = defaultdict(int)
+    id_set: set[str] = set()
 
     def __init__(self, pivot: TraceClusterMember):
         """Creates empty cluster with single element
 
         :param pivot: initial pivot of the cluster
         """
+        trace_key = (
+            f"{pivot.as_list[0]},...,{pivot.as_list[-1]}"
+            if len(pivot.as_list) >= 2
+            else pivot.as_str
+        )
+        self.id: str = f"{trace_key}#{TraceCluster.cluster_dict[trace_key]}"
+        TraceCluster.id_set.add(self.id)
         self.pivot: TraceClusterMember = pivot
         self.members: list[TraceClusterMember] = [pivot]
 
@@ -110,21 +123,25 @@ class TraceClassifierLayer:
         :param threshold: threshold for checking the distances between traces; traces of different
             lengths are automatically pruned.
         """
-        self.trace_to_cluster: dict[str, TraceClusterMember] = {}
+        self.trace_to_cluster: dict[str, TraceCluster] = {}
         self.distance_cache: dict[str, float] = {}
         self.clusters: list[TraceCluster] = []
         if strategy == ClassificationStrategy.FIRST_FIT:
             self.find_cluster: Callable[
-                [TraceClusterMember], TraceClusterMember
+                [TraceClusterMember], TraceCluster
             ] = self.find_first_fit_cluster_for
+        elif strategy == ClassificationStrategy.IDENTITY:
+            self.find_cluster: Callable[  # type: ignore
+                [TraceClusterMember], TraceCluster
+            ] = self.find_identity_for
         else:
             assert strategy == ClassificationStrategy.BEST_FIT
             self.find_cluster: Callable[  # type: ignore
-                [TraceClusterMember], TraceClusterMember
+                [TraceClusterMember], TraceCluster
             ] = self.find_best_fit_cluster_for
         self.threshold: float = threshold
 
-    def classify_trace(self, trace: list[str]) -> TraceClusterMember:
+    def classify_trace(self, trace: list[str]) -> TraceCluster:
         """For given trace return corresponding cluster
 
         First, we check, if we already get the cluster classified.
@@ -140,7 +157,7 @@ class TraceClassifierLayer:
             return cluster
         return self.trace_to_cluster[trace_as_str]
 
-    def find_cluster_for(self, trace_member: TraceClusterMember) -> TraceClusterMember:
+    def find_cluster_for(self, trace_member: TraceClusterMember) -> TraceCluster:
         """Dynamically invokes strategy used for finding cluster for given trace
 
         :param trace_member: trace which we are classifying
@@ -148,7 +165,18 @@ class TraceClassifierLayer:
         """
         return self.find_cluster(trace_member)
 
-    def find_first_fit_cluster_for(self, trace_member: TraceClusterMember) -> TraceClusterMember:
+    def find_identity_for(self, trace_member: TraceClusterMember) -> TraceCluster:
+        """Always creates new cluster for trace
+
+        :param trace_member: trace which we are classifying
+        :return: classification of the traces
+        """
+        new_cluster = TraceCluster(trace_member)
+        self.clusters.append(new_cluster)
+        trace_member.parent = new_cluster
+        return new_cluster
+
+    def find_first_fit_cluster_for(self, trace_member: TraceClusterMember) -> TraceCluster:
         """Finds first suitable cluster for the given trace
 
         We iterate through all the clusters; we skip clusters, that are bigger than
@@ -175,15 +203,15 @@ class TraceClassifierLayer:
                     cluster.members.append(trace_member)
                     trace_member.parent = cluster
                     trace_member.distance = fitness
-                    return cluster.pivot
+                    return cluster
 
         # We did not find any suitable cluster, hence we crate new one
         new_cluster = TraceCluster(trace_member)
         self.clusters.append(new_cluster)
         trace_member.parent = new_cluster
-        return trace_member
+        return new_cluster
 
-    def find_best_fit_cluster_for(self, trace_member: TraceClusterMember) -> TraceClusterMember:
+    def find_best_fit_cluster_for(self, trace_member: TraceClusterMember) -> TraceCluster:
         """Finds best fit cluster for the given trace
 
         We iterate through all the clusters; we skip clusters, that are bigger than
@@ -216,12 +244,12 @@ class TraceClassifierLayer:
             new_cluster = TraceCluster(trace_member)
             self.clusters.append(new_cluster)
             trace_member.parent = new_cluster
-            return trace_member
+            return new_cluster
         else:
             trace_member.parent = best_fit
             trace_member.distance = best_fit_distance
             best_fit.members.append(trace_member)
-            return best_fit.pivot
+            return best_fit
 
 
 class TraceClassifier:
@@ -286,7 +314,7 @@ class TraceClassifier:
         self.layers[stratification] = new_layer
         return new_layer
 
-    def classify_trace(self, trace: list[str]) -> TraceClusterMember:
+    def classify_trace(self, trace: list[str]) -> TraceCluster:
         """Classifies the trace
 
         :param trace: trace
@@ -442,3 +470,25 @@ def fast_compute_distance(
             cost = min(costs)
         cache[key] = cost
     return cache[key]
+
+
+def fold_recursive_calls_in_trace(trace: list[str], generalize: bool = False) -> list[str]:
+    """Folds consecutive recursive calls to single uid
+
+    If generalize is set to True, then each consecutive calls to certain UID will be
+    folded to ^*, otherwise to ^{number_of_consecutive_calls}.
+
+    So, e.g., for trace [a, b, c, c, c], we get [a, b, c^3] for generalize=False, and [a, b, c^*] otherwise.
+
+    :param trace: list of strings in order of calls
+    :param generalize: if set to true, then the folded calls will be generalized to *
+    :return: trace with folded recursive calls
+    """
+    folded_trace = []
+    for uid, group in itertools.groupby(trace):
+        count = sum(1 for _ in group)
+        if count > 1:
+            folded_trace.append(f"{uid}^*" if generalize else f"{uid}^{count}")
+        else:
+            folded_trace.append(uid)
+    return folded_trace

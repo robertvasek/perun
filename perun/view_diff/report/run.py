@@ -8,10 +8,11 @@ from typing import Any
 # Third-Party Imports
 import click
 import jinja2
+import progressbar
 
 # Perun Imports
 from perun.utils import log
-from perun.utils.common import diff_kit
+from perun.utils.common import diff_kit, traces_kit
 from perun.profile.factory import Profile
 from perun.profile import convert
 from perun.view_diff.flamegraph import run as flamegraph_run
@@ -31,14 +32,25 @@ class TableRecord:
     :ivar rel_amount: relative value of the uid
     """
 
-    __slots__ = ["uid", "trace", "short_trace", "trace_list", "abs_amount", "rel_amount"]
+    __slots__ = [
+        "uid",
+        "trace",
+        "cluster",
+        "short_trace",
+        "trace_list",
+        "abs_amount",
+        "rel_amount",
+        "type",
+    ]
 
     uid: str
     trace: str
+    cluster: traces_kit.TraceCluster
     short_trace: str
     trace_list: list[str]
     abs_amount: float
     rel_amount: float
+    type: str
 
 
 def to_short_trace(trace: str) -> str:
@@ -53,30 +65,123 @@ def to_short_trace(trace: str) -> str:
     return " -> ".join([split_trace[0], "...", split_trace[-1]])
 
 
-def profile_to_data(profile: Profile) -> list[TableRecord]:
+@dataclass
+class TraceInfo:
+    """Trace info is a helper structure that encapsulates selected characteristics of traces.
+
+    :ivar long_str: long representation of trace (calls delimited by `,`)
+    :ivar short_str: shorter string ideal for display
+    :ivar cluster: classified cluster
+    """
+
+    __slots__ = ["long_str", "short_str", "cluster"]
+    long_str: str
+    short_str: str
+    cluster: traces_kit.TraceCluster
+
+    def __eq__(self, other):
+        """Two trace infos are equal if their long strings are equals
+
+        :param other: other traceinfo
+        :return: whether two objects are equal
+        """
+        return isinstance(other, TraceInfo) and self.long_str == other.long_str
+
+    def __hash__(self):
+        """Hash of the trace info is hash of its long string
+
+        :return: hash of the trace info
+        """
+        return hash(self.long_str)
+
+    def __lt__(self, other):
+        """Trace infos are sorted by their long strings
+
+        :return: comparison result
+        """
+        if isinstance(other, TraceInfo):
+            return self.long_str < other.long_str
+        raise TypeError("Cannot compare TraceInfo with other types.")
+
+
+def construct_filters(kwargs: dict[str, Any]) -> list[tuple[str, str]]:
+    """Constructs list of filters for filtering the dataframe
+
+    :param kwargs: arguments from command line
+    :return: list of callable functions on pandas series
+    """
+    return [
+        ("ncalls", f"ncalls > {kwargs.get('filter_by_calls', 1)}"),
+        (
+            "Total Inclusive T [ms]",
+            f"`Total Inclusive T [ms]` > {kwargs.get('filter_by_time', 0.01)}",
+        ),
+        (
+            "Total Exclusive T [ms]",
+            f"`Total Exclusive T [ms]` > {kwargs.get('filter_by_time', 0.01)}",
+        ),
+    ]
+
+
+def profile_to_data(
+    profile: Profile,
+    classifier: traces_kit.TraceClassifier,
+    filters: list[tuple[str, str]],
+) -> tuple[list[TableRecord], list[str]]:
     """Converts profile to list of columns and list of list of values
 
     :param profile: converted profile
-    :return: list of columns and list of rows
+    :param classifier: classifier used for classification of traces
+    :param filters: list of filters for filtering the data
+    :return: list of columns and list of rows and list of selectable types
     """
     df = convert.resources_to_pandas_dataframe(profile)
+    applicable_filters = " & ".join(f[1] for f in filters if f[0] in df.columns)
+    if applicable_filters:
+        log.minor_status("Applying filters", f"{log.highlight(applicable_filters)}")
+        df = df.query(applicable_filters)
 
-    grouped_df = df.groupby(["uid", "trace"]).agg({"amount": "sum"}).reset_index()
-    sorted_df = grouped_df.sort_values(by="amount", ascending=False)
-    amount_sum = df["amount"].sum()
-    data = []
-    for _, row in sorted_df.iterrows():
-        data.append(
-            TableRecord(
-                row["uid"],
-                row["trace"],
-                to_short_trace(row["trace"]),
-                table_run.generate_trace_list(row["trace"], row["uid"]),
-                row["amount"],
-                round(100 * row["amount"] / amount_sum, PRECISION),
-            )
+    # Convert traces to some trace objects
+    trace_info_map = {}
+    for trace in progressbar.progressbar(df["trace"].unique()):
+        trace_as_list = trace.split(",")
+        long_trace = ",".join(
+            traces_kit.fold_recursive_calls_in_trace(trace_as_list, generalize=True)
         )
-    return data
+        trace_info_map[trace] = TraceInfo(
+            long_trace, to_short_trace(long_trace), classifier.classify_trace(long_trace.split(","))
+        )
+
+    def process_traces(value: str) -> TraceInfo:
+        """Converts single string to trace info
+
+        :param value: single string
+        """
+        return trace_info_map[value]
+
+    df["trace"] = df["trace"].apply(process_traces)  # type: ignore
+
+    # TODO: This could be more effective
+    data = []
+    aggregation_keys = diff_kit.get_candidate_keys(df.columns)
+    for aggregation_key in aggregation_keys:
+        grouped_df = df.groupby(["uid", "trace"]).agg({aggregation_key: "sum"}).reset_index()
+        sorted_df = grouped_df.sort_values(by=aggregation_key, ascending=False)
+        amount_sum = df[aggregation_key].sum()
+        for _, row in progressbar.progressbar(sorted_df.iterrows()):
+            data.append(
+                TableRecord(
+                    row["uid"],
+                    row["trace"].long_str,
+                    row["trace"].cluster,
+                    row["trace"].short_str,
+                    table_run.generate_trace_list(row["trace"].long_str, row["uid"]),
+                    row[aggregation_key],
+                    round(100 * row[aggregation_key] / amount_sum, PRECISION),
+                    aggregation_key,
+                )
+            )
+    return data, aggregation_keys
 
 
 def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -> None:
@@ -86,17 +191,21 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
     :param rhs_profile: target profile
     :param kwargs: other parameters
     """
+    filters = construct_filters(kwargs)
+    classifier = traces_kit.TraceClassifier(
+        strategy=traces_kit.ClassificationStrategy(kwargs.get("classify_traces_by", "identity")),
+        threshold=0.5,
+    )
     log.major_info("Generating HTML Report", no_title=True)
-    lhs_data = profile_to_data(lhs_profile)
+    lhs_data, lhs_types = profile_to_data(lhs_profile, classifier, filters)
     log.minor_success("Baseline data", "generated")
-    rhs_data = profile_to_data(rhs_profile)
+    rhs_data, rhs_types = profile_to_data(rhs_profile, classifier, filters)
     log.minor_success("Target data", "generated")
+    # TODO: Remake obtaining of the unit somehow
+    data_types = diff_kit.get_candidate_keys(set(lhs_types).union(set(rhs_types)))
     columns = [
         ("uid", "The measured symbol (click [+] for full trace)."),
-        (
-            f"[{lhs_profile['header']['units'][lhs_profile['header']['type']]}]",
-            "The absolute measured value.",
-        ),
+        ("[unit]", "The absolute measured value."),
         ("[%]", "The relative measured value (in percents overall)."),
     ]
 
@@ -111,6 +220,8 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
         rhs_columns=columns,
         rhs_data=rhs_data,
         rhs_header=flamegraph_run.generate_header(rhs_profile),
+        data_types=data_types,
+        cluster_types=sorted(list(traces_kit.TraceCluster.id_set)),
         title="Difference of profiles (with tables)",
     )
     log.minor_success("HTML report ", "generated")
@@ -122,6 +233,34 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
 
 @click.command()
 @click.option("-o", "--output-file", help="Sets the output file (default=automatically generated).")
+@click.option(
+    "-c",
+    "--classify-traces-by",
+    help="Classifies the traces by selected classifier. "
+    "One of: 1) identity (each uid is classified to its own cluster); "
+    "2) best-fit (each uid is classified to best cluster); "
+    "3) first-fit (each uid is classified to first suitable cluster). "
+    "(default=identity)",
+    type=click.Choice(["identity", "best-fit", "first-fit"]),
+    default="identity",
+)
+@click.option(
+    "-fc",
+    "--filter-by-calls",
+    nargs=1,
+    help="Filters records that have less or equal calls than [INT] (default=1)",
+    type=click.INT,
+    default=1,
+)
+@click.option(
+    "-ft",
+    "--filter-by-time",
+    nargs=1,
+    help="Filters records based on the 'Total {Inclusive,Exclusive} Time T [ms]' column. "
+    "It filters values that are lesser or equal than [FLOAT] (default=0.1).",
+    type=click.FLOAT,
+    default=0.1,
+)
 @click.pass_context
 def report(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
     assert ctx.parent is not None and f"impossible happened: {ctx} has no parent"

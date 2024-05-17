@@ -47,7 +47,7 @@
         </tr>
         </thead>
         <tbody>
-        {% for top_record in top_records %}
+        {%- for top_record in top_records %}
             <tr class="accordion">
                 <td class="key" style="width: 5%">{{ loop.index }}</td>
                 <td class="key" style="width: 80%">{{ top_record.uid }}</td>
@@ -58,7 +58,7 @@
                 <td colspan="3">
                     <table>
                        <tbody>
-                       {% for trace in top_record.trace_list %}
+                       {%- for trace in top_record.trace_list %}
                           <tr>
                               <td class="key" style="width: 5%"></td>
                               <td class="key" style="width: 80%; color: {% if trace.strip()[2:] in rhs_uids or trace.strip() in rhs_uids %}green{% else %}red{% endif %};">{{ trace }}{% if trace.strip()[2:] not in rhs_uids and trace.strip() not in rhs_uids %} (not in {{ rhs_tag }}){% endif %}</td>
@@ -89,15 +89,15 @@
     </tr>
     </thead>
     <tbody>
-    {% for (key, value, title) in lhs_header %}
+    {%- for (key, value, title) in lhs_header %}
         <tr title="{{ title }}">
-        {% if (key, value, title) in rhs_header %}
+        {%- if (key, value, title) in rhs_header %}
             <td class="key">{{ key }}</td>
             <td class="value">{{ value }}</td>
-        {% else %}
+        {%- else %}
             <td class="key diff">{{ key }}</td>
             <td class="value diff">{{ value }}</td>
-        {% endif %}
+        {%- endif %}
         </tr>
     {%- endfor %}
     </tbody>

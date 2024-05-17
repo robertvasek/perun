@@ -1,8 +1,12 @@
 """Set of helper constants and helper named tuples for perun pcs"""
+
 from __future__ import annotations
 
 # Standard Imports
 from typing import Optional, Any, Iterable, Callable, Literal, TYPE_CHECKING
+import array
+import contextlib
+import gc
 import importlib
 import itertools
 import operator
@@ -298,6 +302,16 @@ def try_convert(value: Any, list_of_types: list[type]) -> Any:
             return checked_type(value)
 
 
+def try_min(lhs: Optional[int | float], rhs: int | float) -> int | float:
+    """Returns minimum if lhs is not None
+
+    :param lhs: optional left side
+    :param rhs: right side
+    :return minimum of two numbers or right number
+    """
+    return rhs if lhs is None else min(lhs, rhs)
+
+
 def identity(*args: Any) -> Any:
     """Identity function, that takes the arguments and return them as they are
 
@@ -435,6 +449,109 @@ def get_module(module_name: str) -> types.ModuleType:
     if module_name not in MODULE_CACHE.keys():
         MODULE_CACHE[module_name] = importlib.import_module(module_name)
     return MODULE_CACHE[module_name]
+
+
+def compact_convert_list_to_str(
+    number_list: list[int | float] | array.array[float] | array.array[int], float_precision: int = 2
+) -> list[str]:
+    """Converts list to list of compact strings
+
+    :param number_list: list of numbers
+    :param float_precision: float precision of the numbers
+    :return list of compact strings
+    """
+    return [compact_convert_num_to_str(num, 2) for num in number_list]
+
+
+def compact_convert_num_to_str(number: int | float, float_precision: int = 2) -> str:
+    """Converts the number to the smallest string possible
+
+    :param number: converted number
+    :param float_precision: float precision, i.e. number of decimal places in number
+    :return compact string
+    """
+    return str(to_compact_num(number, float_precision))
+
+
+def to_compact_num(number: int | float, float_precision: int = 2) -> int | float:
+    """Converts the number to the smallest string possible
+
+    :param number: converted number
+    :param float_precision: float precision, i.e. number of decimal places in number
+    :return compact num
+    """
+    if isinstance(number, int):
+        return number
+    elif number.is_integer():
+        return int(number)
+    else:
+        return round(number, float_precision)
+
+
+@contextlib.contextmanager
+def disposable_resources(disposable: Any) -> Any:
+    """Helper context manager that disposes of the passed object
+
+    Disclaimers:
+      1) So far, we have no tangible proof this helps in any way, however, it could potentially,
+         reduce the memory peak of the application, if some huge file is kept in memory yet not
+         used anymore.
+      2) Usually, the GC is smarter than you, so it knows when it is the right time for collecting
+         this actually could increase some time (hopefully traded by the memory footprint)
+
+    :param disposable: object that should be disposed immediately
+    :return: object
+    """
+    try:
+        yield disposable
+    except Exception:
+        # Re-raise the encountered exception
+        raise
+    finally:
+        del disposable
+        gc.collect()
+
+
+def binary_search(
+    values: list[Any], value: Any, low: int, high: int, key: Callable[[Any], Any] = lambda x: x
+) -> int:
+    """Classical binary search algorithm
+
+    Note: while bisect implements this functionality, for Python 3.9 it does not support
+       the key parameter, that is unfortunately needed here.
+
+    :param values: list of any values
+    :param value: value for which we are looking up the insertion point
+    :param key: key used for getting the key
+    :param low: left pivot
+    :param high: right pivot
+    :return: insertion point for the value in values
+    """
+    while low <= high:
+        mid = low + (high - low) // 2
+        if key(value) == key(values[mid]):
+            return mid + 1
+        elif key(value) > key(values[mid]):
+            low = mid + 1
+        else:
+            high = mid - 1
+    return low
+
+
+def add_to_sorted(
+    values: list[Any], value: Any, key: Callable[[Any], Any] = lambda x: x, max_pick: int = 0
+) -> None:
+    """Adds a value to sorted list; the list is sorted wrt key function
+
+    :param values: list of values of type T
+    :param value: value that is added to the list of values
+    :param key: function for addding to the value
+    :param max_pick: picks at maximum max_pick elements
+    """
+    insert_point = binary_search(values, value, 0, len(values) - 1, key)
+    values.insert(insert_point, value)
+    if max_pick > 0 and len(values) > max_pick:
+        values.pop(0)
 
 
 MODULE_CACHE: dict[str, types.ModuleType] = {}

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 
 # Standard Imports
-from typing import Optional
+from typing import Optional, Iterable
 import os
 
 # Third-Party Imports
@@ -41,3 +41,28 @@ def save_diff_view(
         template_out.write(content)
 
     return output_file
+
+
+def get_candidate_keys(candidate_keys: Iterable[str]) -> list[str]:
+    """Returns list of candidate keys
+
+    :param candidate_keys: list of candidate keys
+    :return: list of supported keys
+    """
+    allowed_keys = [
+        "Total Exclusive T [ms]",
+        "Total Inclusive T [ms]",
+        "amount",
+        "ncalls",
+        # "E Min",
+        # "E Max",
+        # "I Min",
+        # "I Max",
+        # "Callees Mean [#]",
+        # "Callees [#]",
+        # "Total Inclusive T [%]",
+        # "Total Exclusive T [%]",
+        # "I Mean",
+        # "E Mean",
+    ]
+    return sorted([candidate for candidate in candidate_keys if candidate in allowed_keys])

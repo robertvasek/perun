@@ -1,4 +1,5 @@
 """Basic testing for the diff views"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -86,3 +87,92 @@ def test_diff_reports(pcs_with_root):
     assert result.exit_code == 0
 
     assert "diff.html" in os.listdir(os.getcwd())
+
+    baseline_profilename = test_utils.load_profilename("diff_profiles", "ktrace-baseline.perf")
+    target_profilename = test_utils.load_profilename("diff_profiles", "ktrace-target.perf")
+
+    # Next try to create it using the click
+    result = runner.invoke(
+        cli.showdiff, [baseline_profilename, target_profilename, "report", "-o", "diff-ktrace.html"]
+    )
+    assert result.exit_code == 0
+
+    assert "diff-ktrace.html" in os.listdir(os.getcwd())
+
+
+def test_diff_sankey(pcs_with_root):
+    """Test creating sankey diff graph out of the two profile"""
+    runner = CliRunner()
+    baseline_profilename = test_utils.load_profilename("diff_profiles", "kperf-baseline.perf")
+    target_profilename = test_utils.load_profilename("diff_profiles", "kperf-target.perf")
+
+    # Next try to create it using the click
+    result = runner.invoke(
+        cli.showdiff,
+        [
+            baseline_profilename,
+            target_profilename,
+            "sankey",
+            "-f",
+            "10",
+            "-m",
+            "-c" "amount",
+            "-o",
+            "diff.html",
+        ],
+    )
+    assert result.exit_code == 0
+
+    assert "diff.html" in os.listdir(os.getcwd())
+
+    baseline_profilename = test_utils.load_profilename("diff_profiles", "ktrace-baseline.perf")
+    target_profilename = test_utils.load_profilename("diff_profiles", "ktrace-target.perf")
+    result = runner.invoke(
+        cli.showdiff,
+        [
+            baseline_profilename,
+            target_profilename,
+            "sankey",
+            "-m",
+            "-c" "Total Exclusive T [ms]",
+            "-o",
+            "diff-ktrace.html",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "diff-ktrace.html" in os.listdir(os.getcwd())
+
+
+def test_diff_incremental_sankey_kperf(pcs_with_root):
+    """Test creating sankey diff graph out of the two profile"""
+    runner = CliRunner()
+    baseline_profilename = test_utils.load_profilename("diff_profiles", "kperf-baseline.perf")
+    target_profilename = test_utils.load_profilename("diff_profiles", "kperf-target.perf")
+
+    # Next try to create it using the click
+    result = runner.invoke(
+        cli.showdiff, [baseline_profilename, target_profilename, "sankey-incr", "-o", "diff.html"]
+    )
+    assert result.exit_code == 0
+    assert "diff.html" in os.listdir(os.getcwd())
+
+
+def test_diff_incremental_sankey_ktrace(pcs_with_root):
+    """Test creating sankey diff graph out of the two profile"""
+    runner = CliRunner()
+    baseline_profilename = test_utils.load_profilename("diff_profiles", "ktrace-baseline.perf")
+    target_profilename = test_utils.load_profilename("diff_profiles", "ktrace-target.perf")
+    result = runner.invoke(
+        cli.showdiff,
+        [
+            baseline_profilename,
+            target_profilename,
+            "sankey-incr",
+            "-o",
+            "diff-ktrace.html",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "diff-ktrace.html" in os.listdir(os.getcwd())
