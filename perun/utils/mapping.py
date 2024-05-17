@@ -10,7 +10,6 @@ from __future__ import annotations
 # Third-Party Imports
 
 # Perun Imports
-from perun.utils import decorators
 from perun.logic import config
 
 
