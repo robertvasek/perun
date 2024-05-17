@@ -141,7 +141,7 @@ def generate_flamegraphs(
     height: int = DEFAULT_HEIGHT,
     width: int = DEFAULT_WIDTH,
     skip_diff: bool = False,
-) -> list[tuple[str, str, str]]:
+) -> list[tuple[str, str, str, str]]:
     """Constructs a list of tuples of flamegraphs for list of data_types
 
     :param lhs_profile: baseline profile

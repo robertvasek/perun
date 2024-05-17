@@ -4,6 +4,8 @@ from __future__ import annotations
 
 # Standard Imports
 from typing import Optional, Any, Iterable, Callable, Literal, TYPE_CHECKING
+import array
+import bisect
 import contextlib
 import gc
 import importlib
@@ -14,7 +16,6 @@ import re
 import signal
 
 # Third-Party Imports
-import array
 import click
 
 # Perun Imports
@@ -492,6 +493,13 @@ def to_compact_num(number: int | float, float_precision: int = 2) -> int | float
 def disposable_resources(disposable: Any) -> Any:
     """Helper context manager that disposes of the passed object
 
+    Disclaimers:
+      1) So far, we have no tangible proof this helps in any way, however, it could potentially,
+         reduce the memory peak of the application, if some huge file is kept in memory yet not
+         used anymore.
+      2) Usually, the GC is smarter than you, so it knows when it is the right time for collecting
+         this actually could increase some time (hopefully traded by the memory footprint)
+
     :param disposable: object that should be disposed immediately
     :return: object
     """
@@ -505,29 +513,6 @@ def disposable_resources(disposable: Any) -> Any:
         gc.collect()
 
 
-def binary_search(
-    values: list[Any], value: Any, low: int, high: int, key: Callable[[Any], Any] = lambda x: x
-) -> int:
-    """Classical binary search algorithm
-
-    :param values: list of any values
-    :param value: value for which we are looking up the insertion point
-    :param key: key used for getting the key
-    :param low: left pivot
-    :param high: right pivot
-    :return: insertion point for the value in values
-    """
-    while low <= high:
-        mid = low + (high - low) // 2
-        if value == values[mid]:
-            return mid + 1
-        elif value > values[mid]:
-            low = mid + 1
-        else:
-            high = mid - 1
-    return low
-
-
 def add_to_sorted(
     values: list[Any], value: Any, key: Callable[[Any], Any] = lambda x: x, max_pick: int = 0
 ) -> None:
@@ -538,8 +523,7 @@ def add_to_sorted(
     :param key: function for addding to the value
     :param max_pick: picks at maximum max_pick elements
     """
-    insert_point = binary_search(values, value, 0, len(values) - 1, key)
-    values.insert(insert_point, value)
+    bisect.insort_left(values, value, key=key)
     if max_pick > 0 and len(values) > max_pick:
         values.pop(0)
 

@@ -14,11 +14,11 @@ collector | kernel
 from __future__ import annotations
 
 # Standard Imports
+from collections import defaultdict
+from dataclasses import dataclass
 from typing import Any, Literal
 
 # Third-Party Imports
-from collections import defaultdict
-from dataclasses import dataclass
 import click
 import jinja2
 import progressbar
@@ -28,6 +28,7 @@ from perun.profile import convert
 from perun.profile.factory import Profile
 from perun.utils import log
 from perun.utils.common import diff_kit, common_kit
+from perun.utils.structs import WebColorPalette
 from perun.view_diff.flamegraph import run as flamegraph_run
 
 
@@ -38,18 +39,6 @@ class Config:
     source_key: str
     inclusive_traces: bool
     edge_threshold: float
-
-
-class ColorPalette:
-    """ """
-
-    Baseline: str = "rgba(49, 48, 77, 0.4)"
-    Target: str = "rgba(255, 201, 74, 0.4)"
-    NotInBaseline: str = "rgba(255, 0, 0, 0.4)"
-    NotInTarget: str = "rgba(0, 255, 0, 0.4)"
-    InBoth: str = "rgba(0, 0, 255, 0.4)"
-    Highlight: str = "rgba(0, 0, 0, 0.7)"
-    NoHighlight: str = "rgba(0, 0, 0, 0.2)"
 
 
 @dataclass
@@ -435,26 +424,26 @@ def extract_graphs_from_sankey_map(
             )
             graph.customdata.append([point.tag, "<br>↧<br>".join(point.trace)])
             graph.node_colors.append(
-                ColorPalette.Highlight if point.uid == uid else ColorPalette.NoHighlight
+                WebColorPalette.Highlight if point.uid == uid else WebColorPalette.NoHighlight
             )
             for succ, value in point.succs.items():
                 value_diff = abs(value.baseline - value.target)
-                create_edge(graph, "merged", point.id, succ, value.baseline, ColorPalette.Baseline)
-                create_edge(graph, "merged", point.id, succ, value.target, ColorPalette.Target)
+                create_edge(graph, "merged", point.id, succ, value.baseline, WebColorPalette.Baseline)
+                create_edge(graph, "merged", point.id, succ, value.target, WebColorPalette.Target)
                 if value.baseline == value.target:
-                    create_edge(graph, "split", point.id, succ, value.baseline, ColorPalette.InBoth)
+                    create_edge(graph, "split", point.id, succ, value.baseline, WebColorPalette.Equal)
                 elif value.baseline > value.target:
-                    create_edge(graph, "split", point.id, succ, value.target, ColorPalette.InBoth)
+                    create_edge(graph, "split", point.id, succ, value.target, WebColorPalette.Equal)
                     create_edge(
-                        graph, "split", point.id, succ, value_diff, ColorPalette.NotInTarget
+                        graph, "split", point.id, succ, value_diff, WebColorPalette.Decrease
                     )
                     if point.uid == uid:
                         graph.sum += max(value.baseline, value.target)
                         graph.diff -= value_diff
                 else:
-                    create_edge(graph, "split", point.id, succ, value.baseline, ColorPalette.InBoth)
+                    create_edge(graph, "split", point.id, succ, value.baseline, WebColorPalette.Equal)
                     create_edge(
-                        graph, "split", point.id, succ, value_diff, ColorPalette.NotInBaseline
+                        graph, "split", point.id, succ, value_diff, WebColorPalette.Increase
                     )
                     if point.uid == uid:
                         graph.sum += max(value.baseline, value.target)
@@ -543,7 +532,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         rhs_header=flamegraph_run.generate_header(rhs_profile),
         sankey_graphs=sankey_graphs,
         selection_table=selection_table,
-        palette=ColorPalette,
+        palette=WebColorPalette,
     )
     log.minor_success("Difference sankey", "generated")
     output_file = diff_kit.save_diff_view(

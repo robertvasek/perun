@@ -164,8 +164,6 @@ def to_uid(record: dict[str, Any] | str) -> str:
 def to_string_line(frame: dict[str, Any] | str) -> str:
     """Create string representing call stack's frame
 
-    TODO: remake
-
     :param dict frame: call stack's frame
     :returns str: line representing call stack's frame
     """

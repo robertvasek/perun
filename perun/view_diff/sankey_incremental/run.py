@@ -19,10 +19,10 @@ from operator import itemgetter
 from typing import Any, Literal, Type, Callable
 from collections import defaultdict
 from dataclasses import dataclass
+import array
 import sys
 
 # Third-Party Imports
-import array
 import click
 import jinja2
 import progressbar
@@ -33,6 +33,7 @@ from perun.profile.factory import Profile
 from perun.templates import filters
 from perun.utils import log, mapping
 from perun.utils.common import diff_kit, common_kit
+from perun.utils.structs import WebColorPalette
 from perun.view_diff.flamegraph import run as flamegraph_run
 
 
@@ -64,22 +65,6 @@ class Config:
         self.trace_is_inclusive: bool = False
         self.top_n_traces: int = 5
 
-
-class ColorPalette:
-    """Colour palette is a static object for grouping colours used in visualizations"""
-
-    Baseline: str = "rgba(49, 48, 77, 0.4)"
-    Target: str = "rgba(255, 201, 74, 0.4)"
-    Increase: str = "rgba(255, 0, 0, 0.7)"
-    Decrease: str = "rgba(0, 255, 0, 0.7)"
-    Equal: str = "rgba(0, 0, 255, 0.7)"
-    DarkTarget: str = "rgba(255, 201, 74, 1)"
-    DarkBaseline: str = "rgba(49, 48, 77, 1)"
-    DarkIncrease: str = "#ea5545"
-    DarkDecrease: str = "#87bc45"
-    DarkEqual: str = "#27aeef"
-    Highlight: str = "rgba(0, 0, 0, 0.7)"
-    NoHighlight: str = "rgba(0, 0, 0, 0.2)"
 
 
 @dataclass
@@ -637,7 +622,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         lhs_header=flamegraph_run.generate_header(lhs_profile),
         rhs_tag="Target (tgt)",
         rhs_header=flamegraph_run.generate_header(rhs_profile),
-        palette=ColorPalette,
+        palette=WebColorPalette,
         caller_graph=graph.to_jinja_string("callers"),
         callee_graph=graph.to_jinja_string("callees"),
         stat_list=list(Stats.KnownStats),

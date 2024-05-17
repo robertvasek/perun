@@ -668,3 +668,20 @@ class HandledSignals:
             signal.signal(sig, sig_handler)
         # Re-raise exceptions not related to signal handling done by the CM (e.g., SignalReceivedE.)
         return isinstance(exc_val, self.handler_exc)
+
+
+class WebColorPalette:
+    """Colour palette for HTML/JS visualizations"""
+
+    Baseline: str = "rgba(49, 48, 77, 0.4)"
+    Target: str = "rgba(255, 201, 74, 0.4)"
+    Increase: str = "rgba(255, 0, 0, 0.7)"
+    Decrease: str = "rgba(0, 255, 0, 0.7)"
+    Equal: str = "rgba(0, 0, 255, 0.7)"
+    DarkTarget: str = "rgba(255, 201, 74, 1)"
+    DarkBaseline: str = "rgba(49, 48, 77, 1)"
+    DarkIncrease: str = "#ea5545"
+    DarkDecrease: str = "#87bc45"
+    DarkEqual: str = "#27aeef"
+    Highlight: str = "rgba(0, 0, 0, 0.7)"
+    NoHighlight: str = "rgba(0, 0, 0, 0.2)"
