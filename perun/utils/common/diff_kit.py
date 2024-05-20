@@ -96,6 +96,11 @@ def generate_header(profile: Profile) -> list[tuple[str, Any, str]]:
             machine_info.get("release", "?"),
             "The underlying kernel version, where the results were measured.",
         ),
+        (
+            "boot info",
+            machine_info.get("boot_info", "?"),
+            "The contents of `/proc/cmdline` containing boot information about kernel",
+        ),
         ("host", machine_info["host"], "The hostname, where the results were measured."),
         (
             "cpu (total)",
