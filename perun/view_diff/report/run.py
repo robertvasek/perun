@@ -1,4 +1,5 @@
 """HTML report difference of the profiles"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -210,16 +211,17 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
     ]
 
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
+    lhs_header, rhs_header = flamegraph_run.generate_headers(lhs_profile, rhs_profile)
     template = env.get_template("diff_view_report.html.jinja2")
     content = template.render(
         lhs_tag="Baseline (base)",
         lhs_columns=columns,
         lhs_data=lhs_data,
-        lhs_header=flamegraph_run.generate_header(lhs_profile),
+        lhs_header=lhs_header,
         rhs_tag="Target (tgt)",
         rhs_columns=columns,
         rhs_data=rhs_data,
-        rhs_header=flamegraph_run.generate_header(rhs_profile),
+        rhs_header=rhs_header,
         data_types=data_types,
         cluster_types=sorted(list(traces_kit.TraceCluster.id_set)),
         title="Difference of profiles (with tables)",

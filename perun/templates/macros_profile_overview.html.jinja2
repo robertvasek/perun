@@ -23,10 +23,6 @@
     .info td.key{
         font-weight: bold;
     }
-    .info td.diff{
-        font-weight: bold;
-        color: #D04848;
-    }
     .panel td.key {
         white-space: pre-wrap;
         border: 0;
@@ -91,13 +87,8 @@
     <tbody>
     {%- for (key, value, title) in lhs_header %}
         <tr title="{{ title }}">
-        {%- if (key, value, title) in rhs_header %}
             <td class="key">{{ key }}</td>
             <td class="value">{{ value }}</td>
-        {%- else %}
-            <td class="key diff">{{ key }}</td>
-            <td class="value diff">{{ value }}</td>
-        {%- endif %}
         </tr>
     {%- endfor %}
     </tbody>

@@ -66,7 +66,6 @@ class Config:
         self.top_n_traces: int = 5
 
 
-
 @dataclass
 class TraceStat:
     """Statistics for single trace
@@ -611,6 +610,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         lhs_profile, rhs_profile, list(Stats.KnownStats), skip_diff=True
     )
     log.minor_success("Sankey graphs", "generated")
+    lhs_header, rhs_header = flamegraph_run.generate_headers(lhs_profile, rhs_profile)
 
     # Note: we keep the autoescape=false, since we kindof believe we are not trying to fuck us up
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
@@ -619,9 +619,9 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     content = template.render(
         title="Differences of profiles (with sankey)",
         lhs_tag="Baseline (base)",
-        lhs_header=flamegraph_run.generate_header(lhs_profile),
+        lhs_header=lhs_header,
         rhs_tag="Target (tgt)",
-        rhs_header=flamegraph_run.generate_header(rhs_profile),
+        rhs_header=rhs_header,
         palette=WebColorPalette,
         caller_graph=graph.to_jinja_string("callers"),
         callee_graph=graph.to_jinja_string("callees"),

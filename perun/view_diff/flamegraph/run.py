@@ -95,6 +95,20 @@ def get_uids(profile: Profile) -> set[str]:
     return set(df["uid"].unique())
 
 
+def generate_headers(
+    lhs_profile: Profile, rhs_profile: Profile
+) -> tuple[list[tuple[str, Any, str]], list[tuple[str, Any, str]]]:
+    """Generates headers for lhs and rhs profile
+
+    :param lhs_profile: profile for baseline
+    :param rhs_profile: profile for target
+    :return: pair of headers for lhs (baseline) and rhs (target)
+    """
+    lhs_header = generate_header(lhs_profile)
+    rhs_header = generate_header(rhs_profile)
+    return lhs_header, rhs_header
+
+
 def generate_header(profile: Profile) -> list[tuple[str, Any, str]]:
     """Generates header for given profile
 
@@ -215,16 +229,17 @@ def generate_flamegraph_difference(
         kwargs.get("height", DEFAULT_HEIGHT),
         kwargs.get("width", DEFAULT_WIDTH),
     )
+    lhs_header, rhs_header = generate_headers(lhs_profile, rhs_profile)
 
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
     template = env.get_template("diff_view_flamegraph.html.jinja2")
     content = template.render(
         flamegraphs=flamegraphs,
-        lhs_header=generate_header(lhs_profile),
+        lhs_header=lhs_header,
         lhs_tag="Baseline (base)",
         lhs_top=table_run.get_top_n_records(lhs_profile, top_n=10, aggregated_key=data_type),
         lhs_uids=get_uids(lhs_profile),
-        rhs_header=generate_header(rhs_profile),
+        rhs_header=rhs_header,
         rhs_tag="Target (tgt)",
         rhs_top=table_run.get_top_n_records(rhs_profile, top_n=10, aggregated_key=data_type),
         rhs_uids=get_uids(rhs_profile),

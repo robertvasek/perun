@@ -11,6 +11,7 @@ collector | kernel
 |---|          |------|
 
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -428,10 +429,14 @@ def extract_graphs_from_sankey_map(
             )
             for succ, value in point.succs.items():
                 value_diff = abs(value.baseline - value.target)
-                create_edge(graph, "merged", point.id, succ, value.baseline, WebColorPalette.Baseline)
+                create_edge(
+                    graph, "merged", point.id, succ, value.baseline, WebColorPalette.Baseline
+                )
                 create_edge(graph, "merged", point.id, succ, value.target, WebColorPalette.Target)
                 if value.baseline == value.target:
-                    create_edge(graph, "split", point.id, succ, value.baseline, WebColorPalette.Equal)
+                    create_edge(
+                        graph, "split", point.id, succ, value.baseline, WebColorPalette.Equal
+                    )
                 elif value.baseline > value.target:
                     create_edge(graph, "split", point.id, succ, value.target, WebColorPalette.Equal)
                     create_edge(
@@ -441,7 +446,9 @@ def extract_graphs_from_sankey_map(
                         graph.sum += max(value.baseline, value.target)
                         graph.diff -= value_diff
                 else:
-                    create_edge(graph, "split", point.id, succ, value.baseline, WebColorPalette.Equal)
+                    create_edge(
+                        graph, "split", point.id, succ, value.baseline, WebColorPalette.Equal
+                    )
                     create_edge(
                         graph, "split", point.id, succ, value_diff, WebColorPalette.Increase
                     )
@@ -520,6 +527,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         SelectionRow(g.uid, i, g.diff, common_kit.safe_division(g.diff, g.sum) * 100)
         for (i, g) in enumerate(sankey_graphs)
     ]
+    lhs_header, rhs_header = flamegraph_run.generate_headers(lhs_profile, rhs_profile)
 
     # Note: we keep the autoescape=false, since we kindof believe we are not trying to fuck us up
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
@@ -527,9 +535,9 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     content = template.render(
         title="Differences of profiles (with sankey)",
         lhs_tag="Baseline (base)",
-        lhs_header=flamegraph_run.generate_header(lhs_profile),
+        lhs_header=lhs_header,
         rhs_tag="Target (tgt)",
-        rhs_header=flamegraph_run.generate_header(rhs_profile),
+        rhs_header=rhs_header,
         sankey_graphs=sankey_graphs,
         selection_table=selection_table,
         palette=WebColorPalette,
