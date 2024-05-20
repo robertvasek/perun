@@ -30,7 +30,6 @@ from perun.profile.factory import Profile
 from perun.utils import log
 from perun.utils.common import diff_kit, common_kit
 from perun.utils.structs import WebColorPalette
-from perun.view_diff.flamegraph import run as flamegraph_run
 
 
 @dataclass
@@ -527,7 +526,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         SelectionRow(g.uid, i, g.diff, common_kit.safe_division(g.diff, g.sum) * 100)
         for (i, g) in enumerate(sankey_graphs)
     ]
-    lhs_header, rhs_header = flamegraph_run.generate_headers(lhs_profile, rhs_profile)
+    lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
 
     # Note: we keep the autoescape=false, since we kindof believe we are not trying to fuck us up
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))

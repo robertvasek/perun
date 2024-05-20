@@ -610,7 +610,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         lhs_profile, rhs_profile, list(Stats.KnownStats), skip_diff=True
     )
     log.minor_success("Sankey graphs", "generated")
-    lhs_header, rhs_header = flamegraph_run.generate_headers(lhs_profile, rhs_profile)
+    lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
 
     # Note: we keep the autoescape=false, since we kindof believe we are not trying to fuck us up
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))

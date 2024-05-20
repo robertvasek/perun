@@ -1,9 +1,10 @@
 """Set of helper functions for working with perun.diff_view"""
+
 from __future__ import annotations
 
 
 # Standard Imports
-from typing import Optional, Iterable
+from typing import Any, Optional, Iterable
 import os
 
 # Third-Party Imports
@@ -11,6 +12,7 @@ import os
 # Perun Imports
 from perun.profile import helpers
 from perun.profile.factory import Profile
+from perun.utils import log
 
 
 def save_diff_view(
@@ -66,3 +68,56 @@ def get_candidate_keys(candidate_keys: Iterable[str]) -> list[str]:
         # "E Mean",
     ]
     return sorted([candidate for candidate in candidate_keys if candidate in allowed_keys])
+
+
+def generate_header(profile: Profile) -> list[tuple[str, Any, str]]:
+    """Generates header for given profile
+
+    :param profile: profile for which we are generating the header
+    :return: list of tuples (key and value)
+    """
+    command = " ".join([profile["header"]["cmd"], profile["header"]["workload"]]).strip()
+    machine_info = profile.get("machine", {})
+    return [
+        (
+            "origin",
+            profile.get("origin", "?"),
+            "The version control version, for which the profile was measured.",
+        ),
+        ("command", command, "The workload / command, for which the profile was measured."),
+        (
+            "collector command",
+            log.collector_to_command(profile.get("collector_info", {})),
+            "The collector / profiler, which collected the data.",
+        ),
+        (
+            "kernel",
+            machine_info.get("release", "?"),
+            "The underlying kernel version, where the results were measured.",
+        ),
+        ("host", machine_info["host"], "The hostname, where the results were measured."),
+        (
+            "cpu (total)",
+            machine_info.get("cpu", {"total": "?"}).get("total", "?"),
+            "The total number (physical and virtual) of CPUs available on the host.",
+        ),
+        (
+            "memory (total)",
+            machine_info.get("memory", {"total_ram": "?"}).get("total_ram", "?"),
+            "The total number of RAM available on the host.",
+        ),
+    ]
+
+
+def generate_headers(
+    lhs_profile: Profile, rhs_profile: Profile
+) -> tuple[list[tuple[str, Any, str]], list[tuple[str, Any, str]]]:
+    """Generates headers for lhs and rhs profile
+
+    :param lhs_profile: profile for baseline
+    :param rhs_profile: profile for target
+    :return: pair of headers for lhs (baseline) and rhs (target)
+    """
+    lhs_header = generate_header(lhs_profile)
+    rhs_header = generate_header(rhs_profile)
+    return lhs_header, rhs_header
