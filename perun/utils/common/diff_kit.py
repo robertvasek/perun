@@ -4,7 +4,8 @@ from __future__ import annotations
 
 
 # Standard Imports
-from typing import Any, Optional, Iterable
+from typing import Any, Optional, Iterable, Literal
+import difflib
 import os
 
 # Third-Party Imports
@@ -109,6 +110,48 @@ def generate_header(profile: Profile) -> list[tuple[str, Any, str]]:
     ]
 
 
+def diff_to_html(diff: list[str], start_tag: Literal["+", "-"]) -> str:
+    """Create a html tag with differences for either + or - changes
+
+    :param diff: diff computed by difflib.ndiff
+    :param start_tag: starting point of the tag
+    """
+    result = []
+    for chunk in diff:
+        if chunk.startswith("  "):
+            result.append(chunk[2:])
+        if chunk.startswith(start_tag) and start_tag == "+":
+            result.append(f'<span style="color: green; font-weight: bold">{chunk[2:]}</span>')
+        if chunk.startswith(start_tag) and start_tag == "-":
+            result.append(f'<span style="color: red; font-weight: bold">{chunk[2:]}</span>')
+    return " ".join(result)
+
+
+def generate_diff_of_headers(
+    lhs_header: list[tuple[str, Any, str]], rhs_header: list[tuple[str, Any, str]]
+) -> tuple[list[tuple[str, Any, str]], list[tuple[str, Any, str]]]:
+    """Regenerates header with differences between individual parts of the info
+
+    :param lhs_header: header for baseline
+    :param rhs_header: header for target
+    """
+    lhs_diff, rhs_diff = [], []
+    for (lhs_key, lhs_value, lhs_info), (rhs_key, rhs_value, _) in zip(lhs_header, rhs_header):
+        assert (
+            lhs_key == rhs_key
+            and f"Configuration keys in headers are wrongly order (expected {lhs_key}; got {rhs_key})"
+        )
+        if lhs_value != rhs_value:
+            diff = list(difflib.ndiff(lhs_value.split(), rhs_value.split()))
+            key = f'<span style="color: red; font-weight: bold">{lhs_key}</span>'
+            lhs_diff.append((key, diff_to_html(diff, "-"), lhs_info))
+            rhs_diff.append((key, diff_to_html(diff, "+"), lhs_info))
+        else:
+            lhs_diff.append((lhs_key, lhs_value, lhs_info))
+            rhs_diff.append((rhs_key, rhs_value, lhs_info))
+    return lhs_diff, rhs_diff
+
+
 def generate_headers(
     lhs_profile: Profile, rhs_profile: Profile
 ) -> tuple[list[tuple[str, Any, str]], list[tuple[str, Any, str]]]:
@@ -120,4 +163,4 @@ def generate_headers(
     """
     lhs_header = generate_header(lhs_profile)
     rhs_header = generate_header(rhs_profile)
-    return lhs_header, rhs_header
+    return generate_diff_of_headers(lhs_header, rhs_header)
