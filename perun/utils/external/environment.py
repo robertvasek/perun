@@ -2,12 +2,14 @@
 
 Currently, this only handles getting version of Python.
 """
+
 from __future__ import annotations
 
 # Standard Imports
 from subprocess import CalledProcessError
 from typing import Optional, Callable, Protocol, Any
 import operator
+import os
 import platform
 import re
 import sys
@@ -131,7 +133,7 @@ def get_machine_specification() -> dict[str, Any]:
     :return: machine specification as dictionary
     """
     system = platform.uname()
-    return {
+    machine_info = {
         "architecture": system.machine,
         "system": system.system,
         "release": system.release,
@@ -146,3 +148,25 @@ def get_machine_specification() -> dict[str, Any]:
             "swap": log.format_file_size(psutil.swap_memory().total).strip(),
         },
     }
+
+    if os.path.exists("/proc/cmdline"):
+        with open("/proc/cmdline", "r", encoding="utf-8") as cmdline_handle:
+            machine_info["boot_info"] = " ".join(cmdline_handle.read().split("\n")).strip()
+    if os.path.exists("/proc/meminfo"):
+        with open("/proc/meminfo", "r", encoding="utf-8") as meminfo_handle:
+            machine_info["mem_details"] = {
+                key: value.strip()
+                for (key, value) in [
+                    line.split(":") for line in meminfo_handle.read().split("\n") if line
+                ]
+            }
+    if os.path.exists("/proc/cpuinfo"):
+        with open("/proc/cpuinfo", "r", encoding="utf-8") as cpuinfo_handle:
+            machine_info["cpu_details"] = [
+                {  # type: ignore
+                    key.strip(): value.strip()
+                    for (key, value) in [line.split(":") for line in cpu_line.split("\n") if line]
+                }
+                for cpu_line in cpuinfo_handle.read().split("\n\n")
+            ]
+    return machine_info

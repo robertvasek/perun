@@ -95,45 +95,6 @@ def get_uids(profile: Profile) -> set[str]:
     return set(df["uid"].unique())
 
 
-def generate_header(profile: Profile) -> list[tuple[str, Any, str]]:
-    """Generates header for given profile
-
-    :param profile: profile for which we are generating the header
-    :return: list of tuples (key and value)
-    """
-    command = " ".join([profile["header"]["cmd"], profile["header"]["workload"]]).strip()
-    machine_info = profile.get("machine", {})
-    return [
-        (
-            "origin",
-            profile.get("origin", "?"),
-            "The version control version, for which the profile was measured.",
-        ),
-        ("command", command, "The workload / command, for which the profile was measured."),
-        (
-            "collector command",
-            log.collector_to_command(profile.get("collector_info", {})),
-            "The collector / profiler, which collected the data.",
-        ),
-        (
-            "kernel",
-            machine_info.get("release", "?"),
-            "The underlying kernel version, where the results were measured.",
-        ),
-        ("host", machine_info["host"], "The hostname, where the results were measured."),
-        (
-            "cpu (total)",
-            machine_info.get("cpu", {"total": "?"}).get("total", "?"),
-            "The total number (physical and virtual) of CPUs available on the host.",
-        ),
-        (
-            "memory (total)",
-            machine_info.get("memory", {"total_ram": "?"}).get("total_ram", "?"),
-            "The total number of RAM available on the host.",
-        ),
-    ]
-
-
 def generate_flamegraphs(
     lhs_profile: Profile,
     rhs_profile: Profile,
@@ -215,16 +176,17 @@ def generate_flamegraph_difference(
         kwargs.get("height", DEFAULT_HEIGHT),
         kwargs.get("width", DEFAULT_WIDTH),
     )
+    lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
 
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
     template = env.get_template("diff_view_flamegraph.html.jinja2")
     content = template.render(
         flamegraphs=flamegraphs,
-        lhs_header=generate_header(lhs_profile),
+        lhs_header=lhs_header,
         lhs_tag="Baseline (base)",
         lhs_top=table_run.get_top_n_records(lhs_profile, top_n=10, aggregated_key=data_type),
         lhs_uids=get_uids(lhs_profile),
-        rhs_header=generate_header(rhs_profile),
+        rhs_header=rhs_header,
         rhs_tag="Target (tgt)",
         rhs_top=table_run.get_top_n_records(rhs_profile, top_n=10, aggregated_key=data_type),
         rhs_uids=get_uids(rhs_profile),
