@@ -199,10 +199,10 @@
         <div class="tab">
             {%- if flamegraphs %}
             {%- for metric in stat_list %}
-            <button class="tablinks" onclick="openTab(event, '{{ metric|sanitize_variable_name }}')" {% if loop.index0 == 0 %}id="defaultOpen"{% endif %}>Top {{ metric }}</button>
+            <button class="tablinks" onclick="openTab(event, '{{ metric|sanitize_variable_name }}', {{ loop.index0 }})" {% if loop.index0 == 0 %}id="defaultOpen"{% endif %}>Top {{ metric }}</button>
             {%- endfor %}
             {%- endif %}
-            <button class="tablinks" onclick="openTab(event, 'all')">Browse All</button>
+            <button class="tablinks" onclick="openTab(event, 'all', -1)">Browse All</button>
         </div>
         <div id="all" class="tabcontent">
             <table id="table" class="display" style="width: 100%;">
@@ -660,7 +660,6 @@
 
                 target = getNode(callee, nodedata.pos-1)
                 if (custom_data[target].type === "none" || (nodedata.type !== custom_data[target].type && custom_data[target].type !== 'root')) {
-                    console.log(worklist, target);
                     if (!worklist.includes(target)) {
                         worklist.push(target);
                         addToWorklist(worklist, sankey_data[0].node.customdata[target]);
@@ -676,7 +675,6 @@
 
                 target = getNode(caller, nodedata.pos+1)
                 if (custom_data[target].type === "none" || (nodedata.type !== custom_data[target].type && custom_data[target].type !== 'root')) {
-                    console.log(worklist, target);
                     if (!worklist.includes(target)) {
                         worklist.push(target);
                         addToWorklist(worklist, sankey_data[0].node.customdata[target]);
@@ -1119,9 +1117,8 @@
     });
     {% endif %}
 
-    function openTab(evt, tabName) {
+    function openTab(evt, tabName, metricNo) {
       // Declare all variables
-
       var i, tabcontent, tablinks;
 
       // Get all elements with class="tabcontent" and hide them
@@ -1141,6 +1138,12 @@
       tab.style.display = "block";
       evt.currentTarget.className += " active";
 
+      // Select correct metric
+      if (metricNo != -1) {
+        document.getElementById("metricSelection").selectedIndex = metricNo;
+      }
+
+      // Try to position flamegraphs
       const svgContents = tab.getElementsByClassName('svg-content');
       const svgContainer = tab.getElementsByClassName('svg-container')[0];
       if (svgContainer) {
@@ -1162,6 +1165,7 @@
             const svgContent = svgContents[i];
             svgContent.setAttribute("viewBox", max_viewBox);
             svgContent.viewBox = max_viewBox;
+            svgContent.getElementsByTagName("rect")[0].style.height = max_box;
         };
       }
     }
@@ -1206,7 +1210,6 @@
                     div.style.display = "block";
                 }
                 let index = nodes.indexOf(innerText);
-                console.log(index, nodes, innerText);
                 if (index != -1) {
                     selected_uid = index;
                     selected_uid_text = innerText;

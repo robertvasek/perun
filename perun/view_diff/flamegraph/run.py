@@ -57,6 +57,7 @@ def escape_content(tag: str, content: str) -> str:
     ]
     other = [
         (r"func_g", f"{tag}_func_g"),
+        (r"background", f"{tag}_background"),
         (r"\"unzoom\"", f'"{tag}_unzoom"'),
         (r"\"search\"", f'"{tag}_search"'),
         (r"\"matched\"", f'"{tag}_matched"'),
