@@ -509,7 +509,6 @@ def disposable_resources(disposable: Any) -> Any:
         raise
     finally:
         del disposable
-        gc.collect()
 
 
 def binary_search(
