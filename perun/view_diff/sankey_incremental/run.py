@@ -64,6 +64,7 @@ class Config:
         """
         self.trace_is_inclusive: bool = False
         self.top_n_traces: int = 5
+        self.max_trace: int = 0
 
 
 @dataclass
@@ -423,10 +424,12 @@ def process_traces(
     :param profile_type: type of the profile
     :param graph: sankey graph
     """
+    max_trace = 0
     for _, resource in progressbar.progressbar(profile.all_resources()):
         full_trace = [convert.to_uid(t) for t in resource["trace"]]
         full_trace.append(convert.to_uid(resource["uid"]))
         trace_len = len(full_trace)
+        max_trace = max(max_trace, trace_len)
         if trace_len > 1:
             if Config().trace_is_inclusive:
                 for i in range(0, trace_len - 1):
@@ -439,6 +442,7 @@ def process_traces(
                 process_edge(graph, profile_type, resource, src, tgt)
             for uid in full_trace:
                 graph.uid_to_traces[uid].append(full_trace)
+    Config().max_trace = max(max_trace, Config().max_trace)
 
 
 def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
@@ -607,7 +611,11 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     trace_stats = generate_trace_stats(graph)
     selection_table = generate_selection(graph, trace_stats)
     flamegraphs = flamegraph_run.generate_flamegraphs(
-        lhs_profile, rhs_profile, list(Stats.KnownStats), skip_diff=True
+        lhs_profile,
+        rhs_profile,
+        list(Stats.KnownStats),
+        skip_diff=True,
+        height=Config().max_trace,
     )
     log.minor_success("Sankey graphs", "generated")
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)

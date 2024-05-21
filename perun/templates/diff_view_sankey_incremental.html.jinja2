@@ -169,11 +169,6 @@
             position: relative;
             width: 100%;
             vertical-align: top;
-            overflow: hidden;
-        }
-
-        div.column .svg-container {
-            padding-bottom: 100%;
         }
 
         .svg-content {
@@ -1126,6 +1121,7 @@
 
     function openTab(evt, tabName) {
       // Declare all variables
+
       var i, tabcontent, tablinks;
 
       // Get all elements with class="tabcontent" and hide them
@@ -1141,8 +1137,33 @@
       }
 
       // Show the current tab, and add an "active" class to the button that opened the tab
-      document.getElementById(tabName).style.display = "block";
+      const tab = document.getElementById(tabName);
+      tab.style.display = "block";
       evt.currentTarget.className += " active";
+
+      const svgContents = tab.getElementsByClassName('svg-content');
+      const svgContainer = tab.getElementsByClassName('svg-container')[0];
+      if (svgContainer) {
+        let max_box = 0, max_viewBox = "";
+        for (let i = 0; i < svgContents.length; i++) {
+            const svgContent = svgContents[i];
+            const viewBox = svgContent.getAttribute('viewBox');
+            if (viewBox) {
+                const viewBoxValues = viewBox.split(' ');
+                const height = parseInt(viewBoxValues[3]);
+                if (height > max_box) {
+                    max_box = height;
+                    max_viewBox = viewBox;
+                }
+            }
+        };
+        svgContainer.style.height = `${max_box}px`;
+        for (let i = 0; i < svgContents.length; i++) {
+            const svgContent = svgContents[i];
+            svgContent.setAttribute("viewBox", max_viewBox);
+            svgContent.viewBox = max_viewBox;
+        };
+      }
     }
 
     document.querySelector('input[name="incr"]').addEventListener('change', filterEdges);

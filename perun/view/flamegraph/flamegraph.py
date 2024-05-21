@@ -1,4 +1,5 @@
 """This module provides wrapper for the Flame graph visualization"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -94,6 +95,7 @@ def draw_flame_graph(
             [
                 script_kit.get_script("flamegraph.pl"),
                 tmp.name,
+                "--cp",
                 "--title",
                 f'"{title}"',
                 "--countname",
