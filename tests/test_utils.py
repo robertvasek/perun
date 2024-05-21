@@ -299,7 +299,7 @@ def test_common(capsys):
     assert common_kit.strtobool("true") == True
     assert common_kit.strtobool("false") == False
     with pytest.raises(ValueError):
-        common_kit.str_to_plural("trualse")
+        common_kit.strtobool("trualse")
 
 
 def test_predicates(capsys):
