@@ -27,15 +27,13 @@ The TextFile Generator can be configured by following options:
   * ``min_chars``: the minimal number of characters on one line. By default, set to 5.
   * ``max_chars``: the maximal number of characters on one line. By default, set to 80.
   * ``randomize_rows``: by default set to True, the rows in the file have then randomized length
-    from interval (``min_chars``, ``max_chars``). Otherwise, (if set to false), the lines will always
-    be of maximal length (``max_chars``).
-
+    from interval (``min_chars``, ``max_chars``). Otherwise, (if set to false), the lines will
+    always be of maximal length (``max_chars``).
 """
 from __future__ import annotations
 
 # Standard Imports
 from typing import Any, Iterable
-import distutils.util as dutils
 import os
 import random
 import tempfile
@@ -45,6 +43,7 @@ import faker
 
 # Perun Imports
 from perun.utils.structs import Job
+from perun.utils.common import common_kit
 from perun.workload.generator import WorkloadGenerator
 
 
@@ -104,7 +103,7 @@ class TextfileGenerator(WorkloadGenerator):
         # Note that faker has a lower limit on generated text.
         self.min_chars = max(int(min_rows), 5)
         self.max_chars = int(max_rows)
-        self.randomize_rows = dutils.strtobool(str(randomize_rows))
+        self.randomize_rows = common_kit.strtobool(str(randomize_rows))
 
         self.faker = faker.Faker()
 
