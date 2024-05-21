@@ -67,6 +67,9 @@ dependencies = [
 
     # Transitive dependencies that we need to limit for some reason
     "kiwisolver!=1.4.5", # matplotlib dep, 1.4.5 does not work when lazy-importing matplotlib
+
+    # Some of our dependencies still rely on distutils in 3.12, hence we need the setuptools package
+    "setuptools>=69.0; python_version >= '3.12'"
 ]
 dynamic = ["version"]
 
@@ -215,7 +218,8 @@ exclude_also = [
 target-version = [
     "py39",
     "py310",
-    "py311"
+    "py311",
+    "py312",
 ]
 line-length = 100
 
