@@ -1,4 +1,5 @@
 """Basic tests for utility package and sanity checks"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -294,6 +295,11 @@ def test_common(capsys):
 
     assert convert.to_string_line("uid") == "uid"
     assert convert.flatten(["hello", "world"]) == "hello,world"
+
+    assert common_kit.strtobool("true") == True
+    assert common_kit.strtobool("false") == False
+    with pytest.raises(ValueError):
+        common_kit.str_to_plural("trualse")
 
 
 def test_predicates(capsys):
