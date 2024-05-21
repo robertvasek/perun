@@ -163,7 +163,7 @@ def get_machine_specification() -> dict[str, Any]:
     if os.path.exists("/proc/cpuinfo"):
         with open("/proc/cpuinfo", "r", encoding="utf-8") as cpuinfo_handle:
             machine_info["cpu_details"] = [
-                {
+                {  # type: ignore
                     key.strip(): value.strip()
                     for (key, value) in [line.split(":") for line in cpu_line.split("\n") if line]
                 }
