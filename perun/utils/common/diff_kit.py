@@ -121,14 +121,18 @@ def diff_to_html(diff: list[str], start_tag: Literal["+", "-"]) -> str:
     :param diff: diff computed by difflib.ndiff
     :param start_tag: starting point of the tag
     """
+    tag_to_color = {
+        "+": "green",
+        "-": "red",
+    }
     result = []
     for chunk in diff:
         if chunk.startswith("  "):
             result.append(chunk[2:])
-        if chunk.startswith(start_tag) and start_tag == "+":
-            result.append(f'<span style="color: green; font-weight: bold">{chunk[2:]}</span>')
-        if chunk.startswith(start_tag) and start_tag == "-":
-            result.append(f'<span style="color: red; font-weight: bold">{chunk[2:]}</span>')
+        if chunk.startswith(start_tag):
+            result.append(
+                f'<span style="color: {tag_to_color.get(start_tag, "grey")}; font-weight: bold">{chunk[2:]}</span>'
+            )
     return " ".join(result)
 
 
