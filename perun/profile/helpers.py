@@ -13,6 +13,7 @@ For further manipulations refer either to :ref:`profile-conversion-api`
 (implemented in ``perun.profile.query module``). For full specification how to
 handle the JSON objects in Python refer to `Python JSON library`_.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -103,6 +104,8 @@ def generate_profile_name(profile: profiles.Profile) -> str:
             Workload of the job
         `%type%`:
             Type of the generated profile
+        `%kernel%`:
+            Underlying kernel
         `%date%`:
             Current date
         `%origin%`:
@@ -124,10 +127,10 @@ def generate_profile_name(profile: profiles.Profile) -> str:
             (
                 r"%postprocessors%",
                 lambda scanner, token: (
-                    "after-" + "-and-".join(map(lambda p: p["name"], profile["postprocessors"]))
-                )
-                if profile["postprocessors"]
-                else "_",
+                    ("after-" + "-and-".join(map(lambda p: p["name"], profile["postprocessors"])))
+                    if profile["postprocessors"]
+                    else "_"
+                ),
             ),
             (
                 r"%[^.]+\.[^%]+%",
@@ -149,6 +152,7 @@ def generate_profile_name(profile: profiles.Profile) -> str:
                 )
                 + "]",
             ),
+            (r"%kernel%", lambda scanner, token: environment.get_kernel()),
             (
                 r"%type%",
                 lambda scanner, token: lookup_value(profile["header"], "type", "_"),

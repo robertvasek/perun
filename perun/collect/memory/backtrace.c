@@ -8,13 +8,16 @@
  */
 #define UNW_LOCAL_ONLY
 #include <stdio.h>
+#ifdef HAVE_LIBUNWIND
 #include <libunwind.h>
+#endif
 #include <dlfcn.h>      // dlopen()
 #include <link.h>       // struct link_map
 
 const int SYMBOL_LEN = 256;
 
 void backtrace(FILE *log, unsigned skip){
+#ifdef HAVE_LIBUNWIND
     unw_cursor_t cursor;
     unw_context_t context;
     unw_word_t ip, offset;
@@ -66,4 +69,7 @@ void backtrace(FILE *log, unsigned skip){
             fprintf(log, "%s 0x%lx +0x%lx\n", symbol, ip, offset);
         }
     }
+#else
+    fprintf(log, "? -1 -1");
+#endif
 }

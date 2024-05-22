@@ -3,6 +3,7 @@ requires = [
     "meson-python >= 0.15.0",
     "meson >= 1.2.3",
     "patchelf >= 0.11.0",
+    "ninja >= 1.0",
     "wheel",
 ]
 build-backend = "mesonpy"
@@ -29,6 +30,7 @@ dependencies = [
     "meson-python>=0.15.0",
     "meson>=1.2.3",
     "ninja>=1.0",
+    "wheel>=0.43.0",
 
     # Other
     "psutil>=5.0.0",
@@ -222,4 +224,3 @@ target-version = [
     "py312",
 ]
 line-length = 100
-
