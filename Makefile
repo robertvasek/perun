@@ -49,7 +49,7 @@ test-ci:
 	python3 -m pytest --cov=./ --cov-report xml --cov-report term-missing:skip-covered ./tests/
 
 release:
-	python3 -m build
+	python3 -m build --sdist
 
 docs: docs-html docs-dirhtml
 
@@ -67,4 +67,3 @@ docs-dirhtml:
 
 docs-latex:
 	$(MAKE) -C ./docs latex
-

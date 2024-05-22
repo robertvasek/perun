@@ -59,10 +59,6 @@ jobs:
           pip3 install -q build
           make release
 
-      - name: Install from dist (wheel)
-        run: |
-          pip3 install dist/*.whl
-
       - name: Install from dist (tar.gz)
         run: |
           pip3 install dist/*.tar.gz
@@ -129,4 +125,3 @@ jobs:
       - name: Check lint correctness for Python ${{ matrix.python-version }} using Tox
         run: |
           tox -e lint || true
-
