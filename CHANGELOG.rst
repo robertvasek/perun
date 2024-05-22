@@ -1,20 +1,37 @@
 Changelog
 =========
 
-<<<<<<< Updated upstream
+0.22 (2024-05-22)
+
+  - Add support of Python 3.12
+  - Fix incompatibilities with some distros (RHEL)
+  - Update the machine information collected by collectors
+  - Add support for working with traces
+  - Add support of differential views (sankey, reports, flamegraphs, tables)
+  - Add perf-based collector
+  - Add many new helper functions
+  - Enhance the output of the Perun
+  - Refactor dynamic calls
+  - Refactor selection mechanism of Perun
+  - Refactor obsolete functions and modules
+  - Refactor utils
+  - Refactor imports
+  - Refactor structures
+  - Refactor strings
+
+
+0.21.8 (2024-01-12)
+-------------------
+
+  - Updates README, LICENSE, AUTHORS
+  - Fixes minor issues
+
 0.21.7 (2023-11-08)
 -------------------
 
   - Update README, licensing, authors and contributions.
   - Fix minor issues in README, and various parts of Perun.
   - Fix minor issue in helper scripts.
-=======
-0.21.8 (2024-01-12)
--------------------
-
-  - Updates README, LICENSE, AUTHORS
-  - Fixes minor issues
->>>>>>> Stashed changes
 
 0.21.6 (2023-11-06)
 -------------------
