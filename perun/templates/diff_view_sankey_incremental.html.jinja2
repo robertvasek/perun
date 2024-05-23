@@ -718,7 +718,7 @@
 
 
     function foldnode(nodedata) {
-        clickedNode = getNode(nodedata.index, nodedata.pos, false);
+        clickedNode = getNode(nodedata.index, nodedata.pos);
         custom_data = sankey_data[0].node.customdata;
         if (!nodedata.hidden && nodedata.type !== "root") {
             sankey_data[0].node.label[nodedata.id] = "[+] (" + nodedata.label + ")";
@@ -730,7 +730,7 @@
     }
 
     function unfoldnode(nodedata) {
-        clickedNode = getNode(nodedata.index, nodedata.pos, false);
+        clickedNode = getNode(nodedata.index, nodedata.pos);
         if (nodedata.hidden) {
             addAllEdgesFor(clickedNode, nodedata.pos, callee_graph[nodedata.index][nodedata.pos], false, nodedata.type);
             addAllEdgesFor(clickedNode, nodedata.pos, caller_graph[nodedata.index][nodedata.pos], true, nodedata.type);
@@ -781,8 +781,14 @@
     }
 
     // Graph Operations
-    function getNode(node, pos, isroot) {
-        node_len = shown_nodes.length;
+    function getNode(node, pos) {
+        if (typeof node !== "number") {
+            node = Number(node);
+        }
+        if (typeof pos !== "number") {
+            pos = Number(pos);
+        }
+        let node_len = shown_nodes.length;
 
         for (let i = 0; i < node_len; i++) {
             if (shown_nodes[i][0] === node && shown_nodes[i][1] === pos) {
@@ -790,6 +796,7 @@
             }
         }
 
+        let isroot = (nodes[node] === selected_uid_text);
         if (isroot) {
             sankey_data[0].node.color.push("rgba(0, 0, 0, 0.7)");
             sankey_data[0].node.label.push(nodes[node]);
@@ -973,13 +980,13 @@
         if (edges !== undefined) {
             for (edge in edges) {
                 if (isfwd) {
-                    let target = getNode(edge, pos+1, false);
+                    let target = getNode(edge, pos+1);
                     addEdge(node, target, stats[edges[edge]]);
                     if (newtype === "caller") {
                         adjustType(target, newtype)
                     }
                 } else {
-                    let target = getNode(edge, pos-1, false);
+                    let target = getNode(edge, pos-1);
                     addEdge(target, node, stats[edges[edge]]);
                     if (newtype === "callee") {
                         adjustType(target, newtype)
@@ -993,7 +1000,7 @@
         // Add node to labels
         for (let i = 0; i < node_map[index].length; i++) {
             pos = node_map[index][i];
-            rootNode = getNode(index, pos, true);
+            rootNode = getNode(index, pos);
             addAllEdgesFor(rootNode, pos, callee_graph[index][pos], false, "callee");
             addAllEdgesFor(rootNode, pos, caller_graph[index][pos], true, "caller");
         }
