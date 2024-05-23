@@ -325,7 +325,8 @@
             target: [],
             value: [],
             color: [],
-            customdata: []
+            customdata: [],
+            hovertemplate: "%{customdata.display}<extra></extra>"
         }
         }],
         shown_nodes = [],
@@ -765,6 +766,7 @@
         for (let i = 0; i < edges.customdata.length; i++) {
             newValue = recomputeValue(edges.customdata[i].type, edges.customdata[i].stats);
             edges.value[i] = (fromInput <= newValue && newValue <= toInput) ? newValue : 0;
+            edges.customdata[i].display = format(edges.value[i], unit_map[selected_metric]);
         }
         render();
     }
@@ -881,7 +883,7 @@
         sankey_data[0].link.target.push(target);
         sankey_data[0].link.value.push(val);
         sankey_data[0].link.color.push(color);
-        sankey_data[0].link.customdata.push({stats: edge_stats, type: type})
+        sankey_data[0].link.customdata.push({stats: edge_stats, type: type, display: format(val, unit_map[selected_metric])})
         addToSteps(val);
     }
 
@@ -1098,6 +1100,7 @@
     });
 
     function initializeGraph() {
+        metric_changed();
         clearGraph();
         addRootNode(selected_uid);
         newplot();
@@ -1174,7 +1177,6 @@
       // Select correct metric
       if (metricNo != -1) {
         document.getElementById("metricSelection").selectedIndex = metricNo;
-        metric_changed();
         if (selected_uid != -1) {
             initializeGraph();
         }
