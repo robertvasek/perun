@@ -356,7 +356,8 @@ class Stats:
     """
 
     __slots__ = ["baseline", "target"]
-    KnownStats: set[str] = set()
+    KnownStatsSet: set[str] = set()
+    SortedStats: list[str] = []
 
     def __init__(self) -> None:
         """Initializes the stat"""
@@ -372,18 +373,25 @@ class Stats:
         :ivar stat_key: type of the metric
         :ivar stat_val: value of the metric
         """
-        Stats.KnownStats.add(stat_key)
+        Stats.KnownStatsSet.add(stat_key)
         if stat_type == "baseline":
             self.baseline[stat_key] += stat_val
         else:
             self.target[stat_key] += stat_val
+
+    @staticmethod
+    def all_stats() -> list[str]:
+        """Returns sorted list of stats"""
+        if not Stats.SortedStats:
+            Stats.SortedStats = sorted(list(Stats.KnownStatsSet))
+        return Stats.SortedStats
 
     def to_array(self, stat_type: Literal["baseline", "target"]) -> list[str]:
         """Converts stats to single compact array"""
         stats = self.baseline if stat_type == "baseline" else self.target
         return [
             common_kit.compact_convert_num_to_str(stats.get(stat, 0), 2)
-            for stat in Stats.KnownStats
+            for stat in Stats.all_stats()
         ]
 
 
@@ -466,7 +474,7 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
                     trace_stats[uid].append(trace_cache[key])
                     continue
                 trace_len = len(trace)
-                stat_len = len(Stats.KnownStats)
+                stat_len = len(Stats.all_stats())
                 base_sum: array.array[float] = array.array(
                     "d", [sys.float_info.max if Config().trace_is_inclusive else 0.0] * stat_len
                 )
@@ -484,7 +492,7 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
                     node = graph.get_node(src)
                     if tgt in node.callers:
                         stats = node.callers[tgt].stats
-                        for j, stat in enumerate(Stats.KnownStats):
+                        for j, stat in enumerate(Stats.all_stats()):
                             base_stat, tgt_stat = stats.baseline[stat], stats.target[stat]
                             base_partial[j][i] += base_stat
                             tgt_partial[j][i] += tgt_stat
@@ -514,13 +522,13 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
     selection = []
     log.minor_info("Generating selection table")
     trace_stat_cache: dict[str, tuple[str, str, float, float, str]] = {}
-    stat_len = len(Stats.KnownStats)
+    stat_len = len(Stats.all_stats())
     for uid, nodes in progressbar.progressbar(graph.uid_to_nodes.items()):
         baseline_overall: array.array[float] = array.array("d", [0.0] * stat_len * 2)
         target_overall: array.array[float] = array.array("d", [0.0] * stat_len * 2)
         stats: list[tuple[int, float, float]] = []
         for node in nodes:
-            for i, known_stat in enumerate(Stats.KnownStats):
+            for i, known_stat in enumerate(Stats.all_stats()):
                 for link in node.callees.values():
                     baseline_overall[i] += link.stats.baseline[known_stat]
                     target_overall[i] += link.stats.target[known_stat]
@@ -563,7 +571,7 @@ def extract_stats_from_trace(
     top_n_limit, sort_by_key = Config().top_n_traces, 3
     for trace in uid_stats:
         # Trace is in form of [short_trace, stat_type, abs, rel, long_trace]
-        for i, stat in enumerate(Stats.KnownStats):
+        for i, stat in enumerate(Stats.all_stats()):
             key = f"{trace.trace_id}#{stat}"
             if key not in cache:
                 target_cost, baseline_cost = trace.target_cost[i], trace.baseline_cost[i]
@@ -613,7 +621,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     flamegraphs = flamegraph_run.generate_flamegraphs(
         lhs_profile,
         rhs_profile,
-        list(Stats.KnownStats),
+        Stats.all_stats(),
         skip_diff=True,
         height=Config().max_trace,
     )
@@ -633,7 +641,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         palette=WebColorPalette,
         caller_graph=graph.to_jinja_string("callers"),
         callee_graph=graph.to_jinja_string("callees"),
-        stat_list=list(Stats.KnownStats),
+        stat_list=Stats.all_stats(),
         stats="["
         + ",".join(
             list(map(itemgetter(0), sorted(list(graph.stats_to_id.items()), key=itemgetter(1))))

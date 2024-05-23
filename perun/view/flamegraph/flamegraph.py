@@ -11,6 +11,7 @@ import tempfile
 
 # Perun Imports
 from perun.profile import convert
+from perun.utils import mapping
 from perun.utils.common import script_kit
 from perun.utils.external import commands
 
@@ -85,8 +86,7 @@ def draw_flame_graph(
     profile_type = header["type"]
     cmd, workload = (header["cmd"], header["workload"])
     title = title if title != "" else f"{profile_type} consumption of {cmd} {workload}"
-    # TODO: Make better
-    units = header["units"].get(profile_type, "samples")
+    units = mapping.get_unit(mapping.get_readable_key(profile_key))
 
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp.write("".join(flame).encode("utf-8"))
