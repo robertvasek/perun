@@ -642,6 +642,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         caller_graph=graph.to_jinja_string("callers"),
         callee_graph=graph.to_jinja_string("callees"),
         stat_list=Stats.all_stats(),
+        units=[mapping.get_unit(s) for s in Stats.all_stats()],
         stats="["
         + ",".join(
             list(map(itemgetter(0), sorted(list(graph.stats_to_id.items()), key=itemgetter(1))))

@@ -301,6 +301,7 @@
     let nodes = {{ nodes }}
     let stats = {{ stats }}
     let stat_map = {{ stat_list }}
+    let unit_map = {{ units }}
     let node_map = {{ node_map }}
     {% endautoescape %}
 
@@ -510,14 +511,43 @@
         return result;
     }
 
-    function format_stat(baseline, target) {
+    function formatMs(ms) {
+        ms = Math.abs(ms);
+
+        let units = ["ms", "s", "min", "h"];
+        let divs = [1000.0, 60.0, 60.0, 60.0];
+        for (let i = 0; i < divs.length; i++) {
+            let unit = units[i];
+            let div = divs[i];
+            if (ms < div) {
+                return `${ms.toFixed(2)} ${unit}`;
+            }
+            ms /= div;
+        }
+        return `${size.toFixed(2)} days`;
+    }
+
+    function format(value, unit) {
+        if (typeof value !== "number") {
+            value = Number(value);
+        }
+        if (unit === "ms") {
+            return formatMs(value);
+        } else if (unit === "%") {
+            return `${value.toFixed(2)}%`;
+        } else {
+            return formatSize(value);
+        }
+    }
+
+    function format_stat(baseline, target, stat_unit) {
         let result = "";
         if (baseline === target) {
-            result += '<span class="equal">' + formatSize(baseline) + '</span>';
+            result += '<span class="equal">' + format(baseline, stat_unit) + '</span>';
         } else if (baseline < target) {
-            result += '<span class="increase">' + formatSize(baseline) + ' ↗ ' + formatSize(target) + '</span>';
+            result += '<span class="increase">' + format(baseline, stat_unit) + ' ↗ ' + format(target, stat_unit) + '</span>';
         } else {
-            result += '<span class="decrease">' + formatSize(baseline) + ' ↘ ' + formatSize(target) + '</span>';
+            result += '<span class="decrease">' + format(baseline, stat_unit) + ' ↘ ' + format(target, stat_unit) + '</span>';
         }
         return result;
     };
@@ -558,6 +588,7 @@
     function format_sub_row(d, uid) {
         let result = '<table style="width: 100%; border: none;" class="nested">';
         let stat_type = d[2].toLowerCase();
+        let stat_unit = unit_map[stat_map.indexOf(d[2])];
         let parts = d[5].split('#');
         let traces = parts[0].split(';'), baseline = parts[1].split(';').map(Number), target = parts[2].split(';').map(Number);
         let min_baseline = Math.min(...baseline), min_target = Math.min(...target);
@@ -569,7 +600,7 @@
                 let baseline_stat = baseline[i-1],
                     target_stat = target[i-1];
                 let diff = baseline_stat - target_stat;
-                result += '  '.repeat(i) + "⎸ " + format_stat(baseline_stat, target_stat);
+                result += '  '.repeat(i) + "⎸ " + format_stat(baseline_stat, target_stat, stat_unit);
                 if (stat_type.includes("inclusive")) {
                     result += "    ";
                     result += format_bottleneck(baseline_stat, min_baseline);
