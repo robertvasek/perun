@@ -1121,8 +1121,7 @@
         }
     })
 
-    {% if stat_list|length > 1 %}
-    document.getElementById("metricSelection").addEventListener('change', function() {
+    function metric_changed() {
         selected_metric = parseInt(document.getElementById("metricSelection").value);
         let values = [];
         let edge_values = sankey_data[0].link.customdata;
@@ -1145,7 +1144,10 @@
 
         fillSliders(steps[0], steps[0], steps[steps.length-1], steps[0], steps[steps.length-1], steps[steps.length-1]);
         filterEdges();
-    });
+    }
+
+    {% if stat_list|length > 1 %}
+    document.getElementById("metricSelection").addEventListener('change', metric_changed);
     {% endif %}
 
     function openTab(evt, tabName, metricNo) {
@@ -1172,6 +1174,10 @@
       // Select correct metric
       if (metricNo != -1) {
         document.getElementById("metricSelection").selectedIndex = metricNo;
+        metric_changed();
+        if (selected_uid != -1) {
+            initializeGraph();
+        }
       }
 
       // Try to position flamegraphs
