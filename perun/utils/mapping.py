@@ -24,6 +24,8 @@ def get_readable_key(key: str) -> str:
     if key == "amount":
         if all(p.get("collector_info", {}).get("name") == "kperf" for p in profiles):
             return "Inclusive Samples [#]"
+        if all(p.get("collector_info", {}).get("name") == "memory" for p in profiles):
+            return "Allocated Memory [B]"
     if key == "ncalls":
         return "Number of Calls [#]"
     if key in ("I Mean", "I Max", "I Min"):
@@ -40,6 +42,8 @@ def from_readable_key(key: str) -> str:
     :return: human readable key
     """
     if key == "Inclusive Samples [#]":
+        return "amount"
+    if key == "Allocated Memory [B]":
         return "amount"
     if key == "Number of Calls [#]":
         return "ncalls"

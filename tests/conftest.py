@@ -529,5 +529,6 @@ def setup():
     log.SUPPRESS_PAGING = True
     # We disable the metrics by default, since they might slow down tests
     metrics.Metrics.enabled = False
-    sankey_incremental.Stats.KnownStats.clear()
+    sankey_incremental.Stats.KnownStatsSet.clear()
+    sankey_incremental.Stats.SortedStats = []
     yield
