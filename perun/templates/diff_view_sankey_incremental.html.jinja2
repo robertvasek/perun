@@ -347,11 +347,11 @@
             },
             height: 600,
         },
-        selected_metric = 0,
+        sel_metric = 0,
         modification_mode = "none",
-        number_of_metrics = {{ stat_list|length }},
-        selected_uid = -1,
-        selected_uid_text = "",
+        metric_no = {{ stat_list|length }},
+        sel_uid = -1,
+        sel_uid_text = "",
         plot = document.getElementById('sankey_graph');
 
     // Selection table
@@ -364,9 +364,7 @@
                 orderable: false,
                 data: null,
                 defaultContent: "",
-                render: function () {
-                    return '<span class="plus">[+]</span><span class="minus">[-]</span>';
-                },
+                render: function () {return '<span class="plus">[+]</span><span class="minus">[-]</span>';},
                 width: "15px"
             },
             { data: "uid" , className: "details-uid"},
@@ -387,30 +385,15 @@
             },
             { 
                 data: "type",
-                render: function(data, type) {
-                    if (type === 'display') {
-                        return stat_id_to_name(data);
-                    }
-                    return data;
-                }
+                render: function(data, type) {return (type === 'display') ? stat_id_to_name(data) : data;}
             }, {
                 data: "abs",
                 className: "dt-body-right",
-                render: function (data, type) {
-                    if (type === 'display') {
-                        return format_value(data);
-                    }
-                    return data;
-                },
+                render: function(data, type) {return (type === 'display') ? format_value(data) : data;}
             },
             {
                 data: "rel",
-                render: function(data, type) {
-                    if (type === 'display') {
-                        return format_relative(data);
-                    }
-                    return data;
-                }
+                render: function(data, type) {return (type === 'display') ? format_relative(data) : data;}
             },
             { data: "index", visible: false},
         ],
@@ -485,14 +468,14 @@
         }
     }
 
-    function format_stat(baseline, target, stat_unit) {
+    function format_stat(base, tgt, stat_unit) {
         let result = "";
-        if (baseline === target) {
-            result += '<span class="equal">' + format(baseline, stat_unit) + '</span>';
-        } else if (baseline < target) {
-            result += '<span class="increase">' + format(baseline, stat_unit) + ' ↗ ' + format(target, stat_unit) + '</span>';
+        if (base === tgt) {
+            result += '<span class="equal">' + format(base, stat_unit) + '</span>';
+        } else if (base < tgt) {
+            result += '<span class="increase">' + format(base, stat_unit) + ' ↗ ' + format(tgt, stat_unit) + '</span>';
         } else {
-            result += '<span class="decrease">' + format(baseline, stat_unit) + ' ↘ ' + format(target, stat_unit) + '</span>';
+            result += '<span class="decrease">' + format(base, stat_unit) + ' ↘ ' + format(tgt, stat_unit) + '</span>';
         }
         return result;
     };
@@ -531,21 +514,21 @@
         let result = '<table style="width: 100%; border: none;" class="nested">';
         let stat_type = d[2].toLowerCase(), stat_unit = unit_map[stat_map.indexOf(d[2])];
         let parts = d[5].split('#');
-        let traces = parts[0].split(';'), baseline = parts[1].split(';').map(Number), target = parts[2].split(';').map(Number);
-        let min_baseline = Math.min(...baseline), min_target = Math.min(...target);
-        let sum_baseline = baseline.reduce((acc, v) => acc + v, 0), sum_target = target.reduce((acc, v) => acc + v, 0);
+        let traces = parts[0].split(';'), base = parts[1].split(';').map(Number), tgt = parts[2].split(';').map(Number);
+        let min_base = Math.min(...base), min_tgt = Math.min(...tgt);
+        let sum_base = base.reduce((acc, v) => acc + v, 0), sum_tgt = tgt.reduce((acc, v) => acc + v, 0);
         traces.forEach((v, i) => {
             let node = nodes[v];
             result += '<tr><td style="white-space: pre-wrap">';
             if (i != 0 && i != traces.length) {
-                let baseline_stat = baseline[i-1],
-                    target_stat = target[i-1];
-                let diff = baseline_stat - target_stat;
-                result += '  '.repeat(i) + "⎸ " + format_stat(baseline_stat, target_stat, stat_unit);
+                let base_stat = base[i-1],
+                    tgt_stat = tgt[i-1];
+                let diff = base_stat - tgt_stat;
+                result += '  '.repeat(i) + "⎸ " + format_stat(base_stat, tgt_stat, stat_unit);
                 if (stat_type.includes("inclusive")) {
-                    result += "    " + format_bottleneck(baseline_stat, min_baseline) + " | " + format_bottleneck(target_stat, min_target);
+                    result += "    " + format_bottleneck(base_stat, min_base) + " | " + format_bottleneck(tgt_stat, min_tgt);
                 } else if (stat_type.includes("exclusive")) {
-                    result += "    " + format_path_prex(baseline, i-1, sum_baseline) + " | " + format_path_prex(target, i-1, sum_target);
+                    result += "    " + format_path_prex(base, i-1, sum_base) + " | " + format_path_prex(tgt, i-1, sum_tgt);
                 }
                 result += " "
             }
@@ -621,11 +604,11 @@
                 if (!hasNode(callee, nodedata.pos-1))
                     continue
 
-                target = getNode(callee, nodedata.pos-1)
-                if (custom_data[target].type === "none" || (nodedata.type !== custom_data[target].type && custom_data[target].type !== 'root')) {
-                    if (!worklist.includes(target)) {
-                        worklist.push(target);
-                        addToWorklist(worklist, sankey_data[0].node.customdata[target]);
+                tgt = getNode(callee, nodedata.pos-1)
+                if (custom_data[tgt].type === "none" || (nodedata.type !== custom_data[tgt].type && custom_data[tgt].type !== 'root')) {
+                    if (!worklist.includes(tgt)) {
+                        worklist.push(tgt);
+                        addToWorklist(worklist, sankey_data[0].node.customdata[tgt]);
                     }
                 }
             }
@@ -636,11 +619,11 @@
                 if (!hasNode(caller, nodedata.pos+1))
                     continue
 
-                target = getNode(caller, nodedata.pos+1)
-                if (custom_data[target].type === "none" || (nodedata.type !== custom_data[target].type && custom_data[target].type !== 'root')) {
-                    if (!worklist.includes(target)) {
-                        worklist.push(target);
-                        addToWorklist(worklist, sankey_data[0].node.customdata[target]);
+                tgt = getNode(caller, nodedata.pos+1)
+                if (custom_data[tgt].type === "none" || (nodedata.type !== custom_data[tgt].type && custom_data[tgt].type !== 'root')) {
+                    if (!worklist.includes(tgt)) {
+                        worklist.push(tgt);
+                        addToWorklist(worklist, sankey_data[0].node.customdata[tgt]);
                     }
                 }
             }
@@ -692,7 +675,7 @@
         for (let i = 0; i < edges.customdata.length; i++) {
             newValue = recomputeValue(edges.customdata[i].type, edges.customdata[i].stats);
             edges.value[i] = (fromInput <= newValue && newValue <= toInput) ? newValue : 0;
-            edges.customdata[i].display = format(edges.value[i], unit_map[selected_metric]);
+            edges.customdata[i].display = format(edges.value[i], unit_map[sel_metric]);
         }
         render();
     }
@@ -725,7 +708,7 @@
             }
         }
 
-        if (nodes[node] === selected_uid_text) {
+        if (nodes[node] === sel_uid_text) {
             sankey_data[0].node.color.push("rgba(0, 0, 0, 0.7)");
             sankey_data[0].node.label.push(nodes[node]);
             sankey_data[0].node.customdata.push({label: nodes[node], index: node, pos: pos, hidden: false, type: "root", id: node_len});
@@ -806,12 +789,12 @@
         updateSliders(val);
     }
 
-    function addToSankey(src, target, val, color, type, edge_stats) {
+    function addToSankey(src, tgt, val, color, type, edge_stats) {
         sankey_data[0].link.source.push(src);
-        sankey_data[0].link.target.push(target);
+        sankey_data[0].link.target.push(tgt);
         sankey_data[0].link.value.push(val);
         sankey_data[0].link.color.push(color);
-        sankey_data[0].link.customdata.push({stats: edge_stats, type: type, display: format(val, unit_map[selected_metric])})
+        sankey_data[0].link.customdata.push({stats: edge_stats, type: type, display: format(val, unit_map[sel_metric])})
         addToSteps(val);
     }
 
@@ -819,18 +802,18 @@
         if (!isChecked(stat_type))
             return 0;
 
-        let baseline_stat = edge_stats[selected_metric], target_stat = edge_stats[selected_metric+number_of_metrics];
+        let base_stat = edge_stats[sel_metric], tgt_stat = edge_stats[sel_metric+metric_no];
         if (stat_type === "baseline")
-            return baseline_stat;
+            return base_stat;
         if (stat_type === "target")
-            return target_stat;
-        let diff = baseline_stat - target_stat;
+            return tgt_stat;
+        let diff = base_stat - tgt_stat;
         if (stat_type === "decr")
             return diff > 0 ? Math.abs(diff) : 0;
         if (stat_type === "incr")
             return diff <= 0 ? Math.abs(diff) : 0;
         if (stat_type === "both")
-            return Math.min(baseline_stat, target_stat);
+            return Math.min(base_stat, tgt_stat);
     }
 
     function expandOneLevel() {
@@ -858,34 +841,34 @@
         filterEdges();
     }
 
-    function addEdge(src, target, edge_stats) {
-        // Baseline data
-        let key = src + "," + target;
+    function addEdge(src, tgt, edge_stats) {
+        // base data
+        let key = src + "," + tgt;
         if (processed_edges.has(key))
             return;
 
-        let baseline_stat = edge_stats[selected_metric], target_stat = edge_stats[selected_metric+number_of_metrics];
-        if (baseline_stat) {
-            addToSankey(src, target, baseline_stat, "rgba(49, 48, 77, 0.4)", "baseline", edge_stats)
+        let base_stat = edge_stats[sel_metric], tgt_stat = edge_stats[sel_metric+metric_no];
+        if (base_stat) {
+            addToSankey(src, tgt, base_stat, "rgba(49, 48, 77, 0.4)", "baseline", edge_stats)
         }
-        if (target_stat) {
-            addToSankey(src, target, target_stat, "rgba(255, 201, 74, 0.4)", "target", edge_stats)
+        if (tgt_stat) {
+            addToSankey(src, tgt, tgt_stat, "rgba(255, 201, 74, 0.4)", "target", edge_stats)
         }
-        let diff = baseline_stat - target_stat;
+        let diff = base_stat - tgt_stat;
         if (diff > 0) {
             // Baseline is higher
-            addToSankey(src, target, diff, "rgba(0, 250, 0, 0.4)", "decr", edge_stats);
-            addToSankey(src, target, 0, "rgba(255, 0, 0, 0.4)", "incr", edge_stats);
+            addToSankey(src, tgt, diff, "rgba(0, 250, 0, 0.4)", "decr", edge_stats);
+            addToSankey(src, tgt, 0, "rgba(255, 0, 0, 0.4)", "incr", edge_stats);
         } else {
-            addToSankey(src, target, Math.abs(diff), "rgba(250, 0, 0, 0.4)", "incr", edge_stats);
-            addToSankey(src, target, 0, "rgba(0, 250, 0, 0.4)", "decr", edge_stats);
+            addToSankey(src, tgt, Math.abs(diff), "rgba(250, 0, 0, 0.4)", "incr", edge_stats);
+            addToSankey(src, tgt, 0, "rgba(0, 250, 0, 0.4)", "decr", edge_stats);
         }
-        addToSankey(src, target, Math.min(baseline_stat, target_stat), "rgba(0, 0, 255, 0.4)", "both", edge_stats);
+        addToSankey(src, tgt, Math.min(base_stat, tgt_stat), "rgba(0, 0, 255, 0.4)", "both", edge_stats);
         processed_edges.add(key);
     }
 
-    function adjustType(target, type) {
-        tgt_data = sankey_data[0].node.customdata[target];
+    function adjustType(tgt, type) {
+        tgt_data = sankey_data[0].node.customdata[tgt];
         if (tgt_data.type === "none")
             tgt_data.type = type;
     }
@@ -894,15 +877,15 @@
         if (edges !== undefined) {
             for (edge in edges) {
                 if (isfwd) {
-                    let target = getNode(edge, pos+1);
-                    addEdge(node, target, stats[edges[edge]]);
+                    let tgt = getNode(edge, pos+1);
+                    addEdge(node, tgt, stats[edges[edge]]);
                     if (newtype === "caller")
-                        adjustType(target, newtype)
+                        adjustType(tgt, newtype)
                 } else {
-                    let target = getNode(edge, pos-1);
-                    addEdge(target, node, stats[edges[edge]]);
+                    let tgt = getNode(edge, pos-1);
+                    addEdge(tgt, node, stats[edges[edge]]);
                     if (newtype === "callee")
-                        adjustType(target, newtype)
+                        adjustType(tgt, newtype)
                 }
             }
         }
@@ -937,24 +920,11 @@
             row.child(format_row(d)).show();
             new DataTable("#metrics" + d.index, {paging: false, info: false, searching: false, order: [[1, 'desc']], columns: [
                     {
-                        render: function(data, type) {
-                            if (type === 'display')
-                                return stat_id_to_name(data);
-                            return data;
-                        }
+                        render: function(data, type) {return (type === 'display') ? stat_id_to_name(data) : data;}
                     }, {
-                        render: function (data, type) {
-                            if (type == "display")
-                                return format_value(data);
-                            return data;
-                        }
+                        render: function(data, type) {return (type === 'display') ? format_value(data) : data;}
                     }, {
-                        render: function (data, type) {
-                            if (type == "display") {
-                                return format_relative(data);
-                            }
-                            return data;
-                        }
+                        render: function(data, type) {return (type === 'display') ? format_relative(data) : data;}
                     }
                 ]});
             trace_table = new DataTable("#traces" + d.index, {
@@ -964,24 +934,12 @@
                         orderable: false,
                         data: null,
                         defaultContent: "",
-                        render: function () {
-                            return '<span class="plus">[+]</span><span class="minus">[-]</span>';
-                        },
+                        render: function () {return '<span class="plus">[+]</span><span class="minus">[-]</span>';},
                         width: "15px"
                     }, {}, {}, {
-                        render: function (data, type) {
-                            if (type === "display") {
-                                return format_value(data);
-                            }
-                            return data;
-                        }
+                        render: function(data, type) {return (type === 'display') ? format_value(data) : data;}
                     }, {
-                        render: function (data, type) {
-                            if (type == "display") {
-                                return format_relative(data);
-                            }
-                            return data;
-                        }
+                        render: function(data, type) {return (type === 'display') ? format_relative(data) : data;}
                     }, {visible: false},
                 ],
                 createdRow: function( row, data, dataIndex ) {
@@ -1014,7 +972,7 @@
     function initializeGraph() {
         metric_changed();
         clearGraph();
-        addRootNode(selected_uid);
+        addRootNode(sel_uid);
         newplot();
         fillSliders(steps[0], steps[0], steps[steps.length-1], steps[0], steps[steps.length-1], steps[steps.length-1]);
         filterEdges();
@@ -1027,26 +985,26 @@
                 var div = document.getElementById('sankey_tools');
                 if (div.style.display === "none")
                     div.style.display = "block";
-                selected_uid = data[0].index;
-                selected_uid_text = data[0].uid;
-                layout.title = selected_uid_text;
+                sel_uid = data[0].index;
+                sel_uid_text = data[0].uid;
+                layout.title = sel_uid_text;
                 initializeGraph();
             }
         }
     })
 
     function metric_changed() {
-        selected_metric = parseInt(document.getElementById("metricSelection").value);
+        sel_metric = parseInt(document.getElementById("metricSelection").value);
         let values = [];
         let edge_values = sankey_data[0].link.customdata;
         for (let i = 0; i < edge_values.length; i++) {
-            baseline_metric = edge_values[i].stats[selected_metric];
-            target_metric = edge_values[i].stats[selected_metric+number_of_metrics]
+            base_metric = edge_values[i].stats[sel_metric];
+            tgt_metric = edge_values[i].stats[sel_metric+metric_no]
             // We skip empty metrics
-            if (baseline_metric !== 0)
-                values.push(baseline_metric);
-            if (target_metric !== 0)
-                values.push(target_metric);
+            if (base_metric !== 0)
+                values.push(base_metric);
+            if (tgt_metric !== 0)
+                values.push(tgt_metric);
         }
 
         // We adjust empty values
@@ -1087,7 +1045,7 @@
       // Select correct metric
       if (metricNo != -1) {
         document.getElementById("metricSelection").selectedIndex = metricNo;
-        if (selected_uid != -1)
+        if (sel_uid != -1)
             initializeGraph();
       }
 
@@ -1127,41 +1085,29 @@
     document.querySelector('input[name="target"]').checked = false;
     document.querySelector('#fromSlider').addEventListener('change', filterEdges);
     document.querySelector('#toSlider').addEventListener('change', filterEdges);
+    function openSankey(el) {
+        var text = el.querySelector('text');
+        var innerText = text.textContent.trim();
+        var div = document.getElementById('sankey_tools');
+        if (div.style.display === "none")
+            div.style.display = "block";
+        let index = nodes.indexOf(innerText);
+        if (index != -1) {
+            sel_uid = index;
+            sel_uid_text = innerText;
+            layout.title = sel_uid_text;
+            initializeGraph();
+        }
+    }
 
-    for (let i = 0; i < number_of_metrics; i++) {
-        var lhs_elements = document.querySelectorAll(".lhs_" + i + "_func_g");
-        lhs_elements.forEach(function (element) {
-            element.addEventListener('click', function() {
-                var textElement = element.querySelector('text');
-                var innerText = textElement.textContent.trim();
-                var div = document.getElementById('sankey_tools');
-                if (div.style.display === "none")
-                    div.style.display = "block";
-                let index = nodes.indexOf(innerText);
-                if (index != -1) {
-                    selected_uid = index;
-                    selected_uid_text = innerText;
-                    layout.title = selected_uid_text;
-                    initializeGraph();
-                }
-            })
+    for (let i = 0; i < metric_no; i++) {
+        var lhs = document.querySelectorAll(".lhs_" + i + "_func_g");
+        lhs.forEach(function (el) {
+            el.addEventListener('click', function() {openSankey(el)}) 
         })
-        var rhs_elements = document.querySelectorAll(".rhs_" + i + "_func_g");
-        rhs_elements.forEach(function (element) {
-            element.addEventListener('click', function() {
-                var textElement = element.querySelector('text');
-                var innerText = textElement.textContent.trim();
-                var div = document.getElementById('sankey_tools');
-                if (div.style.display === "none")
-                    div.style.display = "block";
-                let index = nodes.indexOf(innerText);
-                if (index != -1) {
-                    selected_uid = index;
-                    selected_uid_text = innerText;
-                    layout.title = selected_uid_text;
-                    initializeGraph();
-                }
-            })
+        var rhs = document.querySelectorAll(".rhs_" + i + "_func_g");
+        rhs.forEach(function (el) {
+            el.addEventListener('click', function() {openSankey(el)}) 
         })
     };
     {%- if flamegraphs %}
