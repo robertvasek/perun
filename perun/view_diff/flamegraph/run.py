@@ -36,7 +36,10 @@ def escape_content(tag: str, content: str) -> str:
         TAGS_TO_INDEX.append(tag)
     functions = [
         r"(?<!\w)(c)\(",
+        r"(?<!\w)(get_params)\(",
+        r"(?<!\w)(parse_params)\(",
         r"(?<!\w)(find_child)\(",
+        r"(?<!\w)(find_group)\(",
         r"(?<!\w)(g_to_func)\(",
         r"(?<!\w)(g_to_text)\(",
         r"(?<!\w)(init)\(",
@@ -48,6 +51,7 @@ def escape_content(tag: str, content: str) -> str:
         r"(?<!\w)(search_prompt)\(",
         r"(?<!\w)(searchout)\(",
         r"(?<!\w)(searchover)\(",
+        r"(?<!\w)(clearzoom)\(",
         r"(?<!\w)(unzoom)\(",
         r"(?<!\w)(update_text)\(",
         r"(?<!\w)(zoom)\(",
@@ -56,21 +60,28 @@ def escape_content(tag: str, content: str) -> str:
         r"(?<!\w)(zoom_reset)\(",
     ]
     other = [
-        (r"func_g", f"{tag}_func_g"),
-        (r"background", f"{tag}_background"),
-        (r"\"unzoom\"", f'"{tag}_unzoom"'),
         (r"\"search\"", f'"{tag}_search"'),
+        (r"\"frames\"", f'"{tag}_frames"'),
+        (r"#frames", f"#{tag}_frames"),
+        (r"\"unzoom\"", f'"{tag}_unzoom"'),
         (r"\"matched\"", f'"{tag}_matched"'),
         (r"details", f"{tag}_details"),
         (r"searchbtn", f"{tag}_searchbtn"),
+        (r"unzoombtn", f"{tag}_unzoombtn"),
+        (r"currentSearchTerm", f"{tag}_currentSearchTerm"),
+        (r"ignorecase", f"{tag}_ignorecase"),
+        (r"ignorecaseBtn", f"{tag}_ignorecaseBtn"),
         (r"searching", f"{tag}_searching"),
         (r"matchedtxt", f"{tag}_matchedtxt"),
         (r"svg\.", f"{tag}_svg."),
         (r"svg =", f"{tag}_svg ="),
-        (r"svg;", f"{tag}_svg;"),
-        (r"\[0\]", f"[{TAGS_TO_INDEX.index(tag)}]"),
+        (r"svg,", f"{tag}_svg,"),
+        (r"svg\"\)\[0\]", f'svg")[{TAGS_TO_INDEX.index(tag)}]'),
         (r"document.", f"{tag}_svg."),
-        (f"({tag}_(svg|details|searchbtn|matchedtxt)) = {tag}_svg.", "\\1 = document."),
+        (
+            f"({tag}_(svg|details|searchbtn|matchedtxt|ignorecaseBtn|unzoombtn)) = {tag}_svg.",
+            "\\1 = document.",
+        ),
         # Huge thanks to following article:
         # https://chartio.com/resources/tutorials/how-to-resize-an-svg-when-the-window-is-resized-in-d3-js/
         # Which helped to solve the issue with non-resizable flamegraphs

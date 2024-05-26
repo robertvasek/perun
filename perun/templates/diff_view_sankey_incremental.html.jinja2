@@ -204,12 +204,12 @@
         <div id="{{ metric|sanitize_variable_name }}" class="tabcontent">
             <div class="left column">
                 <div class='svg-container'>
-                    {{ lhs_flamegraph}}
+                {{ lhs_flamegraph }}
                 </div>
             </div>
             <div class="right column">
                 <div class='svg-container'>
-                    {{ rhs_flamegraph }}
+                {{ rhs_flamegraph }}
                 </div>
             </div>
         </div>
@@ -994,7 +994,11 @@
     })
 
     function metric_changed() {
+        {% if stat_list|length > 1 %}
         sel_metric = parseInt(document.getElementById("metricSelection").value);
+        {% else %}
+        sel_metric = 0;
+        {% endif %}
         let values = [];
         let edge_values = sankey_data[0].link.customdata;
         for (let i = 0; i < edge_values.length; i++) {
@@ -1044,7 +1048,9 @@
 
       // Select correct metric
       if (metricNo != -1) {
+        {%- if stat_list|length > 1 %}
         document.getElementById("metricSelection").selectedIndex = metricNo;
+        {%- endif %}
         if (sel_uid != -1)
             initializeGraph();
       }
@@ -1086,8 +1092,10 @@
     document.querySelector('#fromSlider').addEventListener('change', filterEdges);
     document.querySelector('#toSlider').addEventListener('change', filterEdges);
     function openSankey(el) {
-        var text = el.querySelector('text');
-        var innerText = text.textContent.trim();
+        console.log(el);
+        var text = el.parentNode.querySelector('title');
+        var innerText = text.textContent.trim().replace(/\([^()]*\)$/, "").trim();
+        console.log(innerText);
         var div = document.getElementById('sankey_tools');
         if (div.style.display === "none")
             div.style.display = "block";
@@ -1101,11 +1109,19 @@
     }
 
     for (let i = 0; i < metric_no; i++) {
-        var lhs = document.querySelectorAll(".lhs_" + i + "_func_g");
+        var lhs = document.querySelectorAll("#lhs_" + i + "_frames rect");
         lhs.forEach(function (el) {
             el.addEventListener('click', function() {openSankey(el)}) 
         })
-        var rhs = document.querySelectorAll(".rhs_" + i + "_func_g");
+        var lhs = document.querySelectorAll("#lhs_" + i + "_frames text");
+        lhs.forEach(function (el) {
+            el.addEventListener('click', function() {openSankey(el)}) 
+        })
+        var rhs = document.querySelectorAll("#rhs_" + i + "_frames rect");
+        rhs.forEach(function (el) {
+            el.addEventListener('click', function() {openSankey(el)}) 
+        })
+        var rhs = document.querySelectorAll("#rhs_" + i + "_frames text");
         rhs.forEach(function (el) {
             el.addEventListener('click', function() {openSankey(el)}) 
         })
