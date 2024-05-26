@@ -61,6 +61,8 @@ def escape_content(tag: str, content: str) -> str:
     ]
     other = [
         (r"\"search\"", f'"{tag}_search"'),
+        (r"\"background\"", f'"{tag}_background"'),
+        (r"#background", f"#{tag}_background"),
         (r"\"frames\"", f'"{tag}_frames"'),
         (r"#frames", f"#{tag}_frames"),
         (r"\"unzoom\"", f'"{tag}_unzoom"'),
