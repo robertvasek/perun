@@ -1082,15 +1082,6 @@
       }
     }
 
-    document.querySelector('input[name="incr"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="decr"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="both"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="baseline"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="baseline"]').checked = false;
-    document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
-    document.querySelector('input[name="target"]').checked = false;
-    document.querySelector('#fromSlider').addEventListener('change', filterEdges);
-    document.querySelector('#toSlider').addEventListener('change', filterEdges);
     function openSankey(el) {
         console.log(el);
         var text = el.parentNode.querySelector('title');
@@ -1108,24 +1099,30 @@
         }
     }
 
+    function addListeners(unit, i, child) {
+        var els = document.querySelectorAll("#" + unit + "_" + i + "_frames " + child);
+        els.forEach(function (el) {
+            el.addEventListener('click', function() {openSankey(el)}) 
+        })
+    }
+
+    document.querySelector('input[name="incr"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="decr"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="both"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="baseline"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="baseline"]').checked = false;
+    document.querySelector('input[name="target"]').addEventListener('change', filterEdges);
+    document.querySelector('input[name="target"]').checked = false;
+    document.querySelector('#fromSlider').addEventListener('change', filterEdges);
+    document.querySelector('#toSlider').addEventListener('change', filterEdges);
+
     for (let i = 0; i < metric_no; i++) {
-        var lhs = document.querySelectorAll("#lhs_" + i + "_frames rect");
-        lhs.forEach(function (el) {
-            el.addEventListener('click', function() {openSankey(el)}) 
-        })
-        var lhs = document.querySelectorAll("#lhs_" + i + "_frames text");
-        lhs.forEach(function (el) {
-            el.addEventListener('click', function() {openSankey(el)}) 
-        })
-        var rhs = document.querySelectorAll("#rhs_" + i + "_frames rect");
-        rhs.forEach(function (el) {
-            el.addEventListener('click', function() {openSankey(el)}) 
-        })
-        var rhs = document.querySelectorAll("#rhs_" + i + "_frames text");
-        rhs.forEach(function (el) {
-            el.addEventListener('click', function() {openSankey(el)}) 
-        })
+        addListeners("lhs", i, "rect");
+        addListeners("lhs", i, "text");
+        addListeners("rhs", i, "rect");
+        addListeners("rhs", i, "text");
     };
+
     {%- if flamegraphs %}
     document.getElementById("defaultOpen").click();
     {%- endif %}
