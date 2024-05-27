@@ -7,6 +7,7 @@ There are three types of config: local, corresponding to concrete pcs, global, w
 global information and configurations, like e.g. list of registered repositories, and temporary,
 containing formats and options for one execution of perun command.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -431,7 +432,7 @@ def get_hierarchy() -> Iterable[Config]:
     yield shared()
 
 
-def lookup_key_recursively(key: str, default: Optional[str] = None) -> Any:
+def lookup_key_recursively(key: str, default: Optional[Any] = None) -> Any:
     """Recursively looks up the key first in the local config and then in the global.
 
     This is used e.g. for formatting strings or editors, where first we have our local configs,
@@ -447,7 +448,7 @@ def lookup_key_recursively(key: str, default: Optional[str] = None) -> Any:
         except exceptions.MissingConfigSectionException:
             continue
     # If we have provided default value of the key return this, otherwise we raise an exception
-    if default:
+    if default is not None:
         return default
     raise exceptions.MissingConfigSectionException(key)
 

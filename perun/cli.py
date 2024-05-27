@@ -38,6 +38,7 @@ the flexibility of Perun's usage.
 
 .. _Click: https://click.palletsprojects.com/en/latest/
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -665,6 +666,14 @@ def show(ctx: click.Context, profile: Profile, **_: Any) -> None:
     is_eager=True,
     callback=cli_kit.lookup_minor_version_callback,
     help="Finds the profiles in the index of minor version [HASH]",
+)
+@click.option(
+    "--offline",
+    "-o",
+    callback=cli_kit.set_config_option_from_flag(perun_config.runtime, "showdiff.offline"),
+    is_flag=True,
+    default=False,
+    help="Creates self-contained outputs usable in offline environments (default=False).",
 )
 @click.pass_context
 def showdiff(ctx: click.Context, **kwargs: Any) -> None:

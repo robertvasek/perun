@@ -28,6 +28,7 @@ import jinja2
 import progressbar
 
 # Perun Imports
+from perun.logic import config
 from perun.profile import convert
 from perun.profile.factory import Profile
 from perun.templates import filters
@@ -665,6 +666,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         ],
         flamegraphs=flamegraphs,
         selection_table=selection_table,
+        offline=config.lookup_key_recursively("showdiff.offline", False),
     )
     log.minor_success("HTML template", "rendered")
     output_file = diff_kit.save_diff_view(
