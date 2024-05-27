@@ -582,7 +582,7 @@
 
     function format_sub_row(d, uid) {
         let result = '<table style="width: 100%; border: none;" class="nested">';
-        let stat_type = d[2].toLowerCase(), stat_unit = unit_map[stat_map.indexOf(d[2])];
+        let stat_type = stat_map[d[2]].toLowerCase(), stat_unit = unit_map[stat_map.indexOf(d[2])];
         let parts = d[5].split('#');
         let traces = parts[0].split(';'), base = parts[1].split(';').map(Number), tgt = parts[2].split(';').map(Number);
         let min_base = Math.min(...base), min_tgt = Math.min(...tgt);
@@ -1011,7 +1011,9 @@
                         defaultContent: "",
                         render: function () {return '<span class="plus">[+]</span><span class="minus">[-]</span>';},
                         width: "15px"
-                    }, {}, {}, {
+                    }, {}, {
+                        render: function(data, type) {return (type === 'display') ? stat_map[data] : data; }
+                    }, {
                         render: function(data, type) {return (type === 'display') ? format_value(data) : data;}
                     }, {
                         render: function(data, type) {return (type === 'display') ? format_relative(data) : data;}

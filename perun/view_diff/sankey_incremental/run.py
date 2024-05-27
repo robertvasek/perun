@@ -141,8 +141,15 @@ class SelectionRow:
             for stat in stats
         ]
         # trace, stat_type, abs, rel, long_trace
+        stats = Stats.all_stats()
         self.trace_stats: list[tuple[str, str, float, float, str]] = [
-            (t[0], t[1], common_kit.to_compact_num(t[2]), common_kit.to_compact_num(t[3]), t[4])
+            (
+                t[0],
+                stats.index(t[1]),
+                common_kit.to_compact_num(t[2]),
+                common_kit.to_compact_num(t[3]),
+                t[4],
+            )
             for t in trace_stats
         ]
 
