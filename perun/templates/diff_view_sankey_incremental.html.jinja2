@@ -212,6 +212,18 @@
         </div>
         {%- for (metric, lhs_flamegraph, rhs_flamegraph, diff_flamegraph) in flamegraphs %}
         <div id="{{ metric|sanitize_variable_name }}" class="tabcontent">
+            <div class="middle">
+                <div>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td class="key">Search:</td>
+                                <td><input id="flamegraph_search_{{ loop.index0 }}"></td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <div class="left column">
                 <div class='svg-container'>
                 {{ lhs_flamegraph }}
@@ -1159,6 +1171,17 @@
 
     {%- if flamegraphs %}
     document.getElementById("defaultOpen").click();
+    {% for index in range(0, flamegraphs|length )%}
+        searchBar = document.getElementById("flamegraph_search_{{ index }}");
+        searchBar.addEventListener('input', function() {
+            lhs_{{index}}_reset_search();
+            lhs_{{index}}_currentSearchTerm = searchBar.value;
+            lhs_{{index}}_search();
+            rhs_{{index}}_reset_search();
+            rhs_{{index}}_currentSearchTerm = searchBar.value;
+            rhs_{{index}}_search();
+        })
+    {%- endfor%}
     {%- endif %}
     newplot()
 </script>
