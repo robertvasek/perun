@@ -843,19 +843,6 @@ my $inc = <<INC;
 		if (target) details.nodeValue = ' ';
 	}, false)
 
-	// ctrl-F for search
-	// ctrl-I to toggle case-sensitive search
-	window.addEventListener("keydown",function (e) {
-		if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
-			e.preventDefault();
-			search_prompt();
-		}
-		else if (e.ctrlKey && e.keyCode === 73) {
-			e.preventDefault();
-			toggle_ignorecase();
-		}
-	}, false)
-
 	// functions
 	function find_child(node, selector) {
 		var children = node.querySelectorAll(selector);

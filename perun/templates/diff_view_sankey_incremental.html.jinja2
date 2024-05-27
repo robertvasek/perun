@@ -263,8 +263,8 @@
 
     // Graph data
     {% autoescape off %}
-    let caller_graph = {{ caller_graph }}
     let callee_graph = {{ callee_graph }}
+    let caller_graph = {{ caller_graph }}
     let nodes = {{ nodes }}
     let stats = {{ stats }}
     let stat_map = {{ stat_list }}
@@ -630,13 +630,13 @@
     }
 
     function addToWorklist(worklist, nodedata) {
-        let callees = callee_graph[nodedata.index][nodedata.pos]
-        if (callees !== undefined) {
-            for (callee in callees) {
-                if (!hasNode(callee, nodedata.pos-1))
+        let callers = caller_graph[nodedata.index][nodedata.pos]
+        if (callers !== undefined) {
+            for (caller in callers) {
+                if (!hasNode(caller, nodedata.pos-1))
                     continue
 
-                tgt = getNode(callee, nodedata.pos-1)
+                tgt = getNode(caller, nodedata.pos-1)
                 if (custom_data[tgt].type === "none" || (nodedata.type !== custom_data[tgt].type && custom_data[tgt].type !== 'root')) {
                     if (!worklist.includes(tgt)) {
                         worklist.push(tgt);
@@ -645,13 +645,13 @@
                 }
             }
         }
-        let callers = caller_graph[nodedata.index][nodedata.pos]
-        if (callers !== undefined) {
-            for (caller in callers) {
-                if (!hasNode(caller, nodedata.pos+1))
+        let callees = callee_graph[nodedata.index][nodedata.pos]
+        if (callees !== undefined) {
+            for (callee in callees) {
+                if (!hasNode(callee, nodedata.pos+1))
                     continue
 
-                tgt = getNode(caller, nodedata.pos+1)
+                tgt = getNode(callee, nodedata.pos+1)
                 if (custom_data[tgt].type === "none" || (nodedata.type !== custom_data[tgt].type && custom_data[tgt].type !== 'root')) {
                     if (!worklist.includes(tgt)) {
                         worklist.push(tgt);
@@ -677,8 +677,8 @@
     function unfoldnode(nodedata) {
         clickedNode = getNode(nodedata.index, nodedata.pos);
         if (nodedata.hidden) {
-            addAllEdgesFor(clickedNode, nodedata.pos, callee_graph[nodedata.index][nodedata.pos], false, nodedata.type);
-            addAllEdgesFor(clickedNode, nodedata.pos, caller_graph[nodedata.index][nodedata.pos], true, nodedata.type);
+            addAllEdgesFor(clickedNode, nodedata.pos, caller_graph[nodedata.index][nodedata.pos], false, nodedata.type);
+            addAllEdgesFor(clickedNode, nodedata.pos, callee_graph[nodedata.index][nodedata.pos], true, nodedata.type);
             sankey_data[0].node.label[nodedata.id] = nodedata.label;
             nodedata.hidden = false;
         }
@@ -853,24 +853,24 @@
     }
 
     function expandOneLevel() {
-        let nodes = sankey_data[0].node, caller_worklist = [], callee_worklist = [];
+        let nodes = sankey_data[0].node, callee_worklist = [], caller_worklist = [];
         for (let i = 0; i < nodes.customdata.length; i++) {
             let nodedata = nodes.customdata[i];
             if (nodedata.hidden) {
-                if (nodedata.type === "callee")
-                    callee_worklist.push(nodedata);
-                else if (nodedata.type === "caller")
+                if (nodedata.type === "caller")
                     caller_worklist.push(nodedata);
+                else if (nodedata.type === "callee")
+                    callee_worklist.push(nodedata);
             }
         }
 
         // Worklists
-        while (caller_worklist.length != 0) {
-            item = caller_worklist.shift();
-            unfoldnode(item);
-        }
         while (callee_worklist.length != 0) {
             item = callee_worklist.shift();
+            unfoldnode(item);
+        }
+        while (caller_worklist.length != 0) {
+            item = caller_worklist.shift();
             unfoldnode(item);
         }
 
@@ -915,12 +915,12 @@
                 if (isfwd) {
                     let tgt = getNode(edge, pos+1);
                     addEdge(node, tgt, stats[edges[edge]]);
-                    if (newtype === "caller")
+                    if (newtype === "callee")
                         adjustType(tgt, newtype)
                 } else {
                     let tgt = getNode(edge, pos-1);
                     addEdge(tgt, node, stats[edges[edge]]);
-                    if (newtype === "callee")
+                    if (newtype === "caller")
                         adjustType(tgt, newtype)
                 }
             }
@@ -932,14 +932,14 @@
         for (let i = 0; i < node_map[index].length; i++) {
             pos = node_map[index][i];
             rootNode = getNode(index, pos);
-            addAllEdgesFor(rootNode, pos, callee_graph[index][pos], false, "callee");
-            addAllEdgesFor(rootNode, pos, caller_graph[index][pos], true, "caller");
+            addAllEdgesFor(rootNode, pos, caller_graph[index][pos], false, "caller");
+            addAllEdgesFor(rootNode, pos, callee_graph[index][pos], true, "callee");
         }
     }
 
     function stat_id_to_name(stat_id) {
         let metric_len = stat_map.length, metric = stat_id % metric_len;
-        return ((stat_id <= metric_len) ? 'callee ' : 'caller ') + stat_map[metric];
+        return ((stat_id <= metric_len) ? 'caller ' : 'callee ') + stat_map[metric];
     }
 
     // Event handlers
