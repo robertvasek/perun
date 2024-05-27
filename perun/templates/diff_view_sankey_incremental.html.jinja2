@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.min.css">
-    <script src='https://cdn.plot.ly/plotly-2.30.0.min.js'></script>
+    <script type="text/javascript" charset="utf8" src='https://cdn.plot.ly/plotly-2.30.0.min.js'></script>
     <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/2.0.3/js/dataTables.min.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/select/2.0.0/js/dataTables.select.min.js"></script>
@@ -1070,7 +1070,7 @@
     }
 
     {% if stat_list|length > 1 %}
-    document.getElementById("metricSelection").addEventListener('change', metric_changed);
+    document.getElementById("metricSelection").addEventListener('change', initializeGraph);
     {% endif %}
 
     function openTab(evt, tabName, metricNo) {
@@ -1172,13 +1172,13 @@
     {%- if flamegraphs %}
     document.getElementById("defaultOpen").click();
     {% for index in range(0, flamegraphs|length )%}
-        searchBar = document.getElementById("flamegraph_search_{{ index }}");
-        searchBar.addEventListener('input', function() {
+        searchBar_{{index}} = document.getElementById("flamegraph_search_{{ index }}");
+        searchBar_{{index}}.addEventListener('input', function() {
             lhs_{{index}}_reset_search();
-            lhs_{{index}}_currentSearchTerm = searchBar.value;
+            lhs_{{index}}_currentSearchTerm = searchBar_{{index}}.value;
             lhs_{{index}}_search();
             rhs_{{index}}_reset_search();
-            rhs_{{index}}_currentSearchTerm = searchBar.value;
+            rhs_{{index}}_currentSearchTerm = searchBar_{{index}}.value;
             rhs_{{index}}_search();
         })
     {%- endfor%}

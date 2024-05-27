@@ -75,8 +75,8 @@ class TraceStat:
     :ivar baseline_cost: overall cost of the traces
     :ivar target_cost: overall cost of the traces
     :ivar baseline_partial_costs: list of partial costs of the trace for baseline;
-        the partial costs are the particular results for each of the pair of caller
-        and callee in the trace.
+        the partial costs are the particular results for each of the pair of callee
+        and caller in the trace.
     :ivar target_partial_costs: list of partial costs of the trace for target
     """
 
@@ -209,23 +209,6 @@ class Graph:
             return f"{self.uid_to_id[node.split('#')[0]]}"
         return str(self.uid_to_id[node])
 
-    def get_callee_stats(self, src: str, tgt: str) -> Stats:
-        """Returns stats for callees of the src
-
-        :param src: source node
-        :param tgt: target callee node
-        :return: stats
-        """
-        # Create node if it does not already exist
-        src_node = self.get_node(src)
-
-        # Get link if it does not already exist
-        if tgt not in src_node.callees:
-            tgt_node = self.get_node(tgt)
-            src_node.callees[tgt] = Link(tgt_node, Stats())
-
-        return src_node.callees[tgt].stats
-
     def get_caller_stats(self, src: str, tgt: str) -> Stats:
         """Returns stats for callers of the src
 
@@ -243,17 +226,34 @@ class Graph:
 
         return src_node.callers[tgt].stats
 
-    def to_jinja_string(self, link_type: Literal["callers", "callees"] = "callers") -> str:
+    def get_callee_stats(self, src: str, tgt: str) -> Stats:
+        """Returns stats for callees of the src
+
+        :param src: source node
+        :param tgt: target callee node
+        :return: stats
+        """
+        # Create node if it does not already exist
+        src_node = self.get_node(src)
+
+        # Get link if it does not already exist
+        if tgt not in src_node.callees:
+            tgt_node = self.get_node(tgt)
+            src_node.callees[tgt] = Link(tgt_node, Stats())
+
+        return src_node.callees[tgt].stats
+
+    def to_jinja_string(self, link_type: Literal["callees", "callers"] = "callees") -> str:
         """Since jinja seems to be awfully slow with this, we render the result ourselves
 
         1. Target nodes of "uid#pos" are simplified to "uid",
             since you can infer pos to be pos+1 of source
         2. Stats are merged together: first half is for baseline, second half is for target
 
-        TODO: switch callees to callers and callers to callees
+        TODO: switch callers to callees and callees to callers
 
-        :param link_type: either callers for callers or callee for callees
-        :return string representation of the caller or callee relation
+        :param link_type: either callees for callees or caller for callers
+        :return string representation of the callee or caller relation
         """
 
         def comma_control(commas_list: list[bool], pos: int) -> str:
@@ -276,11 +276,11 @@ class Graph:
                 output.extend([comma_control(commas, 1), f"{node.get_order()}:", "{"])
                 commas[2] = False
                 for link in node.get_links(link_type).values():
-                    assert link_type == "callees" or int(node.get_order()) + 1 == int(
+                    assert link_type == "callers" or int(node.get_order()) + 1 == int(
                         link.target.get_order()
                     )
                     assert (
-                        link_type == "callers"
+                        link_type == "callees"
                         or int(node.get_order()) == int(link.target.get_order()) + 1
                     )
                     output.extend(
@@ -300,32 +300,32 @@ class Node:
     """Single node in sankey graph
 
     :ivar uid: unique identifier of the node (the label)
-    :ivar callers: map of positions to edge relation for callers
     :ivar callees: map of positions to edge relation for callees
+    :ivar callers: map of positions to edge relation for callers
     """
 
-    __slots__ = ["uid", "callers", "callees"]
+    __slots__ = ["uid", "callees", "callers"]
 
     uid: str
-    callers: dict[str, Link]
     callees: dict[str, Link]
+    callers: dict[str, Link]
 
     def __init__(self, uid: str):
         """Initializes the node"""
         self.uid = uid
-        self.callers = {}
         self.callees = {}
+        self.callers = {}
 
-    def get_links(self, link_type: Literal["callers", "callees"]) -> dict[str, Link]:
+    def get_links(self, link_type: Literal["callees", "callers"]) -> dict[str, Link]:
         """Returns linkage based on given type
 
-        :param link_type: either callers or callees
+        :param link_type: either callees or callers
         :return: linkage of the given ty pe
         """
-        if link_type == "callers":
-            return self.callers
-        assert link_type == "callees"
-        return self.callees
+        if link_type == "callees":
+            return self.callees
+        assert link_type == "callers"
+        return self.callers
 
     def get_order(self) -> int:
         """Gets position/order in the call traces
@@ -407,11 +407,11 @@ def process_edge(
     :param graph: sankey graph
     :param profile_type: type of the profile
     :param resource: consumed resources
-    :param src: caller
-    :param tgt: callee
+    :param src: callee
+    :param tgt: caller
     """
-    src_stats = graph.get_caller_stats(src, tgt)
-    tgt_stats = graph.get_callee_stats(tgt, src)
+    src_stats = graph.get_callee_stats(src, tgt)
+    tgt_stats = graph.get_caller_stats(tgt, src)
     for key in resource:
         amount = common_kit.try_convert(resource[key], [float])
         if amount is None or key == "time":
@@ -490,8 +490,8 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
                 for i in range(0, trace_len - 1):
                     src, tgt = f"{trace[i]}#{i}", f"{trace[i + 1]}#{i + 1}"
                     node = graph.get_node(src)
-                    if tgt in node.callers:
-                        stats = node.callers[tgt].stats
+                    if tgt in node.callees:
+                        stats = node.callees[tgt].stats
                         for j, stat in enumerate(Stats.all_stats()):
                             base_stat, tgt_stat = stats.baseline[stat], stats.target[stat]
                             base_partial[j][i] += base_stat
@@ -529,10 +529,10 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
         stats: list[tuple[int, float, float]] = []
         for node in nodes:
             for i, known_stat in enumerate(Stats.all_stats()):
-                for link in node.callees.values():
+                for link in node.callers.values():
                     baseline_overall[i] += link.stats.baseline[known_stat]
                     target_overall[i] += link.stats.target[known_stat]
-                for link in node.callers.values():
+                for link in node.callees.values():
                     baseline_overall[i + stat_len] += link.stats.baseline[known_stat]
                     target_overall[i + stat_len] += link.stats.target[known_stat]
         for i in range(0, stat_len * 2):
@@ -639,8 +639,8 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         rhs_tag="Target (tgt)",
         rhs_header=rhs_header,
         palette=WebColorPalette,
-        caller_graph=graph.to_jinja_string("callers"),
         callee_graph=graph.to_jinja_string("callees"),
+        caller_graph=graph.to_jinja_string("callers"),
         stat_list=Stats.all_stats(),
         units=[mapping.get_unit(s) for s in Stats.all_stats()],
         stats="["
