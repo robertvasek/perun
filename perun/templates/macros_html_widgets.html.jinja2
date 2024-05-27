@@ -207,10 +207,6 @@ function formatSize(size, baseUnit = "") {
     return `${size.toFixed(2)} P${baseUnit}`;
 }
 
-function setInput(label, value) {
-    label.textContent = formatSize(value);
-}
-
 function findNearestStep(value, steps) {
     return steps.reduce((prev, curr) => Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev);
 }

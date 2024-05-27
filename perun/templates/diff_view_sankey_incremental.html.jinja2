@@ -198,6 +198,16 @@
                     <th>Relative</th>
                 </tr>
                 </thead>
+                <tfoot>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                </tfoot>
             </table>
         </div>
         {%- for (metric, lhs_flamegraph, rhs_flamegraph, diff_flamegraph) in flamegraphs %}
@@ -403,6 +413,28 @@
         createdRow: function( row, data, dataIndex ) {
             $( row ).addClass('hidden');
         },
+        initComplete: function() {
+            this.api().columns().every(function(i) {
+                if (i == 0 || i > 3)
+                    return;
+                let column = this;
+
+                let select = document.createElement('select');
+                select.add(new Option(''));
+                column.footer().replaceChildren(select);
+
+                select.addEventListener('change', function() {
+                    column.search(select.value, {exact: true}).draw();
+                });
+
+                column.data().unique().sort().each(function(d, j) {
+                    if (i == 3)
+                        select.add(new Option(stat_id_to_name(d)));
+                    else
+                        select.add(new Option(d));
+                })
+            });
+        }
     })
     selection_table.on('user-select', function (e, dt, type, cell, originalEvent) {
         if (originalEvent.target.cellIndex === 0 || originalEvent.target.tagName === "SPAN") {
@@ -733,6 +765,10 @@
         shown_nodes = [];
         processed_edges = new Set();
         steps = [];
+    }
+
+    function setInput(label, value) {
+        label.textContent = format(value, unit_map[sel_metric]);
     }
 
     function fillSliders(fromMin, fromVal, fromMax, toMin, toVal, toMax) {
@@ -1083,10 +1119,8 @@
     }
 
     function openSankey(el) {
-        console.log(el);
         var text = el.parentNode.querySelector('title');
         var innerText = text.textContent.trim().replace(/\([^()]*\)$/, "").trim();
-        console.log(innerText);
         var div = document.getElementById('sankey_tools');
         if (div.style.display === "none")
             div.style.display = "block";
