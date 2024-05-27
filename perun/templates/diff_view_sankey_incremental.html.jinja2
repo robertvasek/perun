@@ -286,7 +286,7 @@
 
     let sankey_data = [{
         type: "sankey",
-        arrangement: "fixed",
+        arrangement: "snap",
         orientation: "v",
         node: {
             pad: 15,
@@ -319,6 +319,8 @@
                     icon: selection_icon,
                     click: function(gd) {
                         modification_mode = "none";
+                        cursor = "grab";
+                        update_cursors();
                         Plotly.update(gd, {arrangement: "snap"});
                     }
                 }, {
@@ -326,6 +328,8 @@
                     icon: plus_icon,
                     click: function (gd) {
                         modification_mode = "unfold";
+                        cursor = "zoom-in";
+                        update_cursors();
                         Plotly.update(gd, {arrangement: "fixed"});
                     }
                 }, {
@@ -333,6 +337,8 @@
                     icon: minus_icon,
                     click: function (gd) {
                         modification_mode = "fold";
+                        cursor = "zoom-out";
+                        update_cursors();
                         Plotly.update(gd, {arrangement: "fixed"});
                     }
                 }, {
@@ -371,6 +377,7 @@
         },
         sel_metric = 0,
         modification_mode = "none",
+        cursor = 'pointer',
         metric_no = {{ stat_list|length }},
         sel_uid = -1,
         sel_uid_text = "",
@@ -458,6 +465,25 @@
     {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
     {{ widgets.checkbox_handler() }}
     {{ widgets.range_handlers() }}
+
+    function update_cursors() {
+        document.querySelectorAll('.sankey-node text').forEach(node => {
+            node.addEventListener('mouseenter', function(){
+                node.style.cursor = cursor;
+            });
+            node.addEventListener('mouseleave', function(){
+                node.style.cursor = "pointer";
+            });
+        })
+        document.querySelectorAll('.sankey-node rect').forEach(node => {
+            node.addEventListener('mouseenter', function(){
+                node.style.cursor = cursor;
+            });
+            node.addEventListener('mouseleave', function(){
+                node.style.cursor = "pointer";
+            });
+        })
+    };
 
     function format_value(val) {
         let result = "<span";
@@ -620,6 +646,7 @@
 
     function render() {
         Plotly.react('sankey_graph', sankey_data, layout, config);
+        update_cursors();
     }
 
     function newplot() {
@@ -761,7 +788,7 @@
             sankey_data[0].node.label.push("[+] (" + nodes[node] + ")");
             sankey_data[0].node.customdata.push({label: nodes[node], index: node, pos: pos, hidden: true, type: "none", id: node_len});
         }
-        shown_nodes.push([node, pos])
+        shown_nodes.push([node, pos]);
         return node_len;
     }
 
