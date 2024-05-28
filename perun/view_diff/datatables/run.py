@@ -211,7 +211,7 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
 
     env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
-    template = env.get_template("diff_view_report.html.jinja2")
+    template = env.get_template("diff_view_datatables.html.jinja2")
     content = template.render(
         lhs_tag="Baseline (base)",
         lhs_columns=columns,
