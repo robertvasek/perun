@@ -195,6 +195,12 @@
             <button class="tablinks" onclick="openTab(event, 'all', -1)">Browse All</button>
         </div>
         <div id="all" class="tabcontent">
+            {{ widgets.help('toggleTableHelp', 'table-help', [
+                "You can click on row to open details as Sankey Graph below.",
+                "You can click on [+] to open details about UID.",
+                "You can filter by certain columns below through select."
+            ]) }}
+            <br>
             <table id="table" class="display" style="width: 100%;">
                 <thead>
                 <tr>
@@ -275,6 +281,11 @@
                 {%- endif %}
                 </tbody>
             </table>
+            {{ widgets.help('toggleSankeyHelp', 'sankey-help', [
+                "You can use tools at top-right corner of the graph.",
+                "Red is bad, green is good."
+            ]) }}
+            <br>
         </div>
     </div>
 
@@ -489,8 +500,8 @@
     {% for index in range(0, stat_list|length ) %}
     {{ widgets.toggle_help('toggleFlameHelp_' + index|string, 'flame-help-' + index|string) }}
     {% endfor %}
-    {{ widgets.toggle_help('toggleTable', 'table-help') }}
-    {{ widgets.toggle_help('toggleSankey', 'sankey-help') }}
+    {{ widgets.toggle_help('toggleTableHelp', 'table-help') }}
+    {{ widgets.toggle_help('toggleSankeyHelp', 'sankey-help') }}
     {{ widgets.checkbox_handler() }}
     {{ widgets.range_handlers() }}
 
@@ -1244,6 +1255,8 @@
     {% for index in range(0, stat_list|length )%}
     toggleFlameHelp_{{ index }}();
     {% endfor %}
+    toggleTableHelp();
+    toggleSankeyHelp();
     toggleLeftCollapse();
     toggleRightCollapse();
 </script>
