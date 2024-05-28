@@ -232,7 +232,7 @@
                     </table>
                 </div>
                 <div>
-                {{ widgets.help('toggleHelp', 'flame-help', [
+                {{ widgets.help('toggleFlameHelp_' + loop.index0|string, 'flame-help-' + loop.index0|string, [
                     "You can click on node to open details as Sankey Graph below.",
                     "Colours don't mean anything.",
                     "Bigger rectangle = more often on stack.",
@@ -486,7 +486,11 @@
 
     {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
     {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
-    {{ widgets.toggle_help('toggleHelp', 'flame-help') }}
+    {% for index in range(0, stat_list|length ) %}
+    {{ widgets.toggle_help('toggleFlameHelp_' + index|string, 'flame-help-' + index|string) }}
+    {% endfor %}
+    {{ widgets.toggle_help('toggleTable', 'table-help') }}
+    {{ widgets.toggle_help('toggleSankey', 'sankey-help') }}
     {{ widgets.checkbox_handler() }}
     {{ widgets.range_handlers() }}
 
@@ -1224,7 +1228,7 @@
 
     {%- if flamegraphs %}
     document.getElementById("defaultOpen").click();
-    {% for index in range(0, flamegraphs|length )%}
+    {% for index in range(0, flamegraphs|length) %}
         searchBar_{{index}} = document.getElementById("flamegraph_search_{{ index }}");
         searchBar_{{index}}.addEventListener('input', function() {
             lhs_{{index}}_reset_search();
@@ -1237,7 +1241,9 @@
     {%- endfor%}
     {%- endif %}
     newplot();
-    toggleHelp();
+    {% for index in range(0, stat_list|length )%}
+    toggleFlameHelp_{{ index }}();
+    {% endfor %}
     toggleLeftCollapse();
     toggleRightCollapse();
 </script>
