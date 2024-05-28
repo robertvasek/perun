@@ -58,15 +58,18 @@ class Config:
     :ivar trace_is_inclusive: whether then the amounts are distributed among the whole traces
     """
 
+    DefaultTopN: int = 10
+    DefaultRelativeThreshold: float = 0.01
+
     def __init__(self) -> None:
         """Initializes the config
 
         By default we consider, that the traces are not inclusive
         """
         self.trace_is_inclusive: bool = False
-        self.top_n_traces: int = 5
-        self.relative_threshold = 0.01
-        self.max_trace: int = 0
+        self.top_n_traces: int = self.DefaultTopN
+        self.relative_threshold = self.DefaultRelativeThreshold
+        self.max_seen_trace: int = 0
 
 
 @dataclass
@@ -143,11 +146,11 @@ class SelectionRow:
             for stat in stats
         ]
         # trace, stat_type, abs, rel, long_trace
-        stats = Stats.all_stats()
-        self.trace_stats: list[tuple[str, str, float, float, str]] = [
+        all_stats = Stats.all_stats()
+        self.trace_stats: list[tuple[str, int, float, float, str]] = [
             (
                 t[0],
-                stats.index(t[1]),
+                all_stats.index(t[1]),
                 common_kit.to_compact_num(t[2]),
                 common_kit.to_compact_num(t[3]),
                 t[4],
@@ -459,7 +462,7 @@ def process_traces(
                 process_edge(graph, profile_type, resource, src, tgt)
             for uid in full_trace:
                 graph.uid_to_traces[uid].append(full_trace)
-    Config().max_trace = max(max_trace, Config().max_trace)
+    Config().max_seen_trace = max(max_trace, Config().max_seen_trace)
 
 
 def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
@@ -603,7 +606,7 @@ def extract_stats_from_trace(
                 )
                 long_data = f"{long_trace}#{long_baseline_stats}#{long_target_stats}"
                 cache[key] = (short_id, stat, abs_amount, rel_amount, long_data)
-            if cache[key][sort_by_key] >= relative_thresh:
+            if float(cache[key][sort_by_key]) >= relative_thresh:
                 common_kit.add_to_sorted(
                     uid_trace_stats, cache[key], itemgetter(sort_by_key), top_n_limit
                 )
@@ -618,8 +621,10 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     :param kwargs: additional arguments
     """
     # We automatically set the value of True for kperf, which samples
-    Config().top_n_traces = kwargs.get("top_n")
-    Config().relative_threshold = kwargs.get("filter_by_relative")
+    Config().top_n_traces = kwargs.get("top_n", Config().DefaultTopN)
+    Config().relative_threshold = kwargs.get(
+        "filter_by_relative", Config().DefaultRelativeThreshold
+    )
     if lhs_profile.get("collector_info", {}).get("name") == "kperf":
         Config().trace_is_inclusive = True
     else:
@@ -639,7 +644,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         rhs_profile,
         Stats.all_stats(),
         skip_diff=True,
-        height=Config().max_trace,
+        height=Config().max_seen_trace,
     )
     log.minor_success("Sankey graphs", "generated")
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
@@ -690,17 +695,17 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     "--filter-by-relative",
     nargs=1,
     help="Filters records based on the relative increase wrt the target. "
-    "It filters values that are lesser or equal than [FLOAT] (default=0.01).",
+    f"It filters values that are lesser or equal than [FLOAT] (default={Config().DefaultRelativeThreshold}).",
     type=click.FLOAT,
-    default=0.01,
+    default=Config().DefaultRelativeThreshold,
 )
 @click.option(
     "-tn",
     "--top-n",
     nargs=1,
-    help="Filters how many top traces will be recorded per uid (default=10). ",
+    help=f"Filters how many top traces will be recorded per uid (default={Config().DefaultTopN}). ",
     type=click.INT,
-    default=10,
+    default=Config().DefaultTopN,
 )
 @click.pass_context
 def sankey_incr(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
