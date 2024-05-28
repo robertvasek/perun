@@ -5,9 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
+    {%- if not offline %}
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
     <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+    {%- endif %}
     <style>
         html {
              font-family: "Courier New", Courier, monospace;
@@ -74,6 +76,9 @@
         }
 
         {{ profile_overview.css_style() }}
+        {%- if offline %}
+        {% include 'dataTables.dataTables.min.css' %}
+        {%- endif %}
     </style>
 </head>
 <body>
@@ -182,6 +187,10 @@
 </div>
 
 <script>
+    {%- if offline %}
+    {% include 'jquery-3.6.0.min.js' %}
+    {% include 'dataTables.min.js' %}
+    {%- endif %}
     {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
     {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
     $(document).ready( function () {

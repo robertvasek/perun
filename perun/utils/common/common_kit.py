@@ -183,9 +183,9 @@ def strtobool(value: str) -> bool:
     :raises ValueError: if the value does not match any of the expected strings.
     """
     value = value.lower()
-    if value in ('y', 'yes', 't', 'true', 'on', '1'):
+    if value in ("y", "yes", "t", "true", "on", "1"):
         return True
-    if value in ('n', 'no', 'f', 'false', 'off', '0'):
+    if value in ("n", "no", "f", "false", "off", "0"):
         return False
     raise ValueError(f"invalid truth value {value}")
 
@@ -555,7 +555,7 @@ def binary_search(
 
 
 def add_to_sorted(
-    values: list[Any], value: Any, key: Callable[[Any], Any] = lambda x: x, max_pick: int = 0
+    values: list[Any], value: Any, key: Callable[[Any], Any] = lambda x: x, max_pick: int = -1
 ) -> None:
     """Adds a value to sorted list; the list is sorted wrt key function
 
@@ -566,7 +566,7 @@ def add_to_sorted(
     """
     insert_point = binary_search(values, value, 0, len(values) - 1, key)
     values.insert(insert_point, value)
-    if max_pick > 0 and len(values) > max_pick:
+    if max_pick >= 0 and len(values) > max_pick:
         values.pop(0)
 
 

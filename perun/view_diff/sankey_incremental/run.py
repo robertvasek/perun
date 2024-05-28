@@ -65,6 +65,7 @@ class Config:
         """
         self.trace_is_inclusive: bool = False
         self.top_n_traces: int = 5
+        self.relative_threshold = 0.01
         self.max_trace: int = 0
 
 
@@ -576,7 +577,11 @@ def extract_stats_from_trace(
     :param cache: helper cache for reducing the statistics
     """
     uid_trace_stats: list[tuple[str, str, float, float, str]] = []
-    top_n_limit, sort_by_key = Config().top_n_traces, 3
+    top_n_limit, sort_by_key, relative_thresh = (
+        Config().top_n_traces,
+        3,
+        Config().relative_threshold,
+    )
     for trace in uid_stats:
         # Trace is in form of [short_trace, stat_type, abs, rel, long_trace]
         for i, stat in enumerate(Stats.all_stats()):
@@ -598,9 +603,10 @@ def extract_stats_from_trace(
                 )
                 long_data = f"{long_trace}#{long_baseline_stats}#{long_target_stats}"
                 cache[key] = (short_id, stat, abs_amount, rel_amount, long_data)
-            common_kit.add_to_sorted(
-                uid_trace_stats, cache[key], itemgetter(sort_by_key), top_n_limit
-            )
+            if cache[key][sort_by_key] >= relative_thresh:
+                common_kit.add_to_sorted(
+                    uid_trace_stats, cache[key], itemgetter(sort_by_key), top_n_limit
+                )
     return uid_trace_stats
 
 
@@ -612,6 +618,8 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     :param kwargs: additional arguments
     """
     # We automatically set the value of True for kperf, which samples
+    Config().top_n_traces = kwargs.get("top_n")
+    Config().relative_threshold = kwargs.get("filter_by_relative")
     if lhs_profile.get("collector_info", {}).get("name") == "kperf":
         Config().trace_is_inclusive = True
     else:
@@ -677,6 +685,23 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
 
 @click.command()
 @click.option("-o", "--output-file", help="Sets the output file (default=automatically generated).")
+@click.option(
+    "-fr",
+    "--filter-by-relative",
+    nargs=1,
+    help="Filters records based on the relative increase wrt the target. "
+    "It filters values that are lesser or equal than [FLOAT] (default=0.01).",
+    type=click.FLOAT,
+    default=0.01,
+)
+@click.option(
+    "-tn",
+    "--top-n",
+    nargs=1,
+    help="Filters how many top traces will be recorded per uid (default=10). ",
+    type=click.INT,
+    default=10,
+)
 @click.pass_context
 def sankey_incr(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
     """Creates sankey graphs representing the differences between two profiles"""
