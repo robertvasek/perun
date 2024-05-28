@@ -13,6 +13,7 @@ For further manipulations refer either to :ref:`profile-conversion-api`
 (implemented in ``perun.profile.query module``). For full specification how to
 handle the JSON objects in Python refer to `Python JSON library`_.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -124,10 +125,10 @@ def generate_profile_name(profile: profiles.Profile) -> str:
             (
                 r"%postprocessors%",
                 lambda scanner, token: (
-                    "after-" + "-and-".join(map(lambda p: p["name"], profile["postprocessors"]))
-                )
-                if profile["postprocessors"]
-                else "_",
+                    ("after-" + "-and-".join(map(lambda p: p["name"], profile["postprocessors"])))
+                    if profile["postprocessors"]
+                    else "_"
+                ),
             ),
             (
                 r"%[^.]+\.[^%]+%",
@@ -490,7 +491,6 @@ def _get_default_variable(profile: profiles.Profile, supported_variables: list[s
         perun_log.error(
             f"Profile does not contain (in)dependent variable. Has to be one of: ({', '.join(supported_variables)})"
         )
-        return ""
 
 
 def get_default_independent_variable(profile: profiles.Profile) -> str:

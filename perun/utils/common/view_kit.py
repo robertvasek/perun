@@ -1,4 +1,5 @@
 """Collection of helper functions for working with bokeh graphs"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -71,8 +72,7 @@ def get_unique_colours_for_(
     unique_keys = data_source[key].unique()
     unique_keys_num = len(unique_keys)
 
-    if unique_keys_num > 256:
-        log.error("plotting to Bokeh backend currently supports only 256 colours")
+    assert unique_keys_num <= 256, "plotting to Bokeh backend currently supports only 256 colours"
 
     # This is temporary workaround for non-sorted legends
     colour_palette: bk_palettes.Palette = bk_palettes.viridis(unique_keys_num)

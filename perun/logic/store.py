@@ -259,7 +259,6 @@ def parse_changelog_line(line: str) -> tuple[DegradationInfo, str, str]:
     else:
         log.error(f"could not parse changelog line '{line}'")
         # Note: this is never executed and is only for typechecking
-        return DegradationInfo(PerformanceChange.Unknown, "", "", ""), "", ""
 
 
 def load_degradation_list_for(

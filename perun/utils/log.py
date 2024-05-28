@@ -1,8 +1,9 @@
 """Set of helper function for logging and printing warnings or errors"""
+
 from __future__ import annotations
 
 # Standard Imports
-from typing import Any, Callable, TYPE_CHECKING, Iterable, Optional, TextIO, Type
+from typing import Any, Callable, TYPE_CHECKING, Iterable, Optional, TextIO, Type, NoReturn
 import builtins
 import collections
 import functools
@@ -215,23 +216,30 @@ def write(msg: str, end: str = "\n") -> None:
     print(f"{msg}", end=end)
 
 
-def error(
+def error_msg(
     msg: str,
-    recoverable: bool = False,
     raised_exception: Optional[BaseException] = None,
 ) -> None:
-    """
+    """Prints error message
     :param str msg: error message printed to standard output
-    :param bool recoverable: whether we can recover from the error
     :param Exception raised_exception: exception that was raised before the error
     """
     print(f"{tag('error', 'red')} {in_color(msg, 'red')}", file=sys.stderr)
     if is_verbose_enough(VERBOSE_DEBUG):
         print_current_stack(raised_exception=raised_exception)
 
-    # If we cannot recover from this error, we end
-    if not recoverable:
-        sys.exit(1)
+
+def error(
+    msg: str,
+    raised_exception: Optional[BaseException] = None,
+) -> NoReturn:
+    """Prints error and exits
+
+    :param str msg: error message printed to standard output
+    :param Exception raised_exception: exception that was raised before the error
+    """
+    error_msg(msg, raised_exception)
+    sys.exit(1)
 
 
 def warn(msg: str, end: str = "\n") -> None:
@@ -241,19 +249,6 @@ def warn(msg: str, end: str = "\n") -> None:
     """
     if not SUPPRESS_WARNINGS:
         print(f"{tag('warning', 'yellow')} {msg}", end=end)
-
-
-def print_current_phase(phase_msg: str, phase_unit: str, phase_colour: ColorChoiceType) -> None:
-    """Print helper coloured message for the current phase
-
-    :param str phase_msg: message that will be printed to the output
-    :param str phase_unit: additional parameter that is passed to the phase_msg
-    :param str phase_colour: phase colour defined in common_kit.py
-    """
-    minor_status(
-        in_color(phase_msg.strip().capitalize(), phase_colour, COLLECT_PHASE_ATTRS),
-        status=highlight(phase_unit),
-    )
 
 
 @decorators.static_variables(current_job=1)

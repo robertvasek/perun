@@ -1,4 +1,5 @@
 """Table interpretation of the profile"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -26,9 +27,9 @@ def get_headers(ctx: click.Context) -> list[str]:
     :return: candidate headers for resources or models
     """
     headers = []
-    if ctx.command is None or ctx.parent is None or ctx.parent.parent is None:
-        log.error("internal click error: ctx.command, ctx.parent or ctx.parent.parent is None")
-        return []
+    assert (
+        ctx.command is not None and ctx.parent is not None and ctx.parent.parent is not None
+    ), "internal click error: ctx.command, ctx.parent or ctx.parent.parent is None"
     if ctx.command.name == "resources":
         headers = list(ctx.parent.parent.params["profile"].all_resource_fields()) + ["snapshots"]
     elif ctx.command.name == "models":

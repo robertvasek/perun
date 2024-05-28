@@ -4,6 +4,7 @@ Collects functions for preparing the workspace before testing (so it removes rem
 collecting source files, initial and common testing and gathering coverage information by
 executing gcov tool and parsing its output.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -156,10 +157,7 @@ def target_testing(
     try:
         commands.run_safely_external_command(command, timeout=config.hang_timeout)
     except subprocess.CalledProcessError as err:
-        log.error(
-            "Testing with file " + workload.path + " caused an error: " + str(err),
-            recoverable=True,
-        )
+        log.error_msg("Testing with file " + workload.path + " caused an error: " + str(err))
         raise err
 
     workload.cov = get_coverage_from_dir(os.getcwd(), config.coverage)

@@ -19,10 +19,10 @@ import pytest
 from perun import collect, postprocess, view
 from perun.collect.trace.optimizations.structs import Complexity
 from perun.fuzz import filetype
-from perun.logic import commands, config
+from perun.logic import commands, config, locks
 from perun.profile import convert
 from perun.testing import asserts
-from perun.utils import log
+from perun.utils import log, mapping
 from perun.utils.common import common_kit, cli_kit, traces_kit
 from perun.utils.exceptions import (
     SystemTapScriptCompilationException,
@@ -300,6 +300,16 @@ def test_common(capsys):
     assert common_kit.strtobool("false") == False
     with pytest.raises(ValueError):
         common_kit.strtobool("trualse")
+
+    assert locks._is_running_perun_process(0) == False
+
+    with pytest.raises(Exception):
+        with common_kit.disposable_resources({}) as d:
+            raise Exception
+
+    assert mapping.from_readable_key("Allocated Memory [B]") == "amount"
+    with pytest.raises(AssertionError):
+        mapping.get_unit("unsupported")
 
 
 def test_predicates(capsys):

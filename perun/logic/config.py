@@ -187,7 +187,6 @@ def read_config_from(path: str) -> dict[str, Any]:
             f"corrupted configuration file '{path}': {scanner_error}\n"
             + "\nPerhaps you did not escape strings with special characters in quotes?"
         )
-        return {}
 
 
 def init_shared_config_at(path: str) -> None:
@@ -325,8 +324,6 @@ def load_config(config_dir: str, config_type: str) -> Config:
         return Config(config_type, config_file, read_config_from(config_file))
     except IOError as io_error:
         perun_log.error(f"error initializing {config_type} config: {str(io_error)}")
-        # Note: This does not happen
-        return Config(config_type, config_file, {})
 
 
 def lookup_shared_config_dir() -> str:
