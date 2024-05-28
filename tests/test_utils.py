@@ -304,7 +304,7 @@ def test_common(capsys):
     assert locks._is_running_perun_process(0) == False
 
     with pytest.raises(Exception):
-        with common_kit.disposable_resources({}) as d:
+        with common_kit.disposable_resources({}):
             raise Exception
 
     assert mapping.from_readable_key("Allocated Memory [B]") == "amount"
