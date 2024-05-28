@@ -326,13 +326,13 @@ toSlider.oninput = () => controlToSlider(fromSlider, toSlider, toInput);
 {%- macro tooltip(tooltip_text) %}<div class="hover-text">[?]<!-- Tooltip text --><span class="tooltip-text tright">{{ tooltip_text }}</span></div>{%- endmacro %}
 
 {%  macro help(function_name, element_name, tips) %}
-<table class="info" id="{{ element_name }}">
+<table class="help" id="{{ element_name }}">
     <thead>
     <tr>
         <th onclick="{{ function_name }}()" colspan="2">
             <span id="{{ element_name }}-plus-left" style="float: left; display: none">[+]</span>
             <span id="{{ element_name }}-minus-left" style="float: left">[-]</span>
-            Profile Specification
+            Help
             <span id="{{ element_name }}-minus-right" style="float: right">[-]</span>
             <span id="{{ element_name }}-plus-right" style="float: right; display: none">[+]</span>
         </th>
@@ -340,11 +340,13 @@ toSlider.oninput = () => controlToSlider(fromSlider, toSlider, toInput);
     </thead>
     <tbody>
     {%- for tip in tips %}
-        <tr><td class="key">Tip {{ loop.index0 }}</td> <td class="value">{{ tip }}</td></tr> 
+        <tr><td style="font-weight: bold; padding-right: 1em;">Tip {{ loop.index }}</td> <td>{{ tip }}</td></tr> 
     {%- endfor %}
     </tbody>
 </table>
+{%- endmacro %}
 
+{% macro toggle_help(function_name, element_name) %}
 function {{ function_name }}() {
     var tableBody = document.getElementById("{{ element_name }}").getElementsByTagName("tbody")[0];
     var plus_l = document.getElementById("{{ element_name }}-plus-left");

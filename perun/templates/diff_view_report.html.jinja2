@@ -33,6 +33,9 @@
             margin: 0 1%;
             justify-content: center;
         }
+        .help {
+            font-size: 8pt;
+        }
         .column-head {
             border-bottom: 1px solid #ddd;
             border-top: 1px solid #ddd;
@@ -228,8 +231,15 @@
                         </tbody>
                     </table>
                 </div>
-                <ul><li>Tip 1: Colours in flamegraph don't mean anything.</li></ul>
-                <ul><li>Tip 2: </li></ul>
+                <div>
+                {{ widgets.help('toggleHelp', 'flame-help', [
+                    "You can click on node to open details as Sankey Graph below.",
+                    "Colours don't mean anything.",
+                    "Bigger rectangle = more often on stack.",
+                    "Higher flame = more nested calls."
+                ]) }}
+                <br>
+                </div>
             </div>
             <div class="left column">
                 <div class='svg-container'>
@@ -476,6 +486,7 @@
 
     {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
     {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
+    {{ widgets.toggle_help('toggleHelp', 'flame-help') }}
     {{ widgets.checkbox_handler() }}
     {{ widgets.range_handlers() }}
 
@@ -1225,7 +1236,10 @@
         })
     {%- endfor%}
     {%- endif %}
-    newplot()
+    newplot();
+    toggleHelp();
+    toggleLeftCollapse();
+    toggleRightCollapse();
 </script>
 </body>
 </html>
