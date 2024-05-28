@@ -31,7 +31,7 @@ from perun.utils.exceptions import (
 )
 from perun.utils.structs import Unit, OrderedEnum, HandledSignals
 from perun.utils.external import environment, commands as external_commands, processes, executable
-from perun.view_diff.report.run import TraceInfo
+from perun.view_diff.datatables.run import TraceInfo
 
 
 def assert_all_registered_modules(package_name, package, must_have_function_names):

@@ -11,6 +11,7 @@ collector | kernel
   grp2 |  ..  |  ..  | ..  | ..
 
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -203,7 +204,7 @@ def compare_profiles(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) 
     help="Names the each profile by its particular option (default=origin).",
 )
 @click.pass_context
-def table(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
+def short(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
     assert ctx.parent is not None and f"impossible happened: {ctx} has no parent"
     profile_list = ctx.parent.params["profile_list"]
     compare_profiles(profile_list[0], profile_list[1], **kwargs)

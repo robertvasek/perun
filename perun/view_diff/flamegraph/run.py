@@ -17,7 +17,7 @@ from perun.utils.common import diff_kit
 from perun.profile.factory import Profile
 from perun.profile import convert
 from perun.view.flamegraph import flamegraph as flamegraph_factory
-from perun.view_diff.table import run as table_run
+from perun.view_diff.short import run as table_run
 
 
 DEFAULT_HEIGHT: int = 14

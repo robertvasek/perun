@@ -1,10 +1,26 @@
-"""HTML report difference of the profiles"""
+"""Sankey difference of the profiles
+
+The difference is in form of:
+
+cmd       | cmd
+workload  | workload
+collector | kernel
+
+| ---|          |======|
+     |-----|====
+|---|          |------|
+
+"""
 
 from __future__ import annotations
 
 # Standard Imports
+from operator import itemgetter
+from typing import Any, Literal, Type, Callable
+from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any
+import array
+import sys
 
 # Third-Party Imports
 import click
@@ -12,222 +28,662 @@ import jinja2
 import progressbar
 
 # Perun Imports
-from perun.utils import log
-from perun.utils.common import diff_kit, traces_kit
-from perun.profile.factory import Profile
+from perun.logic import config
 from perun.profile import convert
-from perun.view_diff.table import run as table_run
+from perun.profile.factory import Profile
+from perun.templates import filters
+from perun.utils import log, mapping
+from perun.utils.common import diff_kit, common_kit
+from perun.utils.structs import WebColorPalette
+from perun.view_diff.flamegraph import run as flamegraph_run
 
 
-PRECISION: int = 2
+def singleton_class(cls: Type[Any]) -> Callable[[], Config]:
+    """Helper class for creating singleton objects"""
+    instances = {}
+
+    def getinstance() -> Config:
+        """Singleton instance"""
+        if cls not in instances:
+            instances[cls] = cls()
+        return instances[cls]
+
+    return getinstance
+
+
+@singleton_class
+class Config:
+    """Singleton config for generation of sankey graphs
+
+    :ivar trace_is_inclusive: whether then the amounts are distributed among the whole traces
+    """
+
+    DefaultTopN: int = 10
+    DefaultRelativeThreshold: float = 0.01
+
+    def __init__(self) -> None:
+        """Initializes the config
+
+        By default we consider, that the traces are not inclusive
+        """
+        self.trace_is_inclusive: bool = False
+        self.top_n_traces: int = self.DefaultTopN
+        self.relative_threshold = self.DefaultRelativeThreshold
+        self.max_seen_trace: int = 0
 
 
 @dataclass
-class TableRecord:
-    """Represents single record on top of the consumption
+class TraceStat:
+    """Statistics for single trace
 
-    :ivar uid: uid of the records
-    :ivar trace: trace of the record
-    :ivar abs_amount: absolute value of the uid
-    :ivar rel_amount: relative value of the uid
+    :ivar trace: list of called UID
+    :ivar baseline_cost: overall cost of the traces
+    :ivar target_cost: overall cost of the traces
+    :ivar baseline_partial_costs: list of partial costs of the trace for baseline;
+        the partial costs are the particular results for each of the pair of callee
+        and caller in the trace.
+    :ivar target_partial_costs: list of partial costs of the trace for target
+    """
+
+    __slots__ = [
+        "trace",
+        "trace_id",
+        "baseline_cost",
+        "target_cost",
+        "baseline_partial_costs",
+        "target_partial_costs",
+    ]
+    trace: list[str]
+    trace_id: int
+    baseline_cost: array.array[float]
+    target_cost: array.array[float]
+    baseline_partial_costs: list[array.array[float]]
+    target_partial_costs: list[array.array[float]]
+
+
+@dataclass
+class SelectionRow:
+    """Helper dataclass for displaying selection of data
+
+    :ivar uid: uid of the selected graph
+    :ivar index: index in the sorted list of data
+    :ivar abs_amount: absolute change in the units
+    :ivar fresh: the state of the uid - 1) new (added in target),
+        2) removed (removed in target), or 3) possibly unchanged
+    :ivar main_stat: type of the
+    :ivar rel_amount: relative change in the units
     """
 
     __slots__ = [
         "uid",
-        "trace",
-        "cluster",
-        "short_trace",
-        "trace_list",
+        "index",
+        "fresh",
+        "main_stat",
         "abs_amount",
         "rel_amount",
-        "type",
+        "stats",
+        "trace_stats",
     ]
 
-    uid: str
-    trace: str
-    cluster: traces_kit.TraceCluster
-    short_trace: str
-    trace_list: list[str]
-    abs_amount: float
-    rel_amount: float
-    type: str
+    def __init__(
+        self,
+        uid: str,
+        index: int,
+        fresh: Literal["new", "removed", "(un)changed"],
+        stats: list[tuple[int, float, float]],
+        trace_stats: list[tuple[str, str, float, float, str]],
+    ) -> None:
+        """Initializes the selection row"""
+        self.uid: str = uid
+        self.index: int = index
+        self.fresh: Literal["new", "removed", "(un)changed"] = fresh
+        self.main_stat: int = stats[0][0]
+        self.abs_amount: float = common_kit.to_compact_num(stats[0][1])
+        self.rel_amount: float = common_kit.to_compact_num(stats[0][2])
+        # stat_type, abs, rel
+        self.stats: list[tuple[int, float, float]] = [
+            (stat[0], common_kit.to_compact_num(stat[1]), common_kit.to_compact_num(stat[2]))
+            for stat in stats
+        ]
+        # trace, stat_type, abs, rel, long_trace
+        all_stats = Stats.all_stats()
+        self.trace_stats: list[tuple[str, int, float, float, str]] = [
+            (
+                t[0],
+                all_stats.index(t[1]),
+                common_kit.to_compact_num(t[2]),
+                common_kit.to_compact_num(t[3]),
+                t[4],
+            )
+            for t in trace_stats
+        ]
 
 
-def to_short_trace(trace: str) -> str:
-    """Converts longer traces to short representation
+class Graph:
+    """Represents single sankey graph
 
-    :param trace: trace, delimited by ','
-    :return: shorter representation of trace
+    :ivar nodes: mapping of uids#pos to concrete sankey nodes
+    :ivar uid_to_nodes: mapping of uid to list of its uid#pos, i.e. uid in different contexts
+    :ivar uid_to_id: mapping of uid to unique identifiers
+    :ivar stats_to_id: mapping of stats to unique identifiers
     """
-    split_trace = trace.split(",")
-    if len(split_trace) <= 3:
-        return trace
-    return " -> ".join([split_trace[0], "...", split_trace[-1]])
+
+    __slots__ = ["nodes", "uid_to_nodes", "uid_to_id", "stats_to_id", "uid_to_traces"]
+
+    nodes: dict[str, Node]
+    uid_to_traces: dict[str, list[list[str]]]
+    uid_to_nodes: dict[str, list[Node]]
+    uid_to_id: dict[str, int]
+    stats_to_id: dict[str, int]
+
+    def __init__(self):
+        """Initializes empty graph"""
+        self.nodes = {}
+        self.uid_to_nodes = defaultdict(list)
+        self.uid_to_traces = defaultdict(list)
+        self.stats_to_id = {}
+        self.uid_to_id = {}
+
+    def get_node(self, node: str) -> Node:
+        """For give uid#pos returns its corresponding node
+
+        If the uid is not yet assigned unique id, we assign it.
+        If the node has corresponding node created we return it.
+
+        :param node: node in form of uid#pos
+        :return: corresponding node in sankey graph
+        """
+        uid = node.split("#")[0]
+        if uid not in self.uid_to_id:
+            self.uid_to_id[uid] = len(self.uid_to_id)
+        if node not in self.nodes:
+            self.nodes[node] = Node(node)
+            self.uid_to_nodes[uid].append(self.nodes[node])
+        return self.nodes[node]
+
+    def translate_stats(self, stats: str) -> int:
+        """Translates string representation of stats to unique id
+
+        :param stats: stats represented as string
+        :return: unique id for the string
+        """
+        if stats not in self.stats_to_id:
+            self.stats_to_id[stats] = len(self.stats_to_id)
+        return self.stats_to_id[stats]
+
+    def translate_node(self, node: str) -> str:
+        """Translates the node to its unique id
+
+        :param node: node which we are translating to id
+        :return: unique identifier for the node uid
+        """
+        if "#" in node:
+            return f"{self.uid_to_id[node.split('#')[0]]}"
+        return str(self.uid_to_id[node])
+
+    def get_caller_stats(self, src: str, tgt: str) -> Stats:
+        """Returns stats for callers of the src
+
+        :param src: source node
+        :param tgt: target caller node
+        :return: stats
+        """
+        # Create node if it does not already exist
+        src_node = self.get_node(src)
+
+        # Get link if it does not already exist
+        if tgt not in src_node.callers:
+            tgt_node = self.get_node(tgt)
+            src_node.callers[tgt] = Link(tgt_node, Stats())
+
+        return src_node.callers[tgt].stats
+
+    def get_callee_stats(self, src: str, tgt: str) -> Stats:
+        """Returns stats for callees of the src
+
+        :param src: source node
+        :param tgt: target callee node
+        :return: stats
+        """
+        # Create node if it does not already exist
+        src_node = self.get_node(src)
+
+        # Get link if it does not already exist
+        if tgt not in src_node.callees:
+            tgt_node = self.get_node(tgt)
+            src_node.callees[tgt] = Link(tgt_node, Stats())
+
+        return src_node.callees[tgt].stats
+
+    def to_jinja_string(self, link_type: Literal["callees", "callers"] = "callees") -> str:
+        """Since jinja seems to be awfully slow with this, we render the result ourselves
+
+        1. Target nodes of "uid#pos" are simplified to "uid",
+            since you can infer pos to be pos+1 of source
+        2. Stats are merged together: first half is for baseline, second half is for target
+
+        TODO: switch callers to callees and callees to callers
+
+        :param link_type: either callees for callees or caller for callers
+        :return string representation of the callee or caller relation
+        """
+
+        def comma_control(commas_list: list[bool], pos: int) -> str:
+            """Helper function for comma control
+
+            :param pos: position in the nesting
+            :param commas_list: list of boolean flags for comma control (true = we should output)
+            """
+            if commas_list[pos]:
+                return ","
+            commas_list[pos] = True
+            return ""
+
+        output = ["{"]
+        commas = [False, False, False]
+        for uid, nodes in progressbar.progressbar(self.uid_to_nodes.items()):
+            output.extend([comma_control(commas, 0), f"{self.translate_node(uid)}:", "{"])
+            commas[1] = False
+            for node in nodes:
+                output.extend([comma_control(commas, 1), f"{node.get_order()}:", "{"])
+                commas[2] = False
+                for link in node.get_links(link_type).values():
+                    assert link_type == "callers" or int(node.get_order()) + 1 == int(
+                        link.target.get_order()
+                    )
+                    assert (
+                        link_type == "callees"
+                        or int(node.get_order()) == int(link.target.get_order()) + 1
+                    )
+                    output.extend(
+                        [comma_control(commas, 2), f"{self.translate_node(link.target.uid)}:"]
+                    )
+                    base_and_tgt = link.stats.to_array("baseline") + link.stats.to_array("target")
+                    stats = f"[{','.join(base_and_tgt)}]"
+                    output.append(str(self.translate_stats(stats)))
+                output.append("}")
+            output.append("}")
+        output.append("}")
+        return "".join(output)
 
 
 @dataclass
-class TraceInfo:
-    """Trace info is a helper structure that encapsulates selected characteristics of traces.
+class Node:
+    """Single node in sankey graph
 
-    :ivar long_str: long representation of trace (calls delimited by `,`)
-    :ivar short_str: shorter string ideal for display
-    :ivar cluster: classified cluster
+    :ivar uid: unique identifier of the node (the label)
+    :ivar callees: map of positions to edge relation for callees
+    :ivar callers: map of positions to edge relation for callers
     """
 
-    __slots__ = ["long_str", "short_str", "cluster"]
-    long_str: str
-    short_str: str
-    cluster: traces_kit.TraceCluster
+    __slots__ = ["uid", "callees", "callers"]
 
-    def __eq__(self, other):
-        """Two trace infos are equal if their long strings are equals
+    uid: str
+    callees: dict[str, Link]
+    callers: dict[str, Link]
 
-        :param other: other traceinfo
-        :return: whether two objects are equal
+    def __init__(self, uid: str):
+        """Initializes the node"""
+        self.uid = uid
+        self.callees = {}
+        self.callers = {}
+
+    def get_links(self, link_type: Literal["callees", "callers"]) -> dict[str, Link]:
+        """Returns linkage based on given type
+
+        :param link_type: either callees or callers
+        :return: linkage of the given ty pe
         """
-        return isinstance(other, TraceInfo) and self.long_str == other.long_str
+        if link_type == "callees":
+            return self.callees
+        assert link_type == "callers"
+        return self.callers
 
-    def __hash__(self):
-        """Hash of the trace info is hash of its long string
+    def get_order(self) -> int:
+        """Gets position/order in the call traces
 
-        :return: hash of the trace info
+        :return: order/position in the call traces
         """
-        return hash(self.long_str)
-
-    def __lt__(self, other):
-        """Trace infos are sorted by their long strings
-
-        :return: comparison result
-        """
-        if isinstance(other, TraceInfo):
-            return self.long_str < other.long_str
-        raise TypeError("Cannot compare TraceInfo with other types.")
+        return int(self.uid.split("#")[1])
 
 
-def construct_filters(kwargs: dict[str, Any]) -> list[tuple[str, str]]:
-    """Constructs list of filters for filtering the dataframe
+@dataclass
+class Link:
+    """Helper dataclass for linking two nodes
 
-    :param kwargs: arguments from command line
-    :return: list of callable functions on pandas series
+    :ivar target: target of the edge
+    :ivar stats: stats of the edge
     """
-    return [
-        ("ncalls", f"ncalls > {kwargs.get('filter_by_calls', 1)}"),
-        (
-            "Total Inclusive T [ms]",
-            f"`Total Inclusive T [ms]` > {kwargs.get('filter_by_time', 0.01)}",
-        ),
-        (
-            "Total Exclusive T [ms]",
-            f"`Total Exclusive T [ms]` > {kwargs.get('filter_by_time', 0.01)}",
-        ),
-    ]
+
+    __slots__ = ["stats", "target"]
+    target: Node
+    stats: Stats
 
 
-def profile_to_data(
-    profile: Profile,
-    classifier: traces_kit.TraceClassifier,
-    filters: list[tuple[str, str]],
-) -> tuple[list[TableRecord], list[str]]:
-    """Converts profile to list of columns and list of list of values
+class Stats:
+    """Statistics for a given edge
 
-    :param profile: converted profile
-    :param classifier: classifier used for classification of traces
-    :param filters: list of filters for filtering the data
-    :return: list of columns and list of rows and list of selectable types
+    :ivar baseline: baseline stats
+    :ivar target: target stats
     """
-    df = convert.resources_to_pandas_dataframe(profile)
-    applicable_filters = " & ".join(f[1] for f in filters if f[0] in df.columns)
-    if applicable_filters:
-        log.minor_status("Applying filters", f"{log.highlight(applicable_filters)}")
-        df = df.query(applicable_filters)
 
-    # Convert traces to some trace objects
-    trace_info_map = {}
-    for trace in progressbar.progressbar(df["trace"].unique()):
-        trace_as_list = trace.split(",")
-        long_trace = ",".join(
-            traces_kit.fold_recursive_calls_in_trace(trace_as_list, generalize=True)
-        )
-        trace_info_map[trace] = TraceInfo(
-            long_trace, to_short_trace(long_trace), classifier.classify_trace(long_trace.split(","))
-        )
+    __slots__ = ["baseline", "target"]
+    KnownStatsSet: set[str] = set()
+    SortedStats: list[str] = []
 
-    def process_traces(value: str) -> TraceInfo:
-        """Converts single string to trace info
+    def __init__(self) -> None:
+        """Initializes the stat"""
+        self.baseline: dict[str, float] = defaultdict(float)
+        self.target: dict[str, float] = defaultdict(float)
 
-        :param value: single string
+    def add_stat(
+        self, stat_type: Literal["baseline", "target"], stat_key: str, stat_val: int | float
+    ) -> None:
+        """Adds stat of given type
+
+        :ivar stat_type: type of the stat (either baseline or target)
+        :ivar stat_key: type of the metric
+        :ivar stat_val: value of the metric
         """
-        return trace_info_map[value]
+        Stats.KnownStatsSet.add(stat_key)
+        if stat_type == "baseline":
+            self.baseline[stat_key] += stat_val
+        else:
+            self.target[stat_key] += stat_val
 
-    df["trace"] = df["trace"].apply(process_traces)  # type: ignore
+    @staticmethod
+    def all_stats() -> list[str]:
+        """Returns sorted list of stats"""
+        if not Stats.SortedStats:
+            Stats.SortedStats = sorted(list(Stats.KnownStatsSet))
+        return Stats.SortedStats
 
-    # TODO: This could be more effective
-    data = []
-    aggregation_keys = diff_kit.get_candidate_keys(df.columns)
-    for aggregation_key in aggregation_keys:
-        grouped_df = df.groupby(["uid", "trace"]).agg({aggregation_key: "sum"}).reset_index()
-        sorted_df = grouped_df.sort_values(by=aggregation_key, ascending=False)
-        amount_sum = df[aggregation_key].sum()
-        for _, row in progressbar.progressbar(sorted_df.iterrows()):
-            data.append(
-                TableRecord(
-                    row["uid"],
-                    row["trace"].long_str,
-                    row["trace"].cluster,
-                    row["trace"].short_str,
-                    table_run.generate_trace_list(row["trace"].long_str, row["uid"]),
-                    row[aggregation_key],
-                    round(100 * row[aggregation_key] / amount_sum, PRECISION),
-                    aggregation_key,
+    def to_array(self, stat_type: Literal["baseline", "target"]) -> list[str]:
+        """Converts stats to single compact array"""
+        stats = self.baseline if stat_type == "baseline" else self.target
+        return [
+            common_kit.compact_convert_num_to_str(stats.get(stat, 0), 2)
+            for stat in Stats.all_stats()
+        ]
+
+
+def process_edge(
+    graph: Graph,
+    profile_type: Literal["baseline", "target"],
+    resource: dict[str, Any],
+    src: str,
+    tgt: str,
+) -> None:
+    """Processes single edge with given resources
+
+    :param graph: sankey graph
+    :param profile_type: type of the profile
+    :param resource: consumed resources
+    :param src: callee
+    :param tgt: caller
+    """
+    src_stats = graph.get_callee_stats(src, tgt)
+    tgt_stats = graph.get_caller_stats(tgt, src)
+    for key in resource:
+        amount = common_kit.try_convert(resource[key], [float])
+        if amount is None or key == "time":
+            continue
+        readable_key = mapping.get_readable_key(key)
+        src_stats.add_stat(profile_type, readable_key, amount)
+        tgt_stats.add_stat(profile_type, readable_key, amount)
+
+
+def process_traces(
+    profile: Profile, profile_type: Literal["baseline", "target"], graph: Graph
+) -> None:
+    """Processes all traces in the profile
+
+    Iterates through all traces and creates edges for each pair of source and target.
+
+    :param profile: input profile
+    :param profile_type: type of the profile
+    :param graph: sankey graph
+    """
+    max_trace = 0
+    for _, resource in progressbar.progressbar(profile.all_resources()):
+        full_trace = [convert.to_uid(t) for t in resource["trace"]]
+        full_trace.append(convert.to_uid(resource["uid"]))
+        trace_len = len(full_trace)
+        max_trace = max(max_trace, trace_len)
+        if trace_len > 1:
+            if Config().trace_is_inclusive:
+                for i in range(0, trace_len - 1):
+                    src = f"{full_trace[i]}#{i}"
+                    tgt = f"{full_trace[i + 1]}#{i + 1}"
+                    process_edge(graph, profile_type, resource, src, tgt)
+            else:
+                src = f"{full_trace[-2]}#{trace_len - 2}"
+                tgt = f"{full_trace[-1]}#{trace_len - 1}"
+                process_edge(graph, profile_type, resource, src, tgt)
+            for uid in full_trace:
+                graph.uid_to_traces[uid].append(full_trace)
+    Config().max_seen_trace = max(max_trace, Config().max_seen_trace)
+
+
+def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
+    """Generates trace stats
+
+    :param graph: sankey graph
+    :return: trace stats
+    """
+    trace_stats = defaultdict(list)
+    log.minor_info("Generating stats for traces")
+    trace_cache: dict[str, TraceStat] = {}
+    trace_counter: int = 0
+    for uid, traces in progressbar.progressbar(graph.uid_to_traces.items()):
+        processed = set()
+        for trace in [trace for trace in traces if len(trace) > 1]:
+            key = ",".join(trace)
+            if key not in processed:
+                # High memory consumption
+                processed.add(key)
+                if key in trace_cache:
+                    trace_stats[uid].append(trace_cache[key])
+                    continue
+                trace_len = len(trace)
+                stat_len = len(Stats.all_stats())
+                base_sum: array.array[float] = array.array(
+                    "d", [sys.float_info.max if Config().trace_is_inclusive else 0.0] * stat_len
                 )
+                base_partial: list[array.array[float]] = [
+                    array.array("d", [0.0] * (trace_len - 1)) for _ in range(0, stat_len)
+                ]
+                tgt_sum: array.array[float] = array.array(
+                    "d", [sys.float_info.max if Config().trace_is_inclusive else 0.0] * stat_len
+                )
+                tgt_partial: list[array.array[float]] = [
+                    array.array("d", [0.0] * (trace_len - 1)) for _ in range(0, stat_len)
+                ]
+                for i in range(0, trace_len - 1):
+                    src, tgt = f"{trace[i]}#{i}", f"{trace[i + 1]}#{i + 1}"
+                    node = graph.get_node(src)
+                    if tgt in node.callees:
+                        stats = node.callees[tgt].stats
+                        for j, stat in enumerate(Stats.all_stats()):
+                            base_stat, tgt_stat = stats.baseline[stat], stats.target[stat]
+                            base_partial[j][i] += base_stat
+                            tgt_partial[j][i] += tgt_stat
+                            if Config().trace_is_inclusive:
+                                base_sum[j] = common_kit.try_min(base_sum[j], base_stat)
+                                tgt_sum[j] = common_kit.try_min(tgt_sum[j], tgt_stat)
+                            else:
+                                base_sum[j] += base_stat
+                                tgt_sum[j] += tgt_stat
+
+                trace_stat = TraceStat(
+                    trace, trace_counter, base_sum, tgt_sum, base_partial, tgt_partial
+                )
+                trace_counter += 1
+                trace_cache[key] = trace_stat
+                trace_stats[uid].append(trace_stat)
+    return trace_stats
+
+
+def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) -> list[SelectionRow]:
+    """Generates selection table
+
+    :param graph: sankey graph
+    :param trace_stats: stats for traces for each uid
+    :return: list of selection rows for table
+    """
+    selection = []
+    log.minor_info("Generating selection table")
+    trace_stat_cache: dict[str, tuple[str, str, float, float, str]] = {}
+    stat_len = len(Stats.all_stats())
+    for uid, nodes in progressbar.progressbar(graph.uid_to_nodes.items()):
+        baseline_overall: array.array[float] = array.array("d", [0.0] * stat_len * 2)
+        target_overall: array.array[float] = array.array("d", [0.0] * stat_len * 2)
+        stats: list[tuple[int, float, float]] = []
+        for node in nodes:
+            for i, known_stat in enumerate(Stats.all_stats()):
+                for link in node.callers.values():
+                    baseline_overall[i] += link.stats.baseline[known_stat]
+                    target_overall[i] += link.stats.target[known_stat]
+                for link in node.callees.values():
+                    baseline_overall[i + stat_len] += link.stats.baseline[known_stat]
+                    target_overall[i + stat_len] += link.stats.target[known_stat]
+        for i in range(0, stat_len * 2):
+            baseline, target = baseline_overall[i], target_overall[i]
+            if baseline != 0 or target != 0:
+                abs_diff = target - baseline
+                rel_diff = round(100 * abs_diff / max(baseline, target), 2)
+                stats.append((i, abs_diff, rel_diff))
+        stats = sorted(stats, key=itemgetter(2))
+
+        if stats:
+            state: Literal["new", "removed", "(un)changed"] = "(un)changed"
+            if all(val == 0 or val == 0.0 for val in baseline_overall):
+                state = "new"
+            elif all(val == 0 or val == 0.0 for val in target_overall):
+                state = "removed"
+
+            # Prepare trace stats
+            long_trace_stats = extract_stats_from_trace(graph, trace_stats[uid], trace_stat_cache)
+            selection.append(
+                SelectionRow(uid, graph.uid_to_id[uid], state, stats, long_trace_stats)
             )
-    return data, aggregation_keys
+    return selection
 
 
-def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -> None:
-    """Generates HTML report of differences
+def extract_stats_from_trace(
+    graph: Graph, uid_stats: list[TraceStat], cache: dict[str, tuple[str, str, float, float, str]]
+) -> list[tuple[str, str, float, float, str]]:
+    """Extracts stats from trace
+
+    :param graph: sankey graph
+    :param uid_stats: stats for each uid in the graph
+    :param cache: helper cache for reducing the statistics
+    """
+    uid_trace_stats: list[tuple[str, str, float, float, str]] = []
+    top_n_limit, sort_by_key, relative_thresh = (
+        Config().top_n_traces,
+        3,
+        Config().relative_threshold,
+    )
+    for trace in uid_stats:
+        # Trace is in form of [short_trace, stat_type, abs, rel, long_trace]
+        for i, stat in enumerate(Stats.all_stats()):
+            key = f"{trace.trace_id}#{stat}"
+            if key not in cache:
+                target_cost, baseline_cost = trace.target_cost[i], trace.baseline_cost[i]
+                if target_cost == 0 and baseline_cost == 0:
+                    continue
+                abs_amount = target_cost - baseline_cost
+                rel_amount = abs_amount / max(target_cost, baseline_cost)
+
+                short_id = f"{graph.uid_to_id[trace.trace[0]]};{graph.uid_to_id[trace.trace[-1]]}"
+                long_trace = ";".join([f"{graph.uid_to_id[t]}" for t in trace.trace])
+                long_baseline_stats = ";".join(
+                    common_kit.compact_convert_list_to_str(trace.baseline_partial_costs[i])
+                )
+                long_target_stats = ";".join(
+                    common_kit.compact_convert_list_to_str(trace.target_partial_costs[i])
+                )
+                long_data = f"{long_trace}#{long_baseline_stats}#{long_target_stats}"
+                cache[key] = (short_id, stat, abs_amount, rel_amount, long_data)
+            if float(cache[key][sort_by_key]) >= relative_thresh:
+                common_kit.add_to_sorted(
+                    uid_trace_stats, cache[key], itemgetter(sort_by_key), top_n_limit
+                )
+    return uid_trace_stats
+
+
+def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -> None:
+    """Generates differences of two profiles as sankey diagram
 
     :param lhs_profile: baseline profile
     :param rhs_profile: target profile
-    :param kwargs: other parameters
+    :param kwargs: additional arguments
     """
-    filters = construct_filters(kwargs)
-    classifier = traces_kit.TraceClassifier(
-        strategy=traces_kit.ClassificationStrategy(kwargs.get("classify_traces_by", "identity")),
-        threshold=0.5,
+    # We automatically set the value of True for kperf, which samples
+    Config().top_n_traces = kwargs.get("top_n", Config().DefaultTopN)
+    Config().relative_threshold = kwargs.get(
+        "filter_by_relative", Config().DefaultRelativeThreshold
     )
-    log.major_info("Generating HTML Report", no_title=True)
-    lhs_data, lhs_types = profile_to_data(lhs_profile, classifier, filters)
-    log.minor_success("Baseline data", "generated")
-    rhs_data, rhs_types = profile_to_data(rhs_profile, classifier, filters)
-    log.minor_success("Target data", "generated")
-    # TODO: Remake obtaining of the unit somehow
-    data_types = diff_kit.get_candidate_keys(set(lhs_types).union(set(rhs_types)))
-    columns = [
-        ("uid", "The measured symbol (click [+] for full trace)."),
-        ("[unit]", "The absolute measured value."),
-        ("[%]", "The relative measured value (in percents overall)."),
-    ]
+    if lhs_profile.get("collector_info", {}).get("name") == "kperf":
+        Config().trace_is_inclusive = True
+    else:
+        Config().trace_is_inclusive = kwargs.get("trace_is_inclusive", False)
 
-    env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
+    log.major_info("Generating Sankey Graph Difference")
+
+    graph = Graph()
+
+    process_traces(lhs_profile, "baseline", graph)
+    process_traces(rhs_profile, "target", graph)
+
+    trace_stats = generate_trace_stats(graph)
+    selection_table = generate_selection(graph, trace_stats)
+    flamegraphs = flamegraph_run.generate_flamegraphs(
+        lhs_profile,
+        rhs_profile,
+        Stats.all_stats(),
+        skip_diff=True,
+        height=Config().max_seen_trace,
+    )
+    log.minor_success("Sankey graphs", "generated")
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
-    template = env.get_template("diff_view_report.html.jinja2")
+
+    # Note: we keep the autoescape=false, since we kindof believe we are not trying to fuck us up
+    env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
+    env.filters["sanitize_variable_name"] = filters.sanitize_variable_name
+    template = env.get_template("diff_view_sankey_incremental.html.jinja2")
     content = template.render(
+        title="Differences of profiles (with sankey)",
         lhs_tag="Baseline (base)",
-        lhs_columns=columns,
-        lhs_data=lhs_data,
         lhs_header=lhs_header,
         rhs_tag="Target (tgt)",
-        rhs_columns=columns,
-        rhs_data=rhs_data,
         rhs_header=rhs_header,
-        data_types=data_types,
-        cluster_types=sorted(list(traces_kit.TraceCluster.id_set)),
-        title="Difference of profiles (with tables)",
+        palette=WebColorPalette,
+        callee_graph=graph.to_jinja_string("callees"),
+        caller_graph=graph.to_jinja_string("callers"),
+        stat_list=Stats.all_stats(),
+        units=[mapping.get_unit(s) for s in Stats.all_stats()],
+        stats="["
+        + ",".join(
+            list(map(itemgetter(0), sorted(list(graph.stats_to_id.items()), key=itemgetter(1))))
+        )
+        + "]",
+        nodes=list(map(itemgetter(0), sorted(list(graph.uid_to_id.items()), key=itemgetter(1)))),
+        node_map=[
+            sorted([node.get_order() for node in nodes])
+            for nodes in map(
+                itemgetter(1),
+                sorted(list(graph.uid_to_nodes.items()), key=lambda x: graph.uid_to_id[x[0]]),
+            )
+        ],
+        flamegraphs=flamegraphs,
+        selection_table=selection_table,
+        offline=config.lookup_key_recursively("showdiff.offline", False),
     )
-    log.minor_success("HTML report ", "generated")
+    log.minor_success("HTML template", "rendered")
     output_file = diff_kit.save_diff_view(
-        kwargs.get("output_file"), content, "report", lhs_profile, rhs_profile
+        kwargs.get("output_file"), content, "sankey", lhs_profile, rhs_profile
     )
     log.minor_status("Output saved", log.path_style(output_file))
 
@@ -235,35 +691,25 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
 @click.command()
 @click.option("-o", "--output-file", help="Sets the output file (default=automatically generated).")
 @click.option(
-    "-c",
-    "--classify-traces-by",
-    help="Classifies the traces by selected classifier. "
-    "One of: 1) identity (each uid is classified to its own cluster); "
-    "2) best-fit (each uid is classified to best cluster); "
-    "3) first-fit (each uid is classified to first suitable cluster). "
-    "(default=identity)",
-    type=click.Choice(["identity", "best-fit", "first-fit"]),
-    default="identity",
-)
-@click.option(
-    "-fc",
-    "--filter-by-calls",
+    "-fr",
+    "--filter-by-relative",
     nargs=1,
-    help="Filters records that have less or equal calls than [INT] (default=1)",
-    type=click.INT,
-    default=1,
-)
-@click.option(
-    "-ft",
-    "--filter-by-time",
-    nargs=1,
-    help="Filters records based on the 'Total {Inclusive,Exclusive} Time T [ms]' column. "
-    "It filters values that are lesser or equal than [FLOAT] (default=0.1).",
+    help="Filters records based on the relative increase wrt the target. "
+    f"It filters values that are lesser or equal than [FLOAT] (default={Config().DefaultRelativeThreshold}).",
     type=click.FLOAT,
-    default=0.1,
+    default=Config().DefaultRelativeThreshold,
+)
+@click.option(
+    "-tn",
+    "--top-n",
+    nargs=1,
+    help=f"Filters how many top traces will be recorded per uid (default={Config().DefaultTopN}). ",
+    type=click.INT,
+    default=Config().DefaultTopN,
 )
 @click.pass_context
 def report(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
+    """Creates sankey graphs representing the differences between two profiles"""
     assert ctx.parent is not None and f"impossible happened: {ctx} has no parent"
     profile_list = ctx.parent.params["profile_list"]
-    generate_html_report(profile_list[0], profile_list[1], **kwargs)
+    generate_sankey_difference(profile_list[0], profile_list[1], **kwargs)
