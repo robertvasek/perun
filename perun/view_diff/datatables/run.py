@@ -227,7 +227,7 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
     )
     log.minor_success("HTML report ", "generated")
     output_file = diff_kit.save_diff_view(
-        kwargs.get("output_file"), content, "report", lhs_profile, rhs_profile
+        kwargs.get("output_file"), content, "datatables", lhs_profile, rhs_profile
     )
     log.minor_status("Output saved", log.path_style(output_file))
 

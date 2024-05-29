@@ -60,6 +60,7 @@ class Config:
 
     DefaultTopN: int = 10
     DefaultRelativeThreshold: float = 0.01
+    DefaultHeightCoefficient: int = 20
 
     def __init__(self) -> None:
         """Initializes the config
@@ -680,10 +681,12 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         flamegraphs=flamegraphs,
         selection_table=selection_table,
         offline=config.lookup_key_recursively("showdiff.offline", False),
+        height=Config().max_seen_trace * Config().DefaultHeightCoefficient,
+        container_height=Config().max_seen_trace * Config().DefaultHeightCoefficient + 200,
     )
     log.minor_success("HTML template", "rendered")
     output_file = diff_kit.save_diff_view(
-        kwargs.get("output_file"), content, "sankey", lhs_profile, rhs_profile
+        kwargs.get("output_file"), content, "report", lhs_profile, rhs_profile
     )
     log.minor_status("Output saved", log.path_style(output_file))
 

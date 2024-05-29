@@ -196,9 +196,9 @@
         </div>
         <div id="all" class="tabcontent">
             {{ widgets.help('toggleTableHelp', 'table-help', [
-                "You can click on row to open details as Sankey Graph below.",
-                "You can click on [+] to open details about UID.",
-                "You can filter by certain columns below through select."
+                "Click on a row to explore the results in a form of Sankey Graph (below the table).",
+                "Click on [+] to open a detailed report about concrete calling contexts.",
+                "Filter the results through select form on the bottom of table (for selected columns)."
             ]) }}
             <br>
             <table id="table" class="display" style="width: 100%;">
@@ -239,10 +239,11 @@
                 </div>
                 <div>
                 {{ widgets.help('toggleFlameHelp_' + loop.index0|string, 'flame-help-' + loop.index0|string, [
-                    "You can click on node to open details as Sankey Graph below.",
-                    "Colours don't mean anything.",
-                    "Bigger rectangle = more often on stack.",
-                    "Higher flame = more nested calls."
+                    "Look for the topmost widest rectangle.",
+                    "Click on the node to explore the results in a form of Sankey Graph (below the table).",
+                    "Colours are picked randomly (but uniformly); they don't signal any scale.",
+                    "The bigger the rectangle the more often the UID was seen on the stack.",
+                    "The higher the flame the more nested calls were made in the context."
                 ]) }}
                 <br>
                 </div>
@@ -259,6 +260,10 @@
             </div>
         </div>
         {%- endfor %}
+    </div>
+</div>
+<div class="middle">
+    <div class="tools">
         <div id="sankey_tools" style="display: none">
             <table>
                 <tbody>
@@ -282,14 +287,16 @@
                 </tbody>
             </table>
             {{ widgets.help('toggleSankeyHelp', 'sankey-help', [
-                "You can use tools at top-right corner of the graph.",
-                "Red is bad, green is good."
+                "Use the tools at top-right corner of the graph to expand/fold the callers/callees.",
+                "Wide red edges are (generally) bad; wide green edges are (generally) good."
             ]) }}
             <br>
         </div>
     </div>
 
-   <div id="sankey_graph"><!-- DO NOT CHANGE: SANKEY GRAPH IS RENDERED HERE--></div>
+    <div style="height: {{container_height}}px;">
+        <div id="sankey_graph" style="height: 100%;"><!-- DO NOT CHANGE: SANKEY GRAPH IS RENDERED HERE--></div>
+    </div>
 </div>
 
 <script>
@@ -407,7 +414,7 @@
             font: {
                 size: 14
             },
-            height: 600,
+            height: {{ height }},
         },
         sel_metric = 0,
         modification_mode = "none",
