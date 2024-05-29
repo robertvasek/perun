@@ -3,6 +3,7 @@
 This module exposes all currently implemented computational methods for regression analysis.
 
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -19,7 +20,7 @@ from perun.utils import log
 
 class ComputationMethod(Protocol):
     def __call__(self, *args: Any, **kwargs: Any) -> Iterator[dict[str, Any]]:
-        pass
+        """Empty method"""
 
 
 def get_supported_param_methods() -> list[str]:

@@ -1,4 +1,5 @@
 """Collection of functions for running collectors and postprocessors"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -200,9 +201,9 @@ def run_phase_function(report: RunnerReport, phase: str) -> None:
     :param RunnerReport report: collective report about the run of the phase
     :param str phase: name of the phase/function that is run
     """
-    phase_function: Callable[
-        ..., tuple[CollectStatus | PostprocessStatus, str, dict[str, Any]]
-    ] = getattr(report.runner, phase, create_empty_pass(report.ok_status))
+    phase_function: Callable[..., tuple[CollectStatus | PostprocessStatus, str, dict[str, Any]]] = (
+        getattr(report.runner, phase, create_empty_pass(report.ok_status))
+    )
     runner_verb = report.runner_type[:-2]
     report.phase = phase
     try:
@@ -327,7 +328,7 @@ def run_collector(collector: Unit, job: Job) -> tuple[CollectStatus, dict[str, A
     try:
         collector_module = common_kit.get_module(f"perun.collect.{collector.name}.run")
     except ImportError:
-        log.error(f"{collector.name} collector does not exist", recoverable=True)
+        log.error_msg(f"{collector.name} collector does not exist")
         return CollectStatus.ERROR, {}
 
     # First init the collector by running the before phases (if it has)
@@ -336,9 +337,8 @@ def run_collector(collector: Unit, job: Job) -> tuple[CollectStatus, dict[str, A
 
     if not collection_report.is_ok():
         log.minor_fail(f"Collecting from {log.cmd_style(job.executable.cmd)}")
-        log.error(
+        log.error_msg(
             f"while collecting by {collector.name}: {collection_report.message}",
-            recoverable=True,
             raised_exception=collection_report.exception,
         )
     else:
@@ -393,10 +393,7 @@ def run_postprocessor(
     try:
         postprocessor_module = common_kit.get_module(f"perun.postprocess.{postprocessor.name}.run")
     except ImportError:
-        log.error(
-            f"{postprocessor.name} postprocessor does not exist",
-            recoverable=True,
-        )
+        log.error_msg(f"{postprocessor.name} postprocessor does not exist")
         return PostprocessStatus.ERROR, {}
 
     # First init the collector by running the before phases (if it has)
@@ -407,10 +404,7 @@ def run_postprocessor(
 
     if not postprocess_report.is_ok() or not prof:
         log.minor_fail(f"Postprocessing by {postprocessor.name}")
-        log.error(
-            f"while postprocessing by {postprocessor.name}: {postprocess_report.message}",
-            recoverable=True,
-        )
+        log.error_msg(f"while postprocessing by {postprocessor.name}: {postprocess_report.message}")
     else:
         log.minor_success(f"Postprocessing by {postprocessor.name}")
 

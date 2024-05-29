@@ -5,6 +5,7 @@ so-called resource types, which are dictionaries of persistent less
 frequently changed aspects of resources. Moreover, we optimize other
 regions and flatten the format.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -422,7 +423,6 @@ class Profile(MutableMapping[str, Any]):
             if model_type == model["model"] and model["uid"] == uid:
                 return model
         log.error(f"missing {model_type} model for uid '{uid}'")
-        return {}  # this is only for type checking, in reality it is dead code
 
     def all_snapshots(self) -> Iterable[tuple[int, list[dict[str, Any]]]]:
         """Iterates through all the snapshots in resources

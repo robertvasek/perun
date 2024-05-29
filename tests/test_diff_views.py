@@ -23,7 +23,7 @@ def test_diff_tables(pcs_with_root):
     target_profilename = test_utils.load_profilename("diff_profiles", "kperf-target.perf")
 
     # Next try to create it using the click
-    result = runner.invoke(cli.showdiff, [baseline_profilename, target_profilename, "table"])
+    result = runner.invoke(cli.showdiff, [baseline_profilename, target_profilename, "short"])
     assert result.exit_code == 0
     assert "Top-9 Record" in result.output
     assert "Top-10 Record" not in result.output
@@ -33,7 +33,7 @@ def test_diff_tables(pcs_with_root):
         [
             baseline_profilename,
             target_profilename,
-            "table",
+            "short",
             "-f",
             "uid",
             "__intel_pmu_enable_all.isra.0",
@@ -71,7 +71,7 @@ def test_diff_flamegraphs(pcs_with_root):
     assert result.exit_code == 0
 
 
-def test_diff_reports(pcs_with_root):
+def test_diff_datatables(pcs_with_root):
     """Test creating flame graph out of the memory profile
 
     Expecting no errors, and created flame.svg graph
@@ -82,7 +82,7 @@ def test_diff_reports(pcs_with_root):
 
     # Next try to create it using the click
     result = runner.invoke(
-        cli.showdiff, [baseline_profilename, target_profilename, "report", "-o", "diff.html"]
+        cli.showdiff, [baseline_profilename, target_profilename, "datatables", "-o", "diff.html"]
     )
     assert result.exit_code == 0
 
@@ -93,7 +93,8 @@ def test_diff_reports(pcs_with_root):
 
     # Next try to create it using the click
     result = runner.invoke(
-        cli.showdiff, [baseline_profilename, target_profilename, "report", "-o", "diff-ktrace.html"]
+        cli.showdiff,
+        [baseline_profilename, target_profilename, "datatables", "-o", "diff-ktrace.html"],
     )
     assert result.exit_code == 0
 
@@ -152,7 +153,7 @@ def test_diff_incremental_sankey_kperf(pcs_with_root):
 
     # Next try to create it using the click
     result = runner.invoke(
-        cli.showdiff, [baseline_profilename, target_profilename, "sankey-incr", "-o", "diff.html"]
+        cli.showdiff, [baseline_profilename, target_profilename, "report", "-o", "diff.html"]
     )
     assert result.exit_code == 0
     assert "diff.html" in os.listdir(os.getcwd())
@@ -168,7 +169,7 @@ def test_diff_incremental_sankey_ktrace(pcs_with_root):
         [
             baseline_profilename,
             target_profilename,
-            "sankey-incr",
+            "report",
             "-o",
             "diff-ktrace.html",
         ],

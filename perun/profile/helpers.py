@@ -494,7 +494,6 @@ def _get_default_variable(profile: profiles.Profile, supported_variables: list[s
         perun_log.error(
             f"Profile does not contain (in)dependent variable. Has to be one of: ({', '.join(supported_variables)})"
         )
-        return ""
 
 
 def get_default_independent_variable(profile: profiles.Profile) -> str:

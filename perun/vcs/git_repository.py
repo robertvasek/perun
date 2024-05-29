@@ -3,6 +3,7 @@
 Contains concrete implementation of the function needed by perun to extract information and work
 with version control systems.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -65,7 +66,7 @@ class GitRepository(AbstractRepository):
                 and not os.listdir(self.vcs_path)
             ):
                 os.rmdir(self.vcs_path)
-            perun_log.error(f"while initializing git: {gce}", recoverable=True)
+            perun_log.error_msg(f"while initializing git: {gce}")
             return False
 
         if self.valid_repo:
@@ -91,7 +92,6 @@ class GitRepository(AbstractRepository):
             return str(git_head)
         except ValueError as value_error:
             perun_log.error(f"while fetching head minor version: {value_error}")
-            return ""
 
     def walk_minor_versions(self, head: str) -> Iterator[MinorVersion]:
         """Return the sorted list of minor versions starting from the given head.

@@ -1,4 +1,5 @@
 """List of helper and globally used structures and named tuples"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -14,7 +15,7 @@ import signal
 # Perun Imports
 from perun.utils.common import common_kit
 from perun.utils.common.common_kit import ColorChoiceType, PROFILE_TRACKED, PROFILE_UNTRACKED
-from perun.utils.exceptions import SignalReceivedException
+from perun.utils.exceptions import SignalReceivedException, SuppressedExceptions
 
 if TYPE_CHECKING:
     import types
@@ -417,12 +418,9 @@ class OrderedEnum(Enum):
 
         :param args: additional element arguments
         """
-        try:
+        with SuppressedExceptions(TypeError):
             # attempt to initialize other parents in the hierarchy
             super().__init__(*args)
-        except TypeError:
-            # ignore -- there are no other parents
-            pass
         ordered = len(self.__class__.__members__) + 1
         self.order = ordered
 

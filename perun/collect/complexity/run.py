@@ -4,6 +4,7 @@ running times and sizes of structures.
 Specifies before, collect and after functions to perform the initialization,
 collection and postprocessing of collection data.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -245,18 +246,14 @@ def _check_dependencies() -> None:
     if not shutil.which("make"):
         all_found = False
         log.minor_fail("make", "not found")
-        log.error(
-            "Could not find 'make'. Please, install the makefile package.",
-            recoverable=True,
-        )
+        log.error_msg("Could not find 'make'. Please, install the makefile package.")
     else:
         log.minor_success("make", "found")
     if not shutil.which("cmake"):
         all_found = False
         log.minor_fail("cmake", "not found")
-        log.error(
-            "Could not find 'cmake'. Please, install `build-essentials` and `cmake` packages.",
-            recoverable=True,
+        log.error_msg(
+            "Could not find 'cmake'. Please, install `build-essentials` and `cmake` packages."
         )
     else:
         log.minor_success("cmake", "found")

@@ -92,7 +92,6 @@ def get_current_interpreter(
                 version_digits.append(0)
             return version_digits, cmp_op
         log.error(f"Unparsable Python version {python_version}")
-        return [], operator.eq
 
     interpreter = sys.executable
     # Ensure that the found interpreter satisfies the required version

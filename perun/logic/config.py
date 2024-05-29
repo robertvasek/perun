@@ -7,6 +7,7 @@ There are three types of config: local, corresponding to concrete pcs, global, w
 global information and configurations, like e.g. list of registered repositories, and temporary,
 containing formats and options for one execution of perun command.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -186,7 +187,6 @@ def read_config_from(path: str) -> dict[str, Any]:
             f"corrupted configuration file '{path}': {scanner_error}\n"
             + "\nPerhaps you did not escape strings with special characters in quotes?"
         )
-        return {}
 
 
 def init_shared_config_at(path: str) -> None:
@@ -324,8 +324,6 @@ def load_config(config_dir: str, config_type: str) -> Config:
         return Config(config_type, config_file, read_config_from(config_file))
     except IOError as io_error:
         perun_log.error(f"error initializing {config_type} config: {str(io_error)}")
-        # Note: This does not happen
-        return Config(config_type, config_file, {})
 
 
 def lookup_shared_config_dir() -> str:
@@ -431,7 +429,7 @@ def get_hierarchy() -> Iterable[Config]:
     yield shared()
 
 
-def lookup_key_recursively(key: str, default: Optional[str] = None) -> Any:
+def lookup_key_recursively(key: str, default: Optional[Any] = None) -> Any:
     """Recursively looks up the key first in the local config and then in the global.
 
     This is used e.g. for formatting strings or editors, where first we have our local configs,
@@ -447,7 +445,7 @@ def lookup_key_recursively(key: str, default: Optional[str] = None) -> Any:
         except exceptions.MissingConfigSectionException:
             continue
     # If we have provided default value of the key return this, otherwise we raise an exception
-    if default:
+    if default is not None:
         return default
     raise exceptions.MissingConfigSectionException(key)
 

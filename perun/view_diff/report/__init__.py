@@ -1,3 +1,3 @@
 """
-Base package for report difference of profiles
+Base package for sankey difference of profiles
 """

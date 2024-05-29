@@ -1,4 +1,5 @@
 """ Module with graphs creation and configuration functions. """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -267,11 +268,11 @@ def _build_model_legend(model: ProfileModel) -> str:
     if model["model"] == "kernel_regression":
         # Create a legend for kernel model
         return f"{model['kernel_mode']}: bw={model['bandwidth']}, R^2={model['r_square']:f}"
-    if model["model"] == "regressogram":
+    else:
+        assert model["model"] == "regressogram"
         # Create a legend for regressogram model
         return (
             f"{model['model'][:3]}: buckets={len(model['bucket_stats'])}, "
             f"stat: {model['statistic_function']}, "
             f"R^2={model['r_square']:.3f}"
         )
-    return ""

@@ -10,7 +10,7 @@ py3.install_sources(
 )
 
 subdir('flamegraph')
+subdir('datatables')
 subdir('report')
 subdir('sankey')
-subdir('sankey_incremental')
-subdir('table')
+subdir('short')

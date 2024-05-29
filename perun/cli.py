@@ -38,6 +38,7 @@ the flexibility of Perun's usage.
 
 .. _Click: https://click.palletsprojects.com/en/latest/
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -666,6 +667,14 @@ def show(ctx: click.Context, profile: Profile, **_: Any) -> None:
     callback=cli_kit.lookup_minor_version_callback,
     help="Finds the profiles in the index of minor version [HASH]",
 )
+@click.option(
+    "--offline",
+    "-o",
+    callback=cli_kit.set_config_option_from_flag(perun_config.runtime, "showdiff.offline"),
+    is_flag=True,
+    default=False,
+    help="Creates self-contained outputs usable in offline environments (default=False).",
+)
 @click.pass_context
 def showdiff(ctx: click.Context, **kwargs: Any) -> None:
     """Interprets the difference of selected two profiles.
@@ -1282,7 +1291,7 @@ def launch_cli_safely() -> None:
         error_name = error_module + catched_exception.__class__.__name__
 
         reported_error = error_name + ": " + str(catched_exception)
-        perun_log.error(f"unexpected error: {reported_error}", recoverable=True)
+        perun_log.error_msg(f"unexpected error: {reported_error}")
         with exceptions.SuppressedExceptions(Exception):
             cli_kit.generate_cli_dump(reported_error, catched_exception, stdout_log, stderr_log)
 
