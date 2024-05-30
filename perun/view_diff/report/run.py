@@ -109,8 +109,8 @@ class SelectionRow:
     :ivar uid: uid of the selected graph
     :ivar index: index in the sorted list of data
     :ivar abs_amount: absolute change in the units
-    :ivar fresh: the state of the uid - 1) new (added in target),
-        2) removed (removed in target), or 3) possibly unchanged
+    :ivar fresh: the state of the uid - 1) not in baseline (added in target),
+        2) not in target (removed in target), or 3) possibly unchanged
     :ivar main_stat: type of the
     :ivar rel_amount: relative change in the units
     """
@@ -130,14 +130,14 @@ class SelectionRow:
         self,
         uid: str,
         index: int,
-        fresh: Literal["new", "removed", "(un)changed"],
+        fresh: Literal["not in baseline", "not in target", "in both"],
         stats: list[tuple[int, float, float]],
         trace_stats: list[tuple[str, str, float, float, str]],
     ) -> None:
         """Initializes the selection row"""
         self.uid: str = uid
         self.index: int = index
-        self.fresh: Literal["new", "removed", "(un)changed"] = fresh
+        self.fresh: Literal["not in baseline", "not in target", "in both"] = fresh
         self.main_stat: int = stats[0][0]
         self.abs_amount: float = common_kit.to_compact_num(stats[0][1])
         self.rel_amount: float = common_kit.to_compact_num(stats[0][2])
@@ -537,18 +537,15 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
     trace_stat_cache: dict[str, tuple[str, str, float, float, str]] = {}
     stat_len = len(Stats.all_stats())
     for uid, nodes in progressbar.progressbar(graph.uid_to_nodes.items()):
-        baseline_overall: array.array[float] = array.array("d", [0.0] * stat_len * 2)
-        target_overall: array.array[float] = array.array("d", [0.0] * stat_len * 2)
+        baseline_overall: array.array[float] = array.array("d", [0.0] * stat_len)
+        target_overall: array.array[float] = array.array("d", [0.0] * stat_len)
         stats: list[tuple[int, float, float]] = []
         for node in nodes:
             for i, known_stat in enumerate(Stats.all_stats()):
-                for link in node.callers.values():
+                for link in node.callees.values():
                     baseline_overall[i] += link.stats.baseline[known_stat]
                     target_overall[i] += link.stats.target[known_stat]
-                for link in node.callees.values():
-                    baseline_overall[i + stat_len] += link.stats.baseline[known_stat]
-                    target_overall[i + stat_len] += link.stats.target[known_stat]
-        for i in range(0, stat_len * 2):
+        for i in range(0, stat_len):
             baseline, target = baseline_overall[i], target_overall[i]
             if baseline != 0 or target != 0:
                 abs_diff = target - baseline
@@ -557,11 +554,11 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
         stats = sorted(stats, key=itemgetter(2))
 
         if stats:
-            state: Literal["new", "removed", "(un)changed"] = "(un)changed"
+            state: Literal["not in baseline", "not in target", "in both"] = "in both"
             if all(val == 0 or val == 0.0 for val in baseline_overall):
-                state = "new"
+                state = "not in baseline"
             elif all(val == 0 or val == 0.0 for val in target_overall):
-                state = "removed"
+                state = "not in target"
 
             # Prepare trace stats
             long_trace_stats = extract_stats_from_trace(graph, trace_stats[uid], trace_stat_cache)

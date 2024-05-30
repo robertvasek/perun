@@ -105,6 +105,8 @@ def draw_flame_graph(
                 str(width),
                 "--height",
                 str(height),
+                "--minwidth",
+                "1",
             ]
         )
         out, _ = commands.run_safely_external_command(cmd)
