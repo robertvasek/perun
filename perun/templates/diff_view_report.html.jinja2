@@ -444,9 +444,9 @@
                 data: "fresh",
                 render: function (data, type) {
                     if (type ==='display') {
-                        if (data === "new") {
+                        if (data === "not in baseline") {
                             return '<span style="font-weight: bold; color: {{ palette.DarkTarget }}">' + data + "</span>";
-                        } else if (data == "removed") {
+                        } else if (data == "not in target") {
                             return '<span style="font-weight: bold; color: {{ palette.DarkBaseline }}">' + data + "</span>";
                         } else {
                             return '<span style="font-weight: bold; color: {{ palette.Equal }}">' + data + "</span>";
@@ -1026,7 +1026,9 @@
 
     function stat_id_to_name(stat_id) {
         let metric_len = stat_map.length, metric = stat_id % metric_len;
-        return ((stat_id <= metric_len) ? 'caller ' : 'callee ') + stat_map[metric];
+        if (stat_id >= metric_len)
+            console.error("There is no id in the map for " + stat_id)
+        return stat_map[metric];
     }
 
     // Event handlers
