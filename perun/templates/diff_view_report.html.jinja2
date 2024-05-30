@@ -105,6 +105,7 @@
         .tabcontent {
           display: none;
           width: 100%;
+          height: auto;
           float: left;
           padding: 6px 0px;
           border: 1px solid #ccc;
@@ -184,7 +185,7 @@
     <div style="margin: 0 10px;">&nbsp;</div>
 </div>
 
-<div class="middle">
+<div class="middle" style="height: auto;">
     <div class="tools">
         <div class="tab">
             {%- if flamegraphs %}
@@ -262,7 +263,7 @@
         {%- endfor %}
     </div>
 </div>
-<div class="middle">
+<div class="middle" style="height: auto;">
     <div class="tools">
         <div id="sankey_tools" style="display: none">
             <table>
@@ -294,7 +295,7 @@
         </div>
     </div>
 
-    <div style="height: {{container_height}}px;">
+    <div id="sankey_container" style="height: {{container_height}}px;">
         <div id="sankey_graph" style="height: 100%;"><!-- DO NOT CHANGE: SANKEY GRAPH IS RENDERED HERE--></div>
     </div>
 </div>
@@ -422,6 +423,7 @@
         metric_no = {{ stat_list|length }},
         sel_uid = -1,
         sel_uid_text = "",
+        curr_tab = "",
         plot = document.getElementById('sankey_graph');
 
     // Selection table
@@ -1151,6 +1153,7 @@
     function openTab(evt, tabName, metricNo) {
       // Declare all variables
       var i, tabcontent, tablinks;
+      curr_tab = tabName;
 
       // Get all elements with class="tabcontent" and hide them
       tabcontent = document.getElementsByClassName("tabcontent");
@@ -1180,9 +1183,9 @@
 
       // Try to position flamegraphs
       const svgContents = tab.getElementsByClassName('svg-content');
-      const svgContainer = tab.getElementsByClassName('svg-container')[0];
-      if (svgContainer) {
-        let max_box = 0, max_viewBox = "";
+      const lhs_svgContainer = tab.getElementsByClassName('svg-container')[0];
+      if (lhs_svgContainer) {
+        let max_box = 0, max_viewBox = "", max_height = 0;
         for (let i = 0; i < svgContents.length; i++) {
             const svgContent = svgContents[i];
             const viewBox = svgContent.getAttribute('viewBox');
@@ -1195,7 +1198,6 @@
                 }
             }
         };
-        svgContainer.style.height = `${max_box}px`;
         for (let i = 0; i < svgContents.length; i++) {
             const svgContent = svgContents[i];
             svgContent.setAttribute("viewBox", max_viewBox);
@@ -1203,6 +1205,7 @@
             svgContent.getElementsByTagName("rect")[0].style.height = max_box;
         };
       }
+      resize();
     }
 
     function openSankey(el) {
@@ -1226,6 +1229,35 @@
             el.addEventListener('click', function() {openSankey(el)}) 
         })
     }
+
+    function resize() {
+        if (curr_tab == "")
+            return;
+        const tab = document.getElementById(curr_tab);
+        const svgContents = tab.getElementsByClassName('svg-content');
+        const lhs_svgContainer = tab.getElementsByClassName('svg-container')[0];
+        const rhs_svgContainer = tab.getElementsByClassName('svg-container')[1];
+        if (lhs_svgContainer) {
+            let max_box = 0, max_height = 0;
+            for (let i = 0; i < svgContents.length; i++) {
+                const svgContent = svgContents[i];
+                const viewBox = svgContent.getAttribute('viewBox');
+                const svgHeight = svgContent.getBoundingClientRect().height;
+                const viewBoxValues = viewBox.split(' ');
+                const height = parseInt(viewBoxValues[3]);
+                if (svgHeight > max_height)
+                    max_height = svgHeight;
+                if (height > max_box)
+                    max_box = height;
+            };
+            lhs_svgContainer.style.height = `${max_box}px`;
+            rhs_svgContainer.style.height = `${max_box}px`;
+            tab.style.height = `${max_height + 100}px`;
+        }
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
 
     document.querySelector('input[name="incr"]').addEventListener('change', filterEdges);
     document.querySelector('input[name="decr"]').addEventListener('change', filterEdges);
