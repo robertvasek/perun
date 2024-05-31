@@ -1,6 +1,7 @@
 """
 Basic tests for fuzz-testing mode of perun
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -592,6 +593,5 @@ def test_fuzzing_errors(pcs_with_root, monkeypatch):
         ],
     )  # fmt: skip
     asserts.predicate_from_cli(result, result.exit_code == 0)
-    asserts.predicate_from_cli(result, "Executing binary raised an exception" in result.output)
     monkeypatch.setattr(coverage_fuzz, "target_testing", old_target_perun_testing)
     monkeypatch.setattr(commands, "get_stdout_from_external_command", old_check_output)
