@@ -1,4 +1,5 @@
 """Basic tests for checking degradation between versions and profiles."""
+
 from __future__ import annotations
 
 # Standard Imports
