@@ -1,4 +1,5 @@
 """Collection of global methods for fuzz testing."""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -29,6 +30,7 @@ from perun.fuzz.structs import (
     TimeSeries,
 )
 from perun.utils import decorators, log
+from perun.utils.exceptions import SuppressedExceptions
 import perun.fuzz.evaluate.by_perun as evaluate_workloads_by_perun
 import perun.fuzz.evaluate.by_coverage as evaluate_workloads_by_coverage
 
@@ -605,7 +607,8 @@ def run_fuzzing_for_command(
 
             # testing with perun
             successful_result = False
-            try:
+            # We suppress the exceptions -> we will simply not have collected the data
+            with SuppressedExceptions(Exception):
                 fuzz_progress.stats.perun_execs += 1
                 successful_result = evaluate_workloads_by_perun.target_testing(
                     executable,
@@ -618,9 +621,6 @@ def run_fuzzing_for_command(
                 )
                 if successful_result:
                     process_successful_mutation(mutation, parents, fuzz_progress, rule_set, config)
-            # temporarily we ignore error within individual perf testing without previous cov test
-            except Exception as exc:
-                log.warn(f"Executing binary raised an exception: {exc}")
 
             log.minor_status(f"{mutation.path}", status=f"{mutation.fitness}")
             # in case of testing with coverage, parent will not be removed but used for mutation

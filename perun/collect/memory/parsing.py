@@ -1,4 +1,5 @@
 """This module provides methods for parsing raw memory data"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -164,8 +165,7 @@ def parse_log(filename: str, executable: Executable, snapshots_interval: float) 
         # it's the only one number on the 1st line
         time_string = allocation[0]
         # in some cases there is '.' instead of ',' in timestamp
-        if time_string.find(",") > 0:
-            time_string = time_string.replace(",", ".")
+        time_string = time_string.replace(",", ".")
 
         time = Decimal(common_kit.safe_match(PATTERN_TIME, time_string, "-1"))
 
