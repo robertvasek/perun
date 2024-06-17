@@ -138,7 +138,9 @@ DEV_MODE = False
         "(first argument) under the supplied ID (second argument)."
     ),
 )
+@click.pass_context
 def cli(
+    ctx: click.Context,
     dev_mode: bool = False,
     no_color: bool = False,
     say_yes: bool = False,
@@ -179,8 +181,6 @@ def cli(
     # set the verbosity level of the log
     if perun_log.VERBOSITY < verbose:
         perun_log.VERBOSITY = verbose
-
-    commands.try_init()
 
 
 def configure_local_perun(perun_path: str) -> None:
@@ -399,6 +399,7 @@ def add(profile: list[str], minor: Optional[str], **kwargs: Any) -> None:
 
     See :doc:`internals` for information how perun handles profiles internally.
     """
+    commands.try_init()
     try:
         warning_message = (
             "Warning: Are you sure you want to force the add?"
@@ -484,6 +485,7 @@ def remove(
 
     See :doc:`internals` for information how perun handles profiles internally.
     """
+    commands.try_init()
     try:
         commands.remove_from_index(from_index_generator, minor)
         commands.remove_from_pending(from_jobs_generator)
@@ -521,6 +523,7 @@ def log(head: Optional[str], **kwargs: Any) -> None:
     ``log`` or how to set :ckey:`format.shortlog` in nearest
     configuration.
     """
+    commands.try_init()
     try:
         commands.log(head, **kwargs)
     except (NotPerunRepositoryException, UnsupportedModuleException) as exception:
@@ -576,6 +579,7 @@ def status(**kwargs: Any) -> None:
     ``status`` or how to set :ckey:`format.status` in nearest
     configuration.
     """
+    commands.try_init()
     try:
         commands.status(**kwargs)
     except (
@@ -795,6 +799,7 @@ def postprocessby(ctx: click.Context, profile: Profile, **_: Any) -> None:
     more complex configuration consult either ``perun run matrix --help`` or
     ``perun run job --help``.
     """
+    commands.try_init()
     ctx.obj = profile
 
 
@@ -955,6 +960,7 @@ def collect(ctx: click.Context, **kwargs: Any) -> None:
     more complex configuration consult either ``perun run matrix --help`` or
     ``perun run job --help``.
     """
+    commands.try_init()
     ctx.obj = kwargs
 
 
@@ -1229,6 +1235,7 @@ def collect(ctx: click.Context, **kwargs: Any) -> None:
 )
 def fuzz_cmd(cmd: str, **kwargs: Any) -> None:
     """Performs fuzzing for the specified command according to the initial sample of workload."""
+    commands.try_init()
     kwargs["executable"] = Executable(cmd)
     fuzz.run_fuzzing_for_command(**kwargs)
 

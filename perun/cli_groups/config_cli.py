@@ -1,4 +1,5 @@
 """Group of CLI commands used for manipulation with config"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -81,6 +82,8 @@ def config(ctx: click.Context, **kwargs: Any) -> None:
         $ perun config get vcs.type
         vcs.type: git
     """
+    if kwargs.get("store_type") == "local":
+        commands.try_init()
     ctx.obj = kwargs
 
 

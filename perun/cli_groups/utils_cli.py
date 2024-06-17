@@ -3,6 +3,7 @@
 This contains various scripts for generation of the modules, for management of temporary and
 stats directories, etc.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -88,7 +89,7 @@ def create(template_type: str, **kwargs: Any) -> None:
 @utils_group.group("temp")
 def temp_group() -> None:
     """Provides a set of operations for maintaining the temporary directory (.perun/tmp/) of perun."""
-    pass
+    commands.try_init()
 
 
 @temp_group.command("list")
@@ -194,7 +195,7 @@ def temp_sync() -> None:
 @utils_group.group("stats")
 def stats_group() -> None:
     """Provides a set of operations for manipulating the stats directory (.perun/stats/) of perun."""
-    pass
+    commands.try_init()
 
 
 @stats_group.command("list-files")
