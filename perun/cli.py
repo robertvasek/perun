@@ -210,6 +210,7 @@ def configure_local_perun(perun_path: str) -> None:
     "--vcs-path",
     metavar="<path>",
     help="Sets the destination of wrapped vcs initialization at <path>.",
+    callback=cli_kit.vcs_path_callback,
 )
 @click.option(
     "--vcs-param",
