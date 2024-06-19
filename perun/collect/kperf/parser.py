@@ -1,6 +1,7 @@
 """
 Contains helper functions for parsing information from perf
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -25,8 +26,8 @@ def parse_events(perf_events: list[str]) -> list[dict[str, Any]]:
     resources = []
     for event in progressbar.progressbar(perf_events):
         if event.strip():
-            record, samples = event.split(" ")
-            parts = record.split(";")
+            *record, samples = event.split(" ")
+            parts = " ".join(record).split(";")
             command, trace, uid = parts[0], parts[1:-1], parts[-1]
             resources.append(
                 {
