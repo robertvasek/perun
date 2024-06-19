@@ -1,4 +1,5 @@
 """Group of CLI commands used for detecting degradations in VCS history"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -8,7 +9,7 @@ from typing import Any, TYPE_CHECKING, Optional
 import click
 
 # Perun Imports
-from perun.logic import pcs, config as perun_config
+from perun.logic import pcs, config as perun_config, commands
 from perun.utils import log
 from perun.utils.common import cli_kit, common_kit
 import perun.check.factory as check
@@ -106,6 +107,7 @@ def check_group(**_: Any) -> None:
         8. Exclusive Time Outliers (ETO)
 
     """
+    commands.try_init()
     should_precollect = common_kit.strtobool(
         str(perun_config.lookup_key_recursively("degradation.collect_before_check", "false"))
     )

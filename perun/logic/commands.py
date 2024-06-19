@@ -4,6 +4,7 @@ Commands contains implementation of the basic commands of perun pcs. It is meant
 to be run both from GUI applications and from CLI, where each of the function is
 possible to be run in isolation.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -1216,9 +1217,11 @@ def load_profile_from_args(profile_name: str, minor_version: str) -> Optional[Pr
     # Peek the type if the profile is correct and load the json
     _, profile_name = store.split_object_name(
         pcs.get_object_directory(),
-        chosen_profile.checksum
-        if isinstance(chosen_profile, index.BasicIndexEntry)
-        else chosen_profile,
+        (
+            chosen_profile.checksum
+            if isinstance(chosen_profile, index.BasicIndexEntry)
+            else chosen_profile
+        ),
     )
     loaded_profile = store.load_profile_from_file(profile_name, False)
 

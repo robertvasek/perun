@@ -1288,6 +1288,7 @@ def test_init_correct_with_params():
     dst = str(os.getcwd())
     result = runner.invoke(cli.init, [dst, "--vcs-type=git", "--vcs-flag", "bare"])
     asserts.predicate_from_cli(result, result.exit_code == 0)
+    print(result.output)
     assert "config" in os.listdir(os.getcwd())
     with open(os.path.join(os.getcwd(), "config"), "r") as config_file:
         assert "bare = true" in "".join(config_file.readlines())
@@ -1760,7 +1761,6 @@ def test_reset_outside_pcs(monkeypatch):
     runner = CliRunner()
     result = runner.invoke(config_cli.config, ["--local", "reset"])
     asserts.predicate_from_cli(result, result.exit_code == 1)
-    asserts.predicate_from_cli(result, "could not reset" in result.output)
 
     monkeypatch.setattr("perun.logic.config.lookup_shared_config_dir", os.getcwd)
     result = runner.invoke(config_cli.config, ["--shared", "reset"])

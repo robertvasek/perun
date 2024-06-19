@@ -1,4 +1,5 @@
 """Group of CLI commands for running the Perun process."""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -8,7 +9,7 @@ from typing import Any
 import click
 
 # Perun Imports
-from perun.logic import config as perun_config, runner
+from perun.logic import config as perun_config, runner, commands
 from perun.utils import log as perun_log
 from perun.utils.common import cli_kit
 from perun.utils.structs import CollectStatus
@@ -65,6 +66,7 @@ def run(ctx: click.Context, **kwargs: Any) -> None:
     Either runs the job matrix stored in local.yml configuration or lets the
     user construct the job run using the set of parameters.
     """
+    commands.try_init()
     ctx.obj = kwargs
 
 

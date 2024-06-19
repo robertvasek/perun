@@ -282,7 +282,7 @@ def path_to_subpaths(path: str) -> list[str]:
     :param str path: path separated by os.sep separator
     :returns list: list of subpaths
     """
-    components = path.split(os.sep)
+    components = os.path.abspath(path).split(os.sep)
     return [os.sep + components[0]] + [
         os.sep.join(components[:till]) for till in range(2, len(components) + 1)
     ]
@@ -298,13 +298,26 @@ def locate_perun_dir_on(path: str) -> str:
     :returns str: path to perun dir or "" if the path is not underneath some underlying perun
         control
     """
+    perun_dir = locate_dir_on(path, ".perun")
+    if perun_dir == "":
+        raise NotPerunRepositoryException(path)
+    return perun_dir
+
+
+def locate_dir_on(path: str, searched_dir: str) -> str:
+    """Locates the nearest directory containing the other directory
+
+    :param str path: starting point of the search
+    :param str path: dir we are searching
+    :returns str: path to dir or "" if the path is not underneath some underlying perun control
+    """
     # convert path to subpaths and reverse the list so deepest subpaths are traversed first
     lookup_paths = path_to_subpaths(path)[::-1]
 
     for tested_path in lookup_paths:
-        if os.path.isdir(tested_path) and ".perun" in os.listdir(tested_path):
+        if os.path.isdir(tested_path) and searched_dir in os.listdir(tested_path):
             return tested_path
-    raise NotPerunRepositoryException(path)
+    return ""
 
 
 def try_convert(value: Any, list_of_types: list[type]) -> Any:

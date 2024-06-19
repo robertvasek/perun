@@ -52,7 +52,8 @@ dependencies = [
     "angr>=9.2",
 
     # Science / math / statistics / ML
-    "numpy>=1.24",
+    # TODO: Temporary fix the numpy version, as 2.0.0 may break some codes
+    "numpy>=1.24,<2.0",
     "pandas>=2.0",
     "statsmodels>=0.14",
     "scikit-learn>=1.3",

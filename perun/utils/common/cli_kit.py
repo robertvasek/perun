@@ -249,6 +249,19 @@ def config_key_validation_callback(_: click.Context, param: click.Option, value:
     return value
 
 
+def vcs_path_callback(_: click.Context, __: click.Option, value: Any) -> Any:
+    """Parses the vcs path during the init
+
+    :param Context ctx: context of the called command
+    :param click.Option param: parameter that is being parsed
+    :param str value: value that is being read from the commandline
+    :returns tuple: tuple of flags or parameters
+    """
+    if not value:
+        return common_kit.locate_dir_on(".", ".git")
+    return value
+
+
 def vcs_parameter_callback(ctx: click.Context, param: click.Option, value: Any) -> Any:
     """Parses flags and parameters for version control system during the init
 
