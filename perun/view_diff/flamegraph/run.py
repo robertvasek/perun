@@ -20,7 +20,6 @@ from perun.view.flamegraph import flamegraph as flamegraph_factory
 from perun.view_diff.short import run as table_run
 
 
-DEFAULT_HEIGHT: int = 14
 DEFAULT_WIDTH: int = 600
 TAGS_TO_INDEX: list[str] = []
 
@@ -114,16 +113,15 @@ def generate_flamegraphs(
     lhs_profile: Profile,
     rhs_profile: Profile,
     data_types: list[str],
-    height: int = DEFAULT_HEIGHT,
     width: int = DEFAULT_WIDTH,
     skip_diff: bool = False,
+    minimize: bool = False,
 ) -> list[tuple[str, str, str, str]]:
     """Constructs a list of tuples of flamegraphs for list of data_types
 
     :param lhs_profile: baseline profile
     :param rhs_profile: target profile
     :param data_types: list of data types (resources)
-    :param height: height of the flame graph
     :param width: width of the flame graph
     """
     flamegraphs = []
@@ -132,20 +130,20 @@ def generate_flamegraphs(
             data_type = mapping.from_readable_key(dtype)
             lhs_graph = flamegraph_factory.draw_flame_graph(
                 lhs_profile,
-                height,
                 width,
                 title="Baseline Flamegraph",
                 profile_key=data_type,
+                minimize=minimize,
             )
             escaped_lhs = escape_content(f"lhs_{i}", lhs_graph)
             log.minor_success(f"Baseline flamegraph ({dtype})", "generated")
 
             rhs_graph = flamegraph_factory.draw_flame_graph(
                 rhs_profile,
-                height,
                 width,
                 title="Target Flamegraph",
                 profile_key=data_type,
+                minimize=minimize,
             )
             escaped_rhs = escape_content(f"rhs_{i}", rhs_graph)
             log.minor_success(f"Target flamegraph ({dtype})", "generated")
@@ -156,10 +154,10 @@ def generate_flamegraphs(
                 diff_graph = flamegraph_factory.draw_flame_graph_difference(
                     lhs_profile,
                     rhs_profile,
-                    height,
                     width,
                     title="Difference Flamegraph",
                     profile_key=data_type,
+                    minimize=minimize,
                 )
                 escaped_diff = escape_content(f"diff_{i}", diff_graph)
             log.minor_success(f"Diff flamegraph ({dtype})", "generated")
@@ -188,7 +186,6 @@ def generate_flamegraph_difference(
         lhs_profile,
         rhs_profile,
         data_types,
-        kwargs.get("height", DEFAULT_HEIGHT),
         kwargs.get("width", DEFAULT_WIDTH),
     )
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
@@ -223,13 +220,6 @@ def generate_flamegraph_difference(
     type=click.INT,
     default=DEFAULT_WIDTH,
     help="Sets the width of the flamegraph (default=600px).",
-)
-@click.option(
-    "-h",
-    "--height",
-    type=click.INT,
-    default=DEFAULT_HEIGHT,
-    help="Sets the height of the flamegraph (default=14).",
 )
 @click.option("-o", "--output-file", help="Sets the output file (default=automatically generated).")
 def flamegraph(ctx: click.Context, *_: Any, **kwargs: Any) -> None:

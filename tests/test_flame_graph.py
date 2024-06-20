@@ -1,4 +1,5 @@
 """Basic testing for the flame graph generation"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -24,7 +25,7 @@ def test_flame_graph(pcs_with_root, valid_profile_pool):
     memory_profile = test_utils.load_profile("to_add_profiles", "new-prof-2-memory-basic.perf")
 
     # First try to create the graph using the convential matters
-    flamegraph_run.save_flamegraph(memory_profile, "flame2.svg", 20)
+    flamegraph_run.save_flamegraph(memory_profile, "flame2.svg")
     assert "flame2.svg" in os.listdir(os.getcwd())
 
     # Next try to create it using the click

@@ -22,25 +22,28 @@ if TYPE_CHECKING:
 def draw_flame_graph_difference(
     lhs_profile: Profile,
     rhs_profile: Profile,
-    height: int,
     width: int = 1200,
     title: str = "",
     profile_key: str = "amount",
+    minimize: bool = False,
 ) -> str:
     """Draws difference of two flame graphs from two profiles
 
     :param lhs_profile: baseline profile
     :param rhs_profile: target_profile
     :param width: width of the graph
-    :param height: graphs height
     :param profile_key: key for which we are constructing profile
     :param title: if set to empty, then title will be generated
     """
     # First we create two flamegraph formats
-    lhs_flame = convert.to_flame_graph_format(lhs_profile, profile_key=profile_key)
+    lhs_flame = convert.to_flame_graph_format(
+        lhs_profile, profile_key=profile_key, minimize=minimize
+    )
     with open("lhs.flame", "w") as lhs_handle:
         lhs_handle.write("".join(lhs_flame))
-    rhs_flame = convert.to_flame_graph_format(rhs_profile, profile_key=profile_key)
+    rhs_flame = convert.to_flame_graph_format(
+        rhs_profile, profile_key=profile_key, minimize=minimize
+    )
     with open("rhs.flame", "w") as rhs_handle:
         rhs_handle.write("".join(rhs_flame))
 
@@ -56,7 +59,7 @@ def draw_flame_graph_difference(
     difference_script = (
         f"{diff_script} -n lhs.flame rhs.flame "
         f"| {flame_script} --title '{title}' --countname {units} --reverse "
-        f"--width {width * 2} --height {height}"
+        f"--width {width * 2}"
     )
     out, _ = commands.run_safely_external_command(difference_script)
     os.remove("lhs.flame")
@@ -66,7 +69,11 @@ def draw_flame_graph_difference(
 
 
 def draw_flame_graph(
-    profile: Profile, height: int, width: int = 1200, title: str = "", profile_key: str = "amount"
+    profile: Profile,
+    width: int = 1200,
+    title: str = "",
+    profile_key: str = "amount",
+    minimize: bool = False,
 ) -> str:
     """Draw Flame graph from profile.
 
@@ -75,12 +82,11 @@ def draw_flame_graph(
 
     :param profile: the memory profile
     :param width: width of the graph
-    :param height: graphs height
     :param profile_key: key for which we are constructing profile
     :param title: if set to empty, then title will be generated
     """
     # converting profile format to format suitable to Flame graph visualization
-    flame = convert.to_flame_graph_format(profile, profile_key=profile_key)
+    flame = convert.to_flame_graph_format(profile, profile_key=profile_key, minimize=minimize)
 
     header = profile["header"]
     profile_type = header["type"]
@@ -103,8 +109,6 @@ def draw_flame_graph(
                 "--reverse",
                 "--width",
                 str(width),
-                "--height",
-                str(height),
                 "--minwidth",
                 "1",
             ]

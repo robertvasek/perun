@@ -103,7 +103,9 @@ def models_to_pandas_dataframe(profile: Profile) -> pandas.DataFrame:
     return pandas.DataFrame(values)
 
 
-def to_flame_graph_format(profile: Profile, profile_key: str = "amount") -> list[str]:
+def to_flame_graph_format(
+    profile: Profile, profile_key: str = "amount", minimize: bool = False
+) -> list[str]:
     """Transforms the **memory** profile w.r.t. :ref:`profile-spec` into the
     format supported by perl script of Brendan Gregg.
 
@@ -129,6 +131,7 @@ def to_flame_graph_format(profile: Profile, profile_key: str = "amount") -> list
 
     :param Profile profile: the memory profile
     :param profile_key: key that is used to obtain the data
+    :param minimize: minimizes the uids
     :returns: list of lines, each representing one allocation call stack
     """
     stacks = []
@@ -139,7 +142,7 @@ def to_flame_graph_format(profile: Profile, profile_key: str = "amount") -> list
                 if alloc["uid"] != "%TOTAL_TIME%":
                     stack_str = to_uid(alloc["uid"]) + ";"
                     for frame in alloc["trace"][::-1]:
-                        line = to_string_line(frame)
+                        line = to_uid(frame, minimize)
                         stack_str += line + ";"
                     if stack_str and stack_str.endswith(";"):
                         final = stack_str[:-1]
@@ -149,16 +152,17 @@ def to_flame_graph_format(profile: Profile, profile_key: str = "amount") -> list
     return stacks
 
 
-def to_uid(record: dict[str, Any] | str) -> str:
+def to_uid(record: dict[str, Any] | str, minimize: bool = False) -> str:
     """Retrieves uid from record
 
     :param record: record for which we are retrieving uid
     :return: single string representing uid
     """
     if isinstance(record, str):
-        return record
+        result = record
     else:
-        return to_string_line(record)
+        result = to_string_line(record)
+    return common_kit.hide_generics(result) if minimize else result
 
 
 def to_string_line(frame: dict[str, Any] | str) -> str:

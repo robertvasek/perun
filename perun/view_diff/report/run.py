@@ -60,7 +60,7 @@ class Config:
 
     DefaultTopN: int = 10
     DefaultRelativeThreshold: float = 0.01
-    DefaultHeightCoefficient: int = 20
+    DefaultHeightCoefficient: int = 50
 
     def __init__(self) -> None:
         """Initializes the config
@@ -71,6 +71,7 @@ class Config:
         self.top_n_traces: int = self.DefaultTopN
         self.relative_threshold = self.DefaultRelativeThreshold
         self.max_seen_trace: int = 0
+        self.minimize: bool = False
 
 
 @dataclass
@@ -447,8 +448,8 @@ def process_traces(
     """
     max_trace = 0
     for _, resource in progressbar.progressbar(profile.all_resources()):
-        full_trace = [convert.to_uid(t) for t in resource["trace"]]
-        full_trace.append(convert.to_uid(resource["uid"]))
+        full_trace = [convert.to_uid(t, Config().minimize) for t in resource["trace"]]
+        full_trace.append(convert.to_uid(resource["uid"], Config().minimize))
         trace_len = len(full_trace)
         max_trace = max(max_trace, trace_len)
         if trace_len > 1:
@@ -619,6 +620,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     :param kwargs: additional arguments
     """
     # We automatically set the value of True for kperf, which samples
+    Config().minimize = kwargs.get("minimize", False)
     Config().top_n_traces = kwargs.get("top_n", Config().DefaultTopN)
     Config().relative_threshold = kwargs.get(
         "filter_by_relative", Config().DefaultRelativeThreshold
@@ -642,7 +644,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         rhs_profile,
         Stats.all_stats(),
         skip_diff=True,
-        height=Config().max_seen_trace,
+        minimize=Config().minimize,
     )
     log.minor_success("Sankey graphs", "generated")
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
@@ -678,7 +680,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         flamegraphs=flamegraphs,
         selection_table=selection_table,
         offline=config.lookup_key_recursively("showdiff.offline", False),
-        height=Config().max_seen_trace * Config().DefaultHeightCoefficient,
+        height=Config().max_seen_trace * Config().DefaultHeightCoefficient + 200,
         container_height=Config().max_seen_trace * Config().DefaultHeightCoefficient + 200,
     )
     log.minor_success("HTML template", "rendered")
@@ -706,6 +708,12 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     help=f"Filters how many top traces will be recorded per uid (default={Config().DefaultTopN}). ",
     type=click.INT,
     default=Config().DefaultTopN,
+)
+@click.option(
+    "-m",
+    "--minimize",
+    is_flag=True,
+    help=f"Minimizes the traces, folds the recursive calls, hids the generic types.",
 )
 @click.pass_context
 def report(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
