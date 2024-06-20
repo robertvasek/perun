@@ -104,6 +104,7 @@ my $frameheight = 16;           # max height is dynamic
 my $fontsize = 12;              # base text size
 my $fontwidth = 0.59;           # avg width relative to fontsize
 my $minwidth = 0.1;             # min function width, pixels or percentage of time
+my $offset = 0;					# offset added to rectangles (this is used to align two flamegraphs)
 my $nametype = "Function:";     # what are the names in the data?
 my $countname = "samples";      # what are the counts in the data?
 my $colors = "hot";             # color theme
@@ -137,6 +138,7 @@ USAGE: $0 [options] infile > outfile.svg\n
 	--height NUM     # height of each frame (default 16)
 	--minwidth NUM   # omit smaller functions. In pixels or use "%" for
 	                 # percentage of time (default 0.1 pixels)
+	--offset NUM     # offset of the start of the flamegraph from top (default 0)
 	--fonttype FONT  # font type (default "Verdana")
 	--fontsize NUM   # font size (default 12)
 	--countname TEXT # count type label (default "samples")
@@ -165,6 +167,7 @@ GetOptions(
 	'fonttype=s'  => \$fonttype,
 	'width=i'     => \$imagewidth,
 	'height=i'    => \$frameheight,
+	'offset=i'    => \$offset,
 	'encoding=s'  => \$encoding,
 	'fontsize=f'  => \$fontsize,
 	'fontwidth=f' => \$fontwidth,
@@ -767,6 +770,9 @@ while (my ($id, $node) = each %Node) {
 }
 
 # draw canvas, and embed interactive JavaScript program
+if ($offset != 0) {
+	$offset = ($offset + 1) * $frameheight;
+}
 my $imageheight = (($depthmax + 1) * $frameheight) + $ypad1 + $ypad2;
 $imageheight += $ypad3 if $subtitletext ne "";
 my $titlesize = $fontsize + 5;
@@ -1135,11 +1141,11 @@ $im->include($inc);
 $im->filledRectangle(0, 0, $imagewidth, $imageheight, 'url(#background)');
 $im->stringTTF("title", int($imagewidth / 2), $fontsize * 2, $titletext);
 $im->stringTTF("subtitle", int($imagewidth / 2), $fontsize * 4, $subtitletext) if $subtitletext ne "";
-$im->stringTTF("details", $xpad, $imageheight - ($ypad2 / 2), " ");
+$im->stringTTF("details", $xpad, $imageheight - ($ypad2 / 2) + $offset, " ");
 $im->stringTTF("unzoom", $xpad, $fontsize * 2, "Reset Zoom", 'class="hide"');
 $im->stringTTF("search", $imagewidth - $xpad - 100, $fontsize * 2, "Search");
 $im->stringTTF("ignorecase", $imagewidth - $xpad - 16, $fontsize * 2, "ic");
-$im->stringTTF("matched", $imagewidth - $xpad - 100, $imageheight - ($ypad2 / 2), " ");
+$im->stringTTF("matched", $imagewidth - $xpad - 100, $imageheight - ($ypad2 / 2) + $offset, " ");
 
 if ($palette) {
 	read_palette();
@@ -1209,7 +1215,7 @@ while (my ($id, $node) = each %Node) {
 	} else {
 		$color = color($colors, $hash, $func);
 	}
-	$im->filledRectangle($x1, $y1, $x2, $y2, $color, 'rx="2" ry="2"');
+	$im->filledRectangle($x1, $y1+$offset, $x2, $y2+$offset, $color, 'rx="2" ry="2"');
 
 	my $chars = int( ($x2 - $x1) / ($fontsize * $fontwidth));
 	my $text = "";
@@ -1221,7 +1227,7 @@ while (my ($id, $node) = each %Node) {
 		$text =~ s/</&lt;/g;
 		$text =~ s/>/&gt;/g;
 	}
-	$im->stringTTF(undef, $x1 + 3, 3 + ($y1 + $y2) / 2, $text);
+	$im->stringTTF(undef, $x1 + 3, 3 + ($y1 + $y2) / 2 + $offset, $text);
 
 	$im->group_end($nameattr);
 }

@@ -71,6 +71,7 @@ def draw_flame_graph_difference(
 def draw_flame_graph(
     profile: Profile,
     width: int = 1200,
+    offset: int = 0,
     title: str = "",
     profile_key: str = "amount",
     minimize: bool = False,
@@ -109,6 +110,8 @@ def draw_flame_graph(
                 "--reverse",
                 "--width",
                 str(width),
+                "--offset",
+                f"{offset}",
                 "--minwidth",
                 "1",
             ]

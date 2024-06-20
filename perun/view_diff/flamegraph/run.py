@@ -116,14 +116,18 @@ def generate_flamegraphs(
     width: int = DEFAULT_WIDTH,
     skip_diff: bool = False,
     minimize: bool = False,
+    offsets: list[int] = [0, 0],
 ) -> list[tuple[str, str, str, str]]:
     """Constructs a list of tuples of flamegraphs for list of data_types
 
     :param lhs_profile: baseline profile
     :param rhs_profile: target profile
+    :param minimize: whether the flamegraph should be minimized or not
+    :param offset: offset of start of drawing rectangles
     :param data_types: list of data types (resources)
     :param width: width of the flame graph
     """
+    max_offset = max(offsets)
     flamegraphs = []
     for i, dtype in enumerate(data_types):
         try:
@@ -134,6 +138,7 @@ def generate_flamegraphs(
                 title="Baseline Flamegraph",
                 profile_key=data_type,
                 minimize=minimize,
+                offset=abs(offsets[0] - max_offset),
             )
             escaped_lhs = escape_content(f"lhs_{i}", lhs_graph)
             log.minor_success(f"Baseline flamegraph ({dtype})", "generated")
@@ -144,6 +149,7 @@ def generate_flamegraphs(
                 title="Target Flamegraph",
                 profile_key=data_type,
                 minimize=minimize,
+                offset=abs(offsets[1] - max_offset),
             )
             escaped_rhs = escape_content(f"rhs_{i}", rhs_graph)
             log.minor_success(f"Target flamegraph ({dtype})", "generated")
