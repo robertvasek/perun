@@ -1,4 +1,5 @@
 """Flame graph visualization of the profiles."""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -12,14 +13,13 @@ import perun.view.flamegraph.flamegraph as flame
 import perun.profile.factory as profile_factory
 
 
-def save_flamegraph(profile: profile_factory.Profile, filename: str, graph_height: int) -> None:
+def save_flamegraph(profile: profile_factory.Profile, filename: str) -> None:
     """Draws and saves flamegraph to file
 
     :param profile: profile for which we are saving flamegraph
     :param filename: name of the file where the flamegraph will be saved
-    :param graph_height: height of the graph
     """
-    flamegraph_content = flame.draw_flame_graph(profile, graph_height)
+    flamegraph_content = flame.draw_flame_graph(profile)
     with open(filename, "w") as file_handle:
         file_handle.write(flamegraph_content)
 
@@ -31,17 +31,8 @@ def save_flamegraph(profile: profile_factory.Profile, filename: str, graph_heigh
     default="flame.svg",
     help="Sets the output file of the resulting flame graph.",
 )
-@click.option(
-    "--graph-height",
-    "-h",
-    default=20,
-    type=int,
-    help="Increases the width of the resulting flame graph.",
-)
 @profile_factory.pass_profile
-def flamegraph(
-    profile: profile_factory.Profile, filename: str, graph_height: int, **_: Any
-) -> None:
+def flamegraph(profile: profile_factory.Profile, filename: str, **_: Any) -> None:
     """Flame graph interprets the relative and inclusive presence of the
     resources according to the stack depth of the origin of resources.
 
@@ -82,4 +73,4 @@ def flamegraph(
     :func:`perun.profile.convert.to_flame_graph_format` for more details how
     the profiles are converted to the flame graph format.
     """
-    save_flamegraph(profile, filename, graph_height)
+    save_flamegraph(profile, filename)

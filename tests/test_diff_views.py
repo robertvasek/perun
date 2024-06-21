@@ -153,7 +153,8 @@ def test_diff_incremental_sankey_kperf(pcs_with_root):
 
     # Next try to create it using the click
     result = runner.invoke(
-        cli.showdiff, [baseline_profilename, target_profilename, "report", "-o", "diff.html"]
+        cli.showdiff,
+        [baseline_profilename, target_profilename, "report", "-o", "diff.html", "--minimize"],
     )
     assert result.exit_code == 0
     assert "diff.html" in os.listdir(os.getcwd())

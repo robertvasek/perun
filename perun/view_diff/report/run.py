@@ -60,7 +60,7 @@ class Config:
 
     DefaultTopN: int = 10
     DefaultRelativeThreshold: float = 0.01
-    DefaultHeightCoefficient: int = 20
+    DefaultHeightCoefficient: int = 50
 
     def __init__(self) -> None:
         """Initializes the config
@@ -70,7 +70,8 @@ class Config:
         self.trace_is_inclusive: bool = False
         self.top_n_traces: int = self.DefaultTopN
         self.relative_threshold = self.DefaultRelativeThreshold
-        self.max_seen_trace: int = 0
+        self.max_seen_trace: list[int] = []
+        self.minimize: bool = False
 
 
 @dataclass
@@ -447,8 +448,8 @@ def process_traces(
     """
     max_trace = 0
     for _, resource in progressbar.progressbar(profile.all_resources()):
-        full_trace = [convert.to_uid(t) for t in resource["trace"]]
-        full_trace.append(convert.to_uid(resource["uid"]))
+        full_trace = [convert.to_uid(t, Config().minimize) for t in resource["trace"]]
+        full_trace.append(convert.to_uid(resource["uid"], Config().minimize))
         trace_len = len(full_trace)
         max_trace = max(max_trace, trace_len)
         if trace_len > 1:
@@ -463,7 +464,7 @@ def process_traces(
                 process_edge(graph, profile_type, resource, src, tgt)
             for uid in full_trace:
                 graph.uid_to_traces[uid].append(full_trace)
-    Config().max_seen_trace = max(max_trace, Config().max_seen_trace)
+    Config().max_seen_trace.append(max_trace)
 
 
 def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
@@ -611,7 +612,7 @@ def extract_stats_from_trace(
     return uid_trace_stats
 
 
-def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -> None:
+def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -> None:
     """Generates differences of two profiles as sankey diagram
 
     :param lhs_profile: baseline profile
@@ -619,6 +620,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     :param kwargs: additional arguments
     """
     # We automatically set the value of True for kperf, which samples
+    Config().minimize = kwargs.get("minimize", False)
     Config().top_n_traces = kwargs.get("top_n", Config().DefaultTopN)
     Config().relative_threshold = kwargs.get(
         "filter_by_relative", Config().DefaultRelativeThreshold
@@ -642,7 +644,8 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         rhs_profile,
         Stats.all_stats(),
         skip_diff=True,
-        height=Config().max_seen_trace,
+        minimize=Config().minimize,
+        offsets=Config().max_seen_trace,
     )
     log.minor_success("Sankey graphs", "generated")
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
@@ -678,8 +681,8 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         flamegraphs=flamegraphs,
         selection_table=selection_table,
         offline=config.lookup_key_recursively("showdiff.offline", False),
-        height=Config().max_seen_trace * Config().DefaultHeightCoefficient,
-        container_height=Config().max_seen_trace * Config().DefaultHeightCoefficient + 200,
+        height=max(Config().max_seen_trace) * Config().DefaultHeightCoefficient + 200,
+        container_height=max(Config().max_seen_trace) * Config().DefaultHeightCoefficient + 200,
     )
     log.minor_success("HTML template", "rendered")
     output_file = diff_kit.save_diff_view(
@@ -707,9 +710,15 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     type=click.INT,
     default=Config().DefaultTopN,
 )
+@click.option(
+    "-m",
+    "--minimize",
+    is_flag=True,
+    help="Minimizes the traces, folds the recursive calls, hids the generic types.",
+)
 @click.pass_context
 def report(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
     """Creates sankey graphs representing the differences between two profiles"""
     assert ctx.parent is not None and f"impossible happened: {ctx} has no parent"
     profile_list = ctx.parent.params["profile_list"]
-    generate_sankey_difference(profile_list[0], profile_list[1], **kwargs)
+    generate_report(profile_list[0], profile_list[1], **kwargs)
