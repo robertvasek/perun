@@ -257,9 +257,7 @@ def vcs_path_callback(_: click.Context, __: click.Option, value: Any) -> Any:
     :param str value: value that is being read from the commandline
     :returns tuple: tuple of flags or parameters
     """
-    if not value:
-        return common_kit.locate_dir_on(".", ".git")
-    return value
+    return common_kit.locate_dir_on(".", ".git") if not value else value
 
 
 def vcs_parameter_callback(ctx: click.Context, param: click.Option, value: Any) -> Any:

@@ -311,6 +311,8 @@ def test_common(capsys):
     with pytest.raises(AssertionError):
         mapping.get_unit("unsupported")
 
+    assert common_kit.hide_generics("std::vector<std::vector<std::string>>") == "std::vector<>"
+
 
 def test_predicates(capsys):
     """Test predicates used for testing"""

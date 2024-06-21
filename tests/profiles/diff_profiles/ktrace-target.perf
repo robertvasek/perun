@@ -2,7 +2,6 @@
   "resources": {
     "reweight_entity#0": {},
     "irqtime_account_irq#0": {},
-    "idle_cpu#0": {},
     "_raw_spin_lock_irqsave#0": {},
     "_raw_spin_unlock_irqrestore#0": {},
     "irq_enter_rcu#0": {},
@@ -664,25 +663,6 @@
       "trace": [],
       "type": "stats",
       "uid": "irqtime_account_irq"
-    },
-    "idle_cpu#0": {
-      "Callees Mean [#]": 7.055339273128346e-07,
-      "Callees [#]": 403,
-      "E Max": 109753,
-      "E Mean": 0.0007409040272428077,
-      "E Min": 405,
-      "I Max": 254223,
-      "I Mean": 0.0007412849645448977,
-      "I Min": 405,
-      "Total Exclusive T [%]": 0.01486264104619905,
-      "Total Exclusive T [ms]": 570.90508,
-      "Total Inclusive T [%]": 0.014870282703112617,
-      "Total Inclusive T [ms]": 571.198612,
-      "ncalls": 770552,
-      "time": 38412088284,
-      "trace": [],
-      "type": "stats",
-      "uid": "idle_cpu"
     },
     "_raw_spin_lock_irqsave#0": {
       "Callees Mean [#]": 0.0,
