@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.22.2 (2024-06-21)
+
+  - Fixes issues with new visualizations (bad sizes)
+  - Add option of minimization of reports (hide generics)
+  - Hotfix some issues
+  - Enhances the visualizations
+
 0.22 (2024-05-22)
 
   - Add support of Python 3.12
