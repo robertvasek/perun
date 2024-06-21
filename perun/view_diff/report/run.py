@@ -714,7 +714,7 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
     "-m",
     "--minimize",
     is_flag=True,
-    help=f"Minimizes the traces, folds the recursive calls, hids the generic types.",
+    help="Minimizes the traces, folds the recursive calls, hids the generic types.",
 )
 @click.pass_context
 def report(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
