@@ -1,4 +1,5 @@
 """Wrapper for running perf and profiling mostly kernel data"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -122,14 +123,14 @@ def after(**kwargs: Any) -> tuple[CollectStatus, str, dict[str, Any]]:
 @click.option(
     "--warmup",
     "-w",
-    default=3,
+    default=0,
     type=click.INT,
     help="Runs [INT] warm up iterations of profiled command.",
 )
 @click.option(
     "--repeat",
     "-r",
-    default=5,
+    default=1,
     type=click.INT,
     help="Runs [INT] samplings of the profiled command.",
 )
