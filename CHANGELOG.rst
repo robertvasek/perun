@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.22.4 (2024-06-23)
+
+  - Hotfix issue with showdiff record
+
 0.22.3 (2024-06-23)
 
   - Softens some of the parameters
