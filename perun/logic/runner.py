@@ -423,12 +423,12 @@ def store_generated_profile(
     :param optional profile_name: full path to the profile
     """
     full_profile = profile.finalize_profile_for_job(prof, job)
-    if output_file == None:
+    if output_file is None:
         full_profile_name = profile_name or profile.generate_profile_name(full_profile)
         profile_directory = pcs.get_job_directory()
         full_profile_path = os.path.join(profile_directory, full_profile_name)
     else:
-        full_profile_path = output_file  # type: ignore
+        full_profile_path = output_file
     streams.store_json(full_profile.serialize(), full_profile_path)
     # FIXME: there is an inconsistency in dict/Profile types, needs to be investigated more thoroughly
     log.minor_status(
