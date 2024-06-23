@@ -367,6 +367,7 @@ def run_collector_from_cli_context(
     run_params = {
         "collector_params": {collector_name: collector_params},
         "profile_name": ctx.obj["profile_name"],
+        "output_file": ctx.obj["output_file"],
     }
     collect_status = run_single_job(
         cmd, workload, [collector_name], [], minor_versions, **run_params
@@ -411,17 +412,23 @@ def run_postprocessor(
     return cast(PostprocessStatus, postprocess_report.status), prof
 
 
-def store_generated_profile(prof: Profile, job: Job, profile_name: Optional[str] = None) -> None:
+def store_generated_profile(
+    prof: Profile, job: Job, profile_name: Optional[str] = None, output_file: Optional[str] = None
+) -> None:
     """Stores the generated profile in the pending jobs' directory.
 
     :param Profile prof: profile that we are storing in the repository
     :param Job job: job with additional information about generated profiles
     :param optional profile_name: user-defined name of the profile
+    :param optional profile_name: full path to the profile
     """
     full_profile = profile.finalize_profile_for_job(prof, job)
-    full_profile_name = profile_name or profile.generate_profile_name(full_profile)
-    profile_directory = pcs.get_job_directory()
-    full_profile_path = os.path.join(profile_directory, full_profile_name)
+    if output_file is None:
+        full_profile_name = profile_name or profile.generate_profile_name(full_profile)
+        profile_directory = pcs.get_job_directory()
+        full_profile_path = os.path.join(profile_directory, full_profile_name)
+    else:
+        full_profile_path = output_file
     streams.store_json(full_profile.serialize(), full_profile_path)
     # FIXME: there is an inconsistency in dict/Profile types, needs to be investigated more thoroughly
     log.minor_status(
@@ -655,7 +662,7 @@ def run_single_job(
     status = CollectStatus.OK
     finished_jobs = 0
     for status, prof, job in generator_function(minor_version_list, job_matrix, number_of_jobs):
-        store_generated_profile(prof, job, kwargs.get("profile_name"))
+        store_generated_profile(prof, job, kwargs.get("profile_name"), kwargs.get("output_file"))
         finished_jobs += 1
     return status if finished_jobs > 0 else CollectStatus.ERROR
 

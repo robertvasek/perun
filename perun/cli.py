@@ -806,13 +806,22 @@ def postprocessby(ctx: click.Context, profile: Profile, **_: Any) -> None:
 
 @cli.group()
 @click.option(
+    "--output-file",
+    "-o",
+    nargs=1,
+    required=False,
+    multiple=False,
+    type=click.Path(writable=True),
+    help="Specifies the full path to where the profile will be stored.",
+)
+@click.option(
     "--profile-name",
     "-pn",
     nargs=1,
     required=False,
     multiple=False,
     type=str,
-    help="Specifies the name of the profile, which will be collected, e.g. profile.perf.",
+    help="Specifies the name of the profile, which will be collected, e.g. profile.perf. The profile will be stored in .perun/jobs",
 )
 @click.option(
     "--minor-version",

@@ -143,7 +143,7 @@ def test_regressogram_correct(pcs_single_prof):
     runner = CliRunner()
 
     result = runner.invoke(cli.status, [])
-    match = re.search(r"([0-9]+@i).*mixed", result.output)
+    match = re.search(r"([0-9]+@i).*.perf", result.output)
     assert match
     cprof_idx = match.groups(1)[0]
 
@@ -308,7 +308,7 @@ def test_moving_average_incorrect(pcs_single_prof):
     runner = CliRunner()
 
     result = runner.invoke(cli.status, [])
-    match = re.search(r"([0-9]+@i).*mixed", result.output)
+    match = re.search(r"([0-9]+@i).*.perf", result.output)
     assert match
     cprof_idx = match.groups(1)[0]
 
@@ -423,7 +423,7 @@ def test_moving_average_correct(pcs_single_prof):
     runner = CliRunner()
 
     result = runner.invoke(cli.status, [])
-    match = re.search(r"([0-9]+@i).*mixed", result.output)
+    match = re.search(r"([0-9]+@i).*.perf", result.output)
     assert match
     cprof_idx = match.groups(1)[0]
 
@@ -668,7 +668,7 @@ def test_kernel_regression_incorrect(pcs_single_prof):
     runner = CliRunner()
 
     result = runner.invoke(cli.status, [])
-    match = re.search(r"([0-9]+@i).*mixed", result.output)
+    match = re.search(r"([0-9]+@i).*.perf", result.output)
     assert match
     cprof_idx = match.groups(1)[0]
 
@@ -1008,7 +1008,7 @@ def test_reg_analysis_correct(pcs_single_prof):
     runner = CliRunner()
 
     result = runner.invoke(cli.status, [])
-    match = re.search(r"([0-9]+@i).*mixed", result.output)
+    match = re.search(r"([0-9]+@i).*.perf", result.output)
     assert match
     cprof_idx = match.groups(1)[0]
 
@@ -1397,8 +1397,11 @@ def test_collect_correct(pcs_with_root):
     Expecting no exceptions, no errors, zero status
     """
     runner = CliRunner()
-    result = runner.invoke(cli.collect, ["-c echo", "-w hello", "time", "--repeat=1", "--warmup=1"])
+    result = runner.invoke(
+        cli.collect, ["-c echo", "-w hello", "-o", "prof.perf", "time", "--repeat=1", "--warmup=1"]
+    )
     asserts.predicate_from_cli(result, result.exit_code == 0)
+    assert "prof.perf" in os.listdir(".")
 
     current_dir = os.path.split(__file__)[0]
     src_dir = os.path.join(current_dir, "sources", "collect_bounds")

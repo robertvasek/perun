@@ -70,7 +70,7 @@ class Config:
         self.trace_is_inclusive: bool = False
         self.top_n_traces: int = self.DefaultTopN
         self.relative_threshold = self.DefaultRelativeThreshold
-        self.max_seen_trace: list[int] = []
+        self.max_seen_trace: int = 0
         self.minimize: bool = False
 
 
@@ -464,7 +464,7 @@ def process_traces(
                 process_edge(graph, profile_type, resource, src, tgt)
             for uid in full_trace:
                 graph.uid_to_traces[uid].append(full_trace)
-    Config().max_seen_trace.append(max_trace)
+    Config().max_seen_trace = max(max_trace, Config().max_seen_trace)
 
 
 def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
@@ -645,7 +645,7 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
         Stats.all_stats(),
         skip_diff=True,
         minimize=Config().minimize,
-        offsets=Config().max_seen_trace,
+        max_trace=Config().max_seen_trace,
     )
     log.minor_success("Sankey graphs", "generated")
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
@@ -681,8 +681,8 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
         flamegraphs=flamegraphs,
         selection_table=selection_table,
         offline=config.lookup_key_recursively("showdiff.offline", False),
-        height=max(Config().max_seen_trace) * Config().DefaultHeightCoefficient + 200,
-        container_height=max(Config().max_seen_trace) * Config().DefaultHeightCoefficient + 200,
+        height=Config().max_seen_trace * Config().DefaultHeightCoefficient + 200,
+        container_height=Config().max_seen_trace * Config().DefaultHeightCoefficient + 200,
     )
     log.minor_success("HTML template", "rendered")
     output_file = diff_kit.save_diff_view(
