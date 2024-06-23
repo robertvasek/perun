@@ -318,17 +318,19 @@ class Node:
     :ivar callers: map of positions to edge relation for callers
     """
 
-    __slots__ = ["uid", "callees", "callers"]
+    __slots__ = ["uid", "callees", "callers", "stats"]
 
     uid: str
     callees: dict[str, Link]
     callers: dict[str, Link]
+    stats: Stats
 
     def __init__(self, uid: str):
         """Initializes the node"""
         self.uid = uid
         self.callees = {}
         self.callers = {}
+        self.stats = Stats()
 
     def get_links(self, link_type: Literal["callees", "callers"]) -> dict[str, Link]:
         """Returns linkage based on given type
@@ -409,6 +411,29 @@ class Stats:
         ]
 
 
+def process_node(
+    graph: Graph,
+    profile_type: Literal["baseline", "target"],
+    resource: dict[str, Any],
+    uid: str,
+) -> None:
+    """Processes single edge with given resources
+
+    :param graph: sankey graph
+    :param profile_type: type of the profile
+    :param resource: consumed resources
+    :param src: callee
+    :param tgt: caller
+    """
+    node = graph.get_node(uid)
+    for key in resource:
+        amount = common_kit.try_convert(resource[key], [float])
+        if amount is None or key == "time":
+            continue
+        readable_key = mapping.get_readable_key(key)
+        node.stats.add_stat(profile_type, readable_key, amount)
+
+
 def process_edge(
     graph: Graph,
     profile_type: Literal["baseline", "target"],
@@ -452,6 +477,7 @@ def process_traces(
         full_trace.append(convert.to_uid(resource["uid"], Config().minimize))
         trace_len = len(full_trace)
         max_trace = max(max_trace, trace_len)
+        # Process edge stats
         if trace_len > 1:
             if Config().trace_is_inclusive:
                 for i in range(0, trace_len - 1):
@@ -464,6 +490,15 @@ def process_traces(
                 process_edge(graph, profile_type, resource, src, tgt)
             for uid in full_trace:
                 graph.uid_to_traces[uid].append(full_trace)
+        # Process node stats TODO: Return to this, as this was fixed very quickly
+        if Config().trace_is_inclusive:
+            for i in range(0, trace_len):
+                src = f"{full_trace[i]}#{i}"
+                process_node(graph, profile_type, resource, src)
+        else:
+            tgt = f"{full_trace[-1]}#{trace_len - 1}"
+            process_node(graph, profile_type, resource, tgt)
+
     Config().max_seen_trace = max(max_trace, Config().max_seen_trace)
 
 
@@ -543,9 +578,8 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
         stats: list[tuple[int, float, float]] = []
         for node in nodes:
             for i, known_stat in enumerate(Stats.all_stats()):
-                for link in node.callees.values():
-                    baseline_overall[i] += link.stats.baseline[known_stat]
-                    target_overall[i] += link.stats.target[known_stat]
+                baseline_overall[i] += node.stats.baseline[known_stat]
+                target_overall[i] += node.stats.target[known_stat]
         for i in range(0, stat_len):
             baseline, target = baseline_overall[i], target_overall[i]
             if baseline != 0 or target != 0:
