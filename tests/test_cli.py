@@ -143,7 +143,7 @@ def test_regressogram_correct(pcs_single_prof):
     runner = CliRunner()
 
     result = runner.invoke(cli.status, [])
-    match = re.search(r"([0-9]+@i).*mixed", result.output)
+    match = re.search(r"([0-9]+@i).*.perf", result.output)
     assert match
     cprof_idx = match.groups(1)[0]
 
@@ -308,7 +308,7 @@ def test_moving_average_incorrect(pcs_single_prof):
     runner = CliRunner()
 
     result = runner.invoke(cli.status, [])
-    match = re.search(r"([0-9]+@i).*mixed", result.output)
+    match = re.search(r"([0-9]+@i).*.perf", result.output)
     assert match
     cprof_idx = match.groups(1)[0]
 
@@ -423,7 +423,7 @@ def test_moving_average_correct(pcs_single_prof):
     runner = CliRunner()
 
     result = runner.invoke(cli.status, [])
-    match = re.search(r"([0-9]+@i).*mixed", result.output)
+    match = re.search(r"([0-9]+@i).*.perf", result.output)
     assert match
     cprof_idx = match.groups(1)[0]
 
@@ -668,7 +668,7 @@ def test_kernel_regression_incorrect(pcs_single_prof):
     runner = CliRunner()
 
     result = runner.invoke(cli.status, [])
-    match = re.search(r"([0-9]+@i).*mixed", result.output)
+    match = re.search(r"([0-9]+@i).*.perf", result.output)
     assert match
     cprof_idx = match.groups(1)[0]
 
@@ -1008,7 +1008,7 @@ def test_reg_analysis_correct(pcs_single_prof):
     runner = CliRunner()
 
     result = runner.invoke(cli.status, [])
-    match = re.search(r"([0-9]+@i).*mixed", result.output)
+    match = re.search(r"([0-9]+@i).*.perf", result.output)
     assert match
     cprof_idx = match.groups(1)[0]
 

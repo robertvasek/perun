@@ -104,7 +104,8 @@ my $frameheight = 16;           # max height is dynamic
 my $fontsize = 12;              # base text size
 my $fontwidth = 0.59;           # avg width relative to fontsize
 my $minwidth = 0.1;             # min function width, pixels or percentage of time
-my $offset = 0;					# offset added to rectangles (this is used to align two flamegraphs)
+my $maxtrace = 0;				# maximal size of the trace (this is used to align two flamegraphs)
+my $offset = 0;				    # offset for printing rectangles (this is used to align two flamegraphs)
 my $nametype = "Function:";     # what are the names in the data?
 my $countname = "samples";      # what are the counts in the data?
 my $colors = "hot";             # color theme
@@ -138,7 +139,7 @@ USAGE: $0 [options] infile > outfile.svg\n
 	--height NUM     # height of each frame (default 16)
 	--minwidth NUM   # omit smaller functions. In pixels or use "%" for
 	                 # percentage of time (default 0.1 pixels)
-	--offset NUM     # offset of the start of the flamegraph from top (default 0)
+	--maxtrace NUM   # maximal seen height of the trace (used to compute the offset)
 	--fonttype FONT  # font type (default "Verdana")
 	--fontsize NUM   # font size (default 12)
 	--countname TEXT # count type label (default "samples")
@@ -167,7 +168,7 @@ GetOptions(
 	'fonttype=s'  => \$fonttype,
 	'width=i'     => \$imagewidth,
 	'height=i'    => \$frameheight,
-	'offset=i'    => \$offset,
+	'maxtrace=i'  => \$maxtrace,
 	'encoding=s'  => \$encoding,
 	'fontsize=f'  => \$fontsize,
 	'fontwidth=f' => \$fontwidth,
@@ -770,10 +771,14 @@ while (my ($id, $node) = each %Node) {
 }
 
 # draw canvas, and embed interactive JavaScript program
-if ($offset != 0) {
-	$offset = ($offset + 1) * $frameheight;
+my $imageheight = $ypad1 + $ypad2;
+if ($maxtrace != 0) {
+	#$offset = ($maxtrace - $depthmax) * $frameheight;
+	$offset = 0;
+	$imageheight += ($maxtrace + 1) * $frameheight;
+} else {
+	$imageheight += (($depthmax + 1) * $frameheight);
 }
-my $imageheight = (($depthmax + 1) * $frameheight) + $ypad1 + $ypad2;
 $imageheight += $ypad3 if $subtitletext ne "";
 my $titlesize = $fontsize + 5;
 my $im = SVG->new();
