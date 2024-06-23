@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.22.3 (2024-06-23)
+
+  - Softens some of the parameters
+  - Fixes minor issues (in flamegraphs)
+  - Add `-o` parameter to collect
+
 0.22.2 (2024-06-21)
 
   - Fixes issues with new visualizations (bad sizes)
