@@ -428,7 +428,7 @@ def store_generated_profile(
         profile_directory = pcs.get_job_directory()
         full_profile_path = os.path.join(profile_directory, full_profile_name)
     else:
-        full_profile_path = output_file
+        full_profile_path = output_file  # type: ignore
     streams.store_json(full_profile.serialize(), full_profile_path)
     # FIXME: there is an inconsistency in dict/Profile types, needs to be investigated more thoroughly
     log.minor_status(
