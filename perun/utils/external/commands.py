@@ -2,10 +2,13 @@
 
 This contains functions for getting outputs from commands or running commands or external executables.
 """
+
 from __future__ import annotations
 
 # Standard Imports
 from typing import Optional, IO, Any
+from collections import defaultdict
+import os
 import shlex
 import subprocess
 
@@ -13,6 +16,31 @@ import subprocess
 
 # Perun Imports
 from perun.utils import log
+from perun.utils.common import common_kit
+from perun.logic import pcs, config
+
+log_file_cache: dict[str, int] = defaultdict(int)
+
+
+def save_output_of_command(command: str, content: bytes, extension: str = "out") -> None:
+    """Saves output of command to log
+
+    :param command: command for which we are storing the logs
+    :param content: content we are storing
+    :param extension: extension of the saved log (to differentiated between stderr and stdout)
+    """
+    if log.LOGGING:
+        log_directory = config.lookup_key_recursively("path.logs", default=pcs.get_log_directory())
+        log_file = common_kit.sanitize_filepart(command.split()[0])
+        log_file_cache[f"{log_file}.{extension}"] += 1
+        log_no = log_file_cache[f"{log_file}.{extension}"]
+        target_file = os.path.join(log_directory, f"{log_file}.{log_no}.{extension}")
+        with open(target_file, "w") as target_handle:
+            target_handle.write(f"# cmd: {command}\n")
+            target_handle.write(content.decode("utf-8"))
+        log.minor_status(
+            f"Saved {extension} of {log.cmd_style(command)}", log.path_style(target_file)
+        )
 
 
 def get_stdout_from_external_command(command: list[str], stdin: Optional[IO[bytes]] = None) -> str:
@@ -25,6 +53,7 @@ def get_stdout_from_external_command(command: list[str], stdin: Optional[IO[byte
     output = subprocess.check_output(
         [c for c in command if c != ""], stderr=subprocess.STDOUT, stdin=stdin
     )
+    save_output_of_command(";".join(command), output)
     return output.decode("utf-8")
 
 
@@ -93,8 +122,12 @@ def run_safely_external_command(
                 if not quiet and (cmdout or cmderr):
                     log.cprintln(f"captured stdout: {cmdout.decode('utf-8')}", "red")
                     log.cprintln(f"captured stderr: {cmderr.decode('utf-8')}", "red")
+                save_output_of_command(cmd, cmdout, "stdout")
+                save_output_of_command(cmd, cmderr, "stderr")
                 raise subprocess.CalledProcessError(objects[i].returncode, unpiped_commands[i])
 
+    save_output_of_command(cmd, cmdout, "stdout")
+    save_output_of_command(cmd, cmderr, "stderr")
     return cmdout, cmderr
 
 
