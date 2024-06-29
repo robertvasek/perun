@@ -525,6 +525,7 @@ def setup():
 
     # Reset the verbosity to release
     log.VERBOSITY = 0
+    log.LOGGING = False
     log.CURRENT_INDENT = 0
     log.SUPPRESS_PAGING = True
     # We disable the metrics by default, since they might slow down tests
