@@ -1412,6 +1412,27 @@ def test_collect_correct(pcs_with_root):
     result = runner.invoke(cli.collect, ["-c echo", "-w hello", "bounds", "-s", f"{src_file}"])
     asserts.predicate_from_cli(result, result.exit_code == 0)
 
+    assert "log" not in os.listdir(".")
+    result = runner.invoke(
+        cli.cli,
+        [
+            "--log",
+            "--log-dir",
+            "./log",
+            "collect",
+            "-c echo",
+            "-w hello",
+            "-o",
+            "prof.perf",
+            "time",
+            "--repeat=1",
+            "--warmup=1",
+        ],
+    )
+    asserts.predicate_from_cli(result, result.exit_code == 0)
+    assert "prof.perf" in os.listdir(".")
+    assert "log" in os.listdir(".")
+
 
 def test_show_help(pcs_with_root):
     """Test running show to see if there are registered modules for showing

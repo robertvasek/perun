@@ -107,6 +107,23 @@ DEV_MODE = False
     help="Disables the colored output.",
 )
 @click.option(
+    "--log",
+    "-l",
+    "log_output",
+    default=False,
+    is_flag=True,
+    help="Logs output of commands to log directory.",
+)
+@click.option(
+    "--log-dir",
+    "-ld",
+    type=click.Path(resolve_path=True, writable=True),
+    callback=cli_kit.set_config_option_from_flag(
+        pcs.local_config, "path.logs", cli_kit.process_target_dir
+    ),
+    help="Ouputs logs to different directory (default=`.perun/logs`).",
+)
+@click.option(
     "--say-yes", "-y", default=False, is_flag=True, help="Says yes to every confirmation prompt"
 )
 @click.option(
@@ -140,13 +157,14 @@ DEV_MODE = False
 )
 @click.pass_context
 def cli(
-    ctx: click.Context,
+    _: click.Context,
     dev_mode: bool = False,
     no_color: bool = False,
     say_yes: bool = False,
+    log_output: bool = False,
     verbose: int = 0,
     no_pager: bool = False,
-    **_: Any,
+    **__: Any,
 ) -> None:
     """Perun is an open source light-weight Performance Versioning System.
 
@@ -177,6 +195,7 @@ def cli(
     common_kit.ALWAYS_CONFIRM = say_yes
     perun_log.SUPPRESS_PAGING = no_pager
     perun_log.COLOR_OUTPUT = not no_color
+    perun_log.LOGGING = log_output
 
     # set the verbosity level of the log
     if perun_log.VERBOSITY < verbose:
