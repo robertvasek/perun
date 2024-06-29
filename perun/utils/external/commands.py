@@ -11,6 +11,7 @@ from collections import defaultdict
 import os
 import shlex
 import subprocess
+import time
 
 # Third-Party Imports
 
@@ -30,7 +31,12 @@ def save_output_of_command(command: str, content: bytes, extension: str = "out")
     :param extension: extension of the saved log (to differentiated between stderr and stdout)
     """
     if log.LOGGING:
-        log_directory = config.lookup_key_recursively("path.logs", default=pcs.get_log_directory())
+        log_directory = config.lookup_key_recursively("path.logs", "")
+        if log_directory == "":
+            log_directory = os.path.join(
+                pcs.get_log_directory(), time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
+            )
+            common_kit.touch_dir(log_directory)
         log_file = common_kit.sanitize_filepart(command.split()[0])
         log_file_cache[f"{log_file}.{extension}"] += 1
         log_no = log_file_cache[f"{log_file}.{extension}"]

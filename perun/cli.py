@@ -119,7 +119,7 @@ DEV_MODE = False
     "-ld",
     type=click.Path(resolve_path=True, writable=True),
     callback=cli_kit.set_config_option_from_flag(
-        pcs.local_config, "path.logs", cli_kit.process_target_dir
+        perun_config.runtime, "path.logs", cli_kit.process_target_dir
     ),
     help="Ouputs logs to different directory (default=`.perun/logs`).",
 )
