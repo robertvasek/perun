@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.22.5 (2024-06-29)
+
+  - Add logging of subprocessor commands through (`--log` and `--log-dir`)
+
+
 0.22.4 (2024-06-23)
 
   - Hotfix issue with showdiff record
