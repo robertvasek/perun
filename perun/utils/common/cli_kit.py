@@ -50,6 +50,16 @@ def print_version(_: click.Context, __: click.Option, value: bool) -> None:
         exit(0)
 
 
+def process_target_dir(value: str) -> str:
+    """Helper function for processing target dir and creating subdirs
+
+    :param value: passed value
+    :retrun: valid path with created directories
+    """
+    common_kit.touch_dir(value)
+    return value
+
+
 def process_bokeh_axis_title(
     ctx: click.Context, param: click.Option, value: Optional[str]
 ) -> Optional[str]:

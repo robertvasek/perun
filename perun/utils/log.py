@@ -24,7 +24,6 @@ import termcolor
 from perun.utils import decorators
 from perun.utils.common import common_kit
 from perun.utils.common.common_kit import (
-    COLLECT_PHASE_ATTRS,
     DEGRADATION_ICON,
     OPTIMIZATION_ICON,
     CHANGE_CMD_COLOUR,
@@ -46,6 +45,7 @@ if TYPE_CHECKING:
 
 
 VERBOSITY: int = 0
+LOGGING: bool = False
 COLOR_OUTPUT: bool = True
 CURRENT_INDENT: int = 0
 
