@@ -4,6 +4,7 @@ perun_vcs_files = files(
     '__init__.py',
     'abstract_repository.py',
     'git_repository.py',
+    'svs_repository.py',
     'vcs_kit.py'
 )
 

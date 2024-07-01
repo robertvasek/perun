@@ -20,6 +20,7 @@ from perun.utils import decorators
 from perun.utils.common import common_kit
 from perun.utils.exceptions import NotPerunRepositoryException, UnsupportedModuleException
 from perun.vcs.abstract_repository import AbstractRepository
+from perun.vcs.svs_repository import SvsRepository
 from perun.vcs.git_repository import GitRepository
 
 
@@ -57,6 +58,8 @@ def vcs() -> AbstractRepository:
     vcs_type, vcs_url = get_vcs_type_and_url()
     if vcs_type == "git":
         return GitRepository(vcs_url)
+    elif vcs_type == "svs":
+        return SvsRepository(vcs_url)
     raise UnsupportedModuleException(vcs_type)
 
 

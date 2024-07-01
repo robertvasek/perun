@@ -492,6 +492,25 @@ def pcs_with_root():
 
 
 @pytest.fixture(scope="function")
+def pcs_with_svs():
+    """
+    *
+    """
+    # Change working dir into the temporary directory
+    pcs_path = tempfile.mkdtemp()
+    os.chdir(pcs_path)
+    commands.init_perun_at(pcs_path, False, {"vcs": {"url": "../", "type": "svs"}})
+
+    # Initialize git
+    pcs.vcs().init({})
+
+    yield pcs
+
+    # clean up the directory
+    shutil.rmtree(pcs_path)
+
+
+@pytest.fixture(scope="function")
 def pcs_without_vcs():
     """ """
     # Change working dir into the temporary directory

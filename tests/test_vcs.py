@@ -1,4 +1,5 @@
 """Basic tests for checking the correctness of the VCS modules"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -110,3 +111,8 @@ def test_diffs(pcs_full_no_prof):
 def test_abstract_base():
     with pytest.raises(TypeError):
         _ = AbstractRepository()
+
+
+def test_svs(pcs_with_svs):
+    """Tests working with svs"""
+    assert False
