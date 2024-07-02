@@ -22,9 +22,17 @@ def get_readable_key(key: str) -> str:
     """
     profiles = config.runtime().get("context.profiles")
     if key == "amount":
-        if all(p.get("collector_info", {}).get("name") == "kperf" for p in profiles):
+        if all(
+            p.get("collector_info", {}).get("name") == "kperf"
+            for p in profiles
+            if "collector_info" in p
+        ):
             return "Inclusive Samples [#]"
-        if all(p.get("collector_info", {}).get("name") == "memory" for p in profiles):
+        if all(
+            p.get("collector_info", {}).get("name") == "memory"
+            for p in profiles
+            if "collector_info" in p
+        ):
             return "Allocated Memory [B]"
     if key == "ncalls":
         return "Number of Calls [#]"
