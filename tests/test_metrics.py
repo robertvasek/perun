@@ -1,6 +1,7 @@
 """
 Testing basic functionality of metrics module
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -49,6 +50,7 @@ def test_metrics(pcs_with_root, capsys):
     metrics.save()
     stats_dir = os.path.join(".perun", "tmp")
     assert "some_stats_file" in os.listdir(stats_dir)
+    metrics.save()
 
     metrics.Metrics.metrics_filename = None
     with pytest.raises(SystemExit):

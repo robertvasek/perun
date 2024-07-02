@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Standard Imports
-from typing import Optional, Any, Iterable, Callable, Literal, TYPE_CHECKING
+from typing import Optional, Any, Iterable, Callable, Literal, TYPE_CHECKING, TypeVar, cast, Type
 import array
 import contextlib
 import gc
@@ -28,6 +28,8 @@ from perun.utils.exceptions import (
 if TYPE_CHECKING:
     import traceback
     import types
+
+T = TypeVar("T")
 
 # Types
 ColorChoiceType = Literal[
@@ -598,9 +600,21 @@ def hide_generics(uid: str) -> str:
             nesting += 1
         elif c == ">":
             nesting -= 1
-        if nesting == 0 or (c == '<' and nesting == 1):
+        if nesting == 0 or (c == "<" and nesting == 1):
             chars.append(c)
     return "".join(chars)
+
+
+def ensure_type(obj: Any, target_type: Type[T]) -> T:
+    """Ensures that object is of target type
+
+    :param obj: object we are retyping
+    :param target_type: type to which we are retyping, unless obj is already of the type
+    :return: retyped object
+    """
+    if isinstance(obj, target_type):
+        return obj
+    return cast(target_type, target_type(obj))
 
 
 MODULE_CACHE: dict[str, types.ModuleType] = {}

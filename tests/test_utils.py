@@ -23,7 +23,7 @@ from perun.logic import commands, config, locks
 from perun.profile import convert
 from perun.testing import asserts
 from perun.utils import log, mapping
-from perun.utils.common import common_kit, cli_kit, traces_kit
+from perun.utils.common import common_kit, cli_kit, traces_kit, view_kit
 from perun.utils.exceptions import (
     SystemTapScriptCompilationException,
     SystemTapStartupException,
@@ -312,6 +312,10 @@ def test_common(capsys):
         mapping.get_unit("unsupported")
 
     assert common_kit.hide_generics("std::vector<std::vector<std::string>>") == "std::vector<>"
+    assert external_commands.is_executable("nonexisting") == False
+
+    p = {"type": "mixed", "units": {"mixed(time delta)": "s"}}
+    assert view_kit.add_y_units(p, "min", "y") == "y [s]"
 
 
 def test_predicates(capsys):

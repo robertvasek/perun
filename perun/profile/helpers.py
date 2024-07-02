@@ -454,10 +454,8 @@ def merge_resources_of(
     :return: profile with merged resources
     """
     # Not Good: Temporary solution:
-    if not isinstance(rhs, profiles.Profile):
-        rhs = profiles.Profile(rhs)
-    if not isinstance(lhs, profiles.Profile):
-        lhs = profiles.Profile(rhs)
+    lhs = common_kit.ensure_type(lhs, profiles.Profile)
+    rhs = common_kit.ensure_type(rhs, profiles.Profile)
 
     # Return lhs/rhs if rhs/lhs is empty
     if rhs.resources_size() == 0:

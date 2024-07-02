@@ -419,8 +419,8 @@ def add(profile: list[str], minor: Optional[str], **kwargs: Any) -> None:
 
     See :doc:`internals` for information how perun handles profiles internally.
     """
-    commands.try_init()
     try:
+        commands.try_init()
         warning_message = (
             "Warning: Are you sure you want to force the add?"
             "This will make the performance history of your project imprecise "
@@ -505,8 +505,8 @@ def remove(
 
     See :doc:`internals` for information how perun handles profiles internally.
     """
-    commands.try_init()
     try:
+        commands.try_init()
         commands.remove_from_index(from_index_generator, minor)
         commands.remove_from_pending(from_jobs_generator)
     except NotPerunRepositoryException as exception:
@@ -543,8 +543,8 @@ def log(head: Optional[str], **kwargs: Any) -> None:
     ``log`` or how to set :ckey:`format.shortlog` in nearest
     configuration.
     """
-    commands.try_init()
     try:
+        commands.try_init()
         commands.log(head, **kwargs)
     except (NotPerunRepositoryException, UnsupportedModuleException) as exception:
         perun_log.error(f"could not print the repository history: {str(exception)}")
@@ -599,8 +599,8 @@ def status(**kwargs: Any) -> None:
     ``status`` or how to set :ckey:`format.status` in nearest
     configuration.
     """
-    commands.try_init()
     try:
+        commands.try_init()
         commands.status(**kwargs)
     except (
         NotPerunRepositoryException,

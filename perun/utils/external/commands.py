@@ -172,5 +172,5 @@ def is_executable(command: str) -> bool:
     try:
         run_safely_external_command(command)
         return True
-    except (subprocess.CalledProcessError, subprocess.SubprocessError):
+    except (subprocess.CalledProcessError, subprocess.SubprocessError, FileNotFoundError):
         return False

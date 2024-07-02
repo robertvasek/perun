@@ -2581,7 +2581,8 @@ def test_try_init(monkeypatch):
     monkeypatch.setattr("click.confirm", lambda _: False)
     runner = CliRunner()
     result = runner.invoke(cli.cli, ["status"])
-    assert isinstance(result.exception, NotPerunRepositoryException)
+    asserts.predicate_from_cli(result, result.exit_code == 1)
+    assert "is not a Perun repository" in result.output
 
     monkeypatch.setattr("click.confirm", lambda _: True)
     result = runner.invoke(cli.cli, ["status"])

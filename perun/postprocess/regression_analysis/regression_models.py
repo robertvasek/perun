@@ -5,6 +5,7 @@ The _MODELS dict allows to specify which models should be computed and the mappi
 the sections of _MODELS dictionary representing the model properties.
 
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -16,6 +17,7 @@ import math
 # Perun Imports
 from perun.postprocess.regression_analysis import derived, generic, specific
 from perun.utils import exceptions
+from perun.utils.common import common_kit
 import perun.postprocess.regression_analysis.extensions.plot_models as plot
 
 
@@ -81,8 +83,7 @@ def map_keys_to_models(regression_models_keys: tuple[str]) -> Iterable[dict[str,
     :returns iterable: the generator object which yields models records one by one as a dictionary
     """
     # Convert single value to list
-    if not isinstance(regression_models_keys, tuple):
-        regression_models_keys = tuple(regression_models_keys)
+    regression_models_keys = common_kit.ensure_type(regression_models_keys, tuple)
 
     # Get all models
     if not regression_models_keys or "all" in regression_models_keys:
