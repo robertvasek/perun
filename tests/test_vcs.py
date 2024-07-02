@@ -11,7 +11,7 @@ import git
 import pytest
 
 # Perun Imports
-from perun.vcs import vcs_kit
+from perun.vcs import vcs_kit, svs_repository
 from perun.vcs.abstract_repository import AbstractRepository
 from perun.logic import pcs, store
 
@@ -115,4 +115,37 @@ def test_abstract_base():
 
 def test_svs(pcs_with_svs):
     """Tests working with svs"""
-    assert False
+    svs = pcs_with_svs.vcs()
+    assert svs.init({}) == True
+    assert svs.get_minor_head() == svs_repository.SINGLE_VERSION_TAG
+    minors = list(svs.walk_minor_versions(svs_repository.SINGLE_VERSION_TAG))
+    assert len(minors) == 1
+    assert minors[0].checksum == svs_repository.SINGLE_VERSION_TAG
+    majors = list(svs.walk_major_versions())
+    assert len(majors) == 1
+    assert majors[0].head == svs_repository.SINGLE_VERSION_TAG
+    assert majors[0].name == svs_repository.SINGLE_VERSION_BRANCH
+    head = svs.get_minor_version_info(svs_repository.SINGLE_VERSION_TAG)
+    assert head.desc == "Singleton version"
+    assert (
+        svs.minor_versions_diff(
+            svs_repository.SINGLE_VERSION_TAG, svs_repository.SINGLE_VERSION_TAG
+        )
+        == ""
+    )
+
+    with pytest.raises(AssertionError):
+        svs.minor_versions_diff("hello", "world")
+
+    assert svs.get_head_major_version() == svs_repository.SINGLE_VERSION_BRANCH
+    assert svs.is_dirty() == False
+    assert svs.check_minor_version_validity(svs_repository.SINGLE_VERSION_TAG) == True
+    assert svs.check_minor_version_validity("hello") == False
+    assert (
+        svs.massage_parameter(svs_repository.SINGLE_VERSION_TAG, "commit")
+        == svs_repository.SINGLE_VERSION_TAG
+    )
+    assert svs.save_state() == (False, svs_repository.SINGLE_VERSION_TAG)
+    # Nothing should fail here
+    svs.restore_state(False, svs_repository.SINGLE_VERSION_TAG)
+    svs.checkout(svs_repository.SINGLE_VERSION_TAG)
