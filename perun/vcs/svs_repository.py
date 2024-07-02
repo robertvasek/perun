@@ -161,11 +161,9 @@ class SvsRepository(AbstractRepository):
         :param _: whether something was stashed
         :param __: to which version should we check out
         """
-        pass
 
     def checkout(self, _: str) -> None:
         """There is single version, so nothing is checked out
 
         :param _: version we are checking out to
         """
-        pass
