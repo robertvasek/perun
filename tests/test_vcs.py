@@ -139,8 +139,9 @@ def test_svs(pcs_with_svs):
 
     assert svs.get_head_major_version() == svs_repository.SINGLE_VERSION_BRANCH
     assert svs.is_dirty() == False
-    assert svs.check_minor_version_validity(svs_repository.SINGLE_VERSION_TAG) == True
-    assert svs.check_minor_version_validity("hello") == False
+    svs.check_minor_version_validity(svs_repository.SINGLE_VERSION_TAG)
+    with pytest.raises(AssertionError):
+        svs.check_minor_version_validity("hello")
     assert (
         svs.massage_parameter(svs_repository.SINGLE_VERSION_TAG, "commit")
         == svs_repository.SINGLE_VERSION_TAG
