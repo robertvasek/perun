@@ -1360,6 +1360,9 @@ def test_cli_outside_pcs():
     result = runner.invoke(cli.status, [])
     asserts.predicate_from_cli(result, result.exit_code == 1)
 
+    result = runner.invoke(config_cli.config, ["--local", "reset"])
+    asserts.predicate_from_cli(result, result.exit_code == 1)
+
 
 def test_rm_correct(pcs_single_prof):
     """Test running rm from cli, without any problems
