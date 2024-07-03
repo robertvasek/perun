@@ -67,7 +67,7 @@ def compute_nparam_integral(x_pts: list[float], y_pts: list[float]) -> float:
     :param list y_pts: list of y-coordinates from non-parametric model
     :return float: the value of integral computed using samples
     """
-    return integrate.simps(y_pts, x_pts, even="avg")
+    return integrate.simpson(y_pts, x=x_pts)
 
 
 def execute_analysis(
