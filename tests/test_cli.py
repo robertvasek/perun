@@ -2603,3 +2603,27 @@ def test_try_init_error(monkeypatch):
     asserts.predicate_from_cli(result, result.exit_code == 1)
     assert "Initializing Perun" in result.output
     assert "Creating empty commit - failed" in common_kit.escape_ansi(result.output)
+
+
+@pytest.mark.usefixtures("cleandir")
+def test_svs():
+    """Test running init from cli, without any problems
+
+    Expecting no exceptions, no errors, zero status.
+    """
+    runner = CliRunner()
+    dst = str(os.getcwd())
+    result = runner.invoke(cli.init, [dst])
+    asserts.predicate_from_cli(result, result.exit_code == 0)
+
+    result = runner.invoke(cli.collect, ["-c echo", "-w hello", "-o", "prof.perf", "kperf"])
+    asserts.predicate_from_cli(result, result.exit_code == 0)
+    assert "prof.perf" in os.listdir(".")
+
+    result = runner.invoke(cli.collect, ["-c echo", "-w world", "-o", "prof2.perf", "kperf"])
+    asserts.predicate_from_cli(result, result.exit_code == 0)
+    assert "prof2.perf" in os.listdir(".")
+
+    result = runner.invoke(cli.showdiff, ["prof.perf", "prof2.perf", "report", "-o", "diff"])
+    asserts.predicate_from_cli(result, result.exit_code == 0)
+    assert "diff.html" in os.listdir(".")

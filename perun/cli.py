@@ -218,11 +218,11 @@ def configure_local_perun(perun_path: str) -> None:
 @click.option(
     "--vcs-type",
     metavar="<type>",
-    default="git",
+    default="svs",
     type=click.Choice(cli_kit.get_supported_module_names("vcs")),
     help=(
         "In parallel to initialization of Perun, initialize the vcs"
-        " of <type> as well (by default ``git``)."
+        " of <type> as well (by default ``svs``)."
     ),
 )
 @click.option(

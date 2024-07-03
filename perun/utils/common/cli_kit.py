@@ -924,7 +924,7 @@ def get_supported_module_names(package: str) -> list[str]:
     if package not in ("vcs", "collect", "postprocess", "view"):
         log.error(f"trying to call get_supported_module_names with incorrect package '{package}'")
     return {
-        "vcs": ["git"],
+        "vcs": ["git", "svs"],
         "collect": ["trace", "memory", "time", "complexity", "bounds", "kperf"],
         "postprocess": [
             "clusterizer",
