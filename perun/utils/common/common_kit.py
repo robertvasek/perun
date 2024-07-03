@@ -3,10 +3,18 @@
 from __future__ import annotations
 
 # Standard Imports
-from typing import Optional, Any, Iterable, Callable, Literal, TYPE_CHECKING, TypeVar, cast, Type
+from typing import (
+    Optional,
+    Any,
+    Iterable,
+    Callable,
+    Literal,
+    TYPE_CHECKING,
+    Type,
+    TypeVar,
+)
 import array
 import contextlib
-import gc
 import importlib
 import itertools
 import operator
@@ -614,7 +622,7 @@ def ensure_type(obj: Any, target_type: Type[T]) -> T:
     """
     if isinstance(obj, target_type):
         return obj
-    return cast(target_type, target_type(obj))
+    return target_type(obj)  # type: ignore
 
 
 MODULE_CACHE: dict[str, types.ModuleType] = {}
