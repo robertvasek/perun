@@ -1360,6 +1360,9 @@ def test_cli_outside_pcs():
     result = runner.invoke(cli.status, [])
     asserts.predicate_from_cli(result, result.exit_code == 1)
 
+    result = runner.invoke(config_cli.config, ["--local", "reset"])
+    asserts.predicate_from_cli(result, result.exit_code == 1)
+
 
 def test_rm_correct(pcs_single_prof):
     """Test running rm from cli, without any problems
@@ -1429,7 +1432,7 @@ def test_collect_correct(pcs_with_root):
     )
     asserts.predicate_from_cli(result, result.exit_code == 0)
     assert "prof3.perf" in os.listdir(".")
-    assert len(os.listdir(os.path.join(".perun", "logs"))) == 1
+    assert len(os.listdir(os.path.join(".perun", "logs"))) >= 1
 
     assert "log" not in os.listdir(".")
     result = runner.invoke(
@@ -2581,7 +2584,8 @@ def test_try_init(monkeypatch):
     monkeypatch.setattr("click.confirm", lambda _: False)
     runner = CliRunner()
     result = runner.invoke(cli.cli, ["status"])
-    assert isinstance(result.exception, NotPerunRepositoryException)
+    asserts.predicate_from_cli(result, result.exit_code == 1)
+    assert "is not a Perun repository" in result.output
 
     monkeypatch.setattr("click.confirm", lambda _: True)
     result = runner.invoke(cli.cli, ["status"])

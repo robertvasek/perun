@@ -211,7 +211,4 @@ def config_reset(ctx: click.Context, config_template: str) -> None:
 
     See :ref:`config-templates` to learn more about predefined configuration options.
     """
-    try:
-        commands.config_reset(ctx.obj["store_type"], config_template)
-    except NotPerunRepositoryException as npre:
-        perun_log.error(f"could not reset the {ctx.obj['store_type']} configuration: {npre}")
+    commands.config_reset(ctx.obj["store_type"], config_template)

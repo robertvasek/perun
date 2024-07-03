@@ -213,6 +213,9 @@ exclude_also = [
 
     # Not implemented asserst are omitted
     "assert NotImplementedError(.*)",
+
+    # Exclude lines that run the module as script
+    'if __name__ == "__main__":'
 ]
 
 # Formatting configuration
