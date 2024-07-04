@@ -286,9 +286,11 @@ Links
 -   Project documentation:
     -   Online: [https://perfexionists.github.io/perun/](https://perfexionists.github.io/perun/)
     -   Latest Typeset: [https://github.com/Perfexionists/perun/blob/devel/docs/pdf/perun.pdf](https://github.com/Perfexionists/perun/blob/devel/docs/pdf/perun.pdf)
+-   Redhat Research: [https://research.redhat.com/blog/research_project/perun/](https://research.redhat.com/blog/research_project/perun/)
 
 Unrelated links:
 
+-   Check out our group focusing on performance testing and performance anaysis of programs: [Perfexionists](https://github.com/Perfexionists/)
 -   Check out our research group focusing on program analysis, static and dynamic analysis, formal methods, verification
     and many more: [VeriFIT](http://www.fit.vutbr.cz/research/groups/verifit/index.php.en)
 
@@ -304,26 +306,45 @@ We thank for the support received from [Red Hat](https://www.redhat.com/en/globa
 (especially branch of Brno), and Brno University of Technology 
 ([BUT FIT](https://www.fit.vutbr.cz/)).
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-redhat.png">
+  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-but.png">
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-verifit.png">
+</p>
+
 Further we would like to thank the following individuals (in the
 alphabetic order) for their (sometimes even just a little)
 contributions:
 
 -   **Jan Fiedor** (Honeywell)---for feedback, and technical
   discussions;
--   **Jirka Hladký** and his team (RedHat)---for technical discussions and cooperation;
+-   **Jirka Hladký** and his team, and mainly **Kamil Kolakowski** (RedHat)---for technical discussions and cooperation;
 -   **Martin Hruška** (BUT FIT)---for feedback, and technical
   discussions;
 -   **Viktor Malík** (RedHat)---for feedback and support;
 -   **Petr Müller** (SAP)---for nice discussion about the project;
 -   **Michal Kotoun** (BUT FIT)---for feedback, and having faith in
   this repo;
--   **Hanka Pluháčková** (BUT FIT)---for awesome logo, theoretical
+-   **Hanka Šimková (Pluháčková)** (BUT FIT)---for awesome logo, theoretical
   discussions about statistics, feedback, and lots of ideas;
 -   **Adam Rogalewicz** (BUT FIT)---for support, theoretical
   discussions, feedback;
 -   **Tomáš Vojnar** (BUT FIT)---for support, theoretical discussions,
   feedback;
 -   **Jan Zelený** (Red Hat)---for awesome support, and feedback.
+-   **RedHat Research Team**---Martin Ukrop, Nora Haxhidautiová, Kateřina Kozubková, Marek Grác---for support during integrating Perun in RedHat
+-   **Eva Růžičková** (Red Hat)---for photoshooting our team, and having patience with bunch of nerds.
+
+Perun tool (and its authors) are or has been supported by several research
+projects. We hereby declare, there has been no double funding. In particular, we
+acknowledge the following projects.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-eu.png">
+</p>
 
 Development of this tool has been supported by AQUAS project (Aggregated Quality Assurance for
 Systems, https://aquas-project.eu/). This project has received funding from the Electronic Component
@@ -338,8 +359,27 @@ ECSEL JU is not responsible for any use that may be made of the information it c
   <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-excel.gif">
 </p>
 
+Development of this tool has been supported by the project GA23-06506S, and
+GA20-07487S of the Czech Science Foundation.
+
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-eu.jpg" width="33%">
+  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-gacr.jpg">
 </p>
 
-This project is co-funded by the European Union
+Funded by the European Union under Grant Agreement No. 101087529 Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or European Research Executive Agency. Neither the European Union nor the granting authority can be held responsible for them.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-chess.png">
+</p>
+
+Development of this tool has been supported by the Brno Ph.D. Talent Programme.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-jcmm.jpg">
+</p>
+
+Development of this tool has been supported by the project FIT-S-23-8151 of the BUT FIT.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-but.png">
+</p>
