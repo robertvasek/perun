@@ -7,7 +7,7 @@
 
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/perun-logo.png">
+  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/perun-logo.png" width="75%">
 </p>
 
 Perun is an open source light-weight Performance Version System, which works as a wrapper over
@@ -303,15 +303,12 @@ Acknowledgements
 ----------------
 
 We thank for the support received from [Red Hat](https://www.redhat.com/en/global/czech-republic)
-(especially branch of Brno), and Brno University of Technology 
-([BUT FIT](https://www.fit.vutbr.cz/)).
+(especially branch of Brno), Brno University of Technology 
+([BUT FIT](https://www.fit.vutbr.cz/)), and the VeriFIT and RedHat research groups.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-redhat.png">
   <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-but.png">
-</p>
-
-<p align="center">
   <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-verifit.png">
 </p>
 
@@ -369,7 +366,7 @@ GA20-07487S of the Czech Science Foundation.
 Funded by the European Union under Grant Agreement No. 101087529 Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or European Research Executive Agency. Neither the European Union nor the granting authority can be held responsible for them.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-chess.png">
+  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-chess.png" width="75%">
 </p>
 
 Development of this tool has been supported by the Brno Ph.D. Talent Programme.
