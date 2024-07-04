@@ -308,7 +308,7 @@ We thank for the support received from [Red Hat](https://www.redhat.com/en/globa
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-redhat.png">
-  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-but.png">
+  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-but.png" width="75%">
   <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-verifit.png">
 </p>
 
@@ -372,11 +372,11 @@ Funded by the European Union under Grant Agreement No. 101087529 Views and opini
 Development of this tool has been supported by the Brno Ph.D. Talent Programme.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-jcmm.jpg">
+  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-jcmm.png">
 </p>
 
 Development of this tool has been supported by the project FIT-S-23-8151 of the BUT FIT.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-but.png">
+  <img src="https://raw.githubusercontent.com/Perfexionists/perun/devel/figs/logo-but.png" width="75%">
 </p>
