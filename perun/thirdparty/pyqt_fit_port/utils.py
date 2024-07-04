@@ -309,8 +309,7 @@ def approx_jacobian(x, func, epsilon, *args):
          The approximation is done using forward differences
 
     """
-    x0 = np.asarray(x)
-    x0 = np.asfarray(x0, dtype=x0.dtype)
+    x0 = np.asarray(x, dtype=float)
     epsilon = x0.dtype.type(epsilon)
     f0 = func(*((x0,) + args))
     jac = np.zeros([len(x0), len(f0)], dtype=x0.dtype)

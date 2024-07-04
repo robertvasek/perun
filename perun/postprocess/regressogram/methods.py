@@ -9,7 +9,9 @@ import inspect
 
 # Third-Party Imports
 import numpy as np
-import numpy.lib.histograms as numpy_bucket_selectors
+
+# TODO: could this be replaced with numpy.histogram_bin_edges?
+import numpy.lib._histograms_impl as numpy_bucket_selectors
 import scipy.stats
 import sklearn.metrics
 
