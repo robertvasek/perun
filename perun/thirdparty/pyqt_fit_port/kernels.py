@@ -6,6 +6,7 @@ Module providing a set of kernels for use with either the :py:mod:`pyqt_fit.kde`
 
 Kernels should be created following this template:
 """
+
 import numpy as np
 from scipy import fftpack, integrate
 from scipy.special import erf
@@ -336,6 +337,7 @@ class Kernel1D:
             \int_u^\infty p(x)dx = 0
 
     """
+
     cut = 3.0
     lower = -np.inf
     upper = np.inf

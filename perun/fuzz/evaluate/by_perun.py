@@ -3,6 +3,7 @@
 In general, this testing is trying to find performance degradation in newly generated target
 profile comparing with baseline profile.
 """
+
 from __future__ import annotations
 
 # Standard Imports

@@ -4,7 +4,6 @@ Specifically, each resource should implement an 'extract' / 'storage' function s
 interface is unified.
 """
 
-
 from enum import Enum
 
 from perun.collect.trace.optimizations.resources import angr_provider

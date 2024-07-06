@@ -7,6 +7,7 @@ metrics to check performance change between two profiles and obtaining required 
 these profiles. Module contains two other temporary methods, which are using by mentioned
 general methods.
 """
+
 from __future__ import annotations
 
 # Standard Imports

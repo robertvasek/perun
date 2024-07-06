@@ -6,6 +6,7 @@
     generate profile for each of the generated workload.
 
 """
+
 from __future__ import annotations
 
 # Standard Imports

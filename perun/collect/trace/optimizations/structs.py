@@ -2,7 +2,6 @@
 by numerous other modules.
 """
 
-
 import os
 import math
 from functools import partial

@@ -13,6 +13,7 @@ visualizations.
 
 Perun currently exists as CLI application, with GUI application being in development.
 """
+
 from __future__ import annotations
 
 import importlib.metadata

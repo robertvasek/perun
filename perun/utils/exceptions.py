@@ -1,4 +1,5 @@
 """Collection of helper exception classes"""
+
 from __future__ import annotations
 
 # Standard Imports

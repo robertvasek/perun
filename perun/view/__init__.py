@@ -43,6 +43,7 @@ for easy specification of visualized profiles.
 .. _ncurses: https://www.gnu.org/software/ncurses/ncurses.html
 .. _pandas: https://pandas.pydata.org/
 """
+
 from __future__ import annotations
 
 from typing import Callable, Any

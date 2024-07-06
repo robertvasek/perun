@@ -1,4 +1,5 @@
 """Collection of tests for stats module"""
+
 from __future__ import annotations
 
 # Standard Imports

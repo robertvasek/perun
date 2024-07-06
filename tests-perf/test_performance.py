@@ -7,6 +7,7 @@ Basic set of performance benchmarks for Perun
   c. converting to pandas dataframe
   d. storing the profile from json to filesystem
 """
+
 import time
 import os
 import sys

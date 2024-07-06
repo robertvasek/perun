@@ -63,6 +63,7 @@ overall slowdown of the program (in this case, the CPython ctypes library). The 
 reported as the IQR multiple of `110.46`.
 
 """
+
 from __future__ import annotations
 
 # Standard Imports

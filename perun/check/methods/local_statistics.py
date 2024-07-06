@@ -2,6 +2,7 @@
 The module contains the methods, that executes the computational logic of
 `local_statistics` detection method.
 """
+
 from __future__ import annotations
 
 # Standard Imports

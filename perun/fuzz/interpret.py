@@ -1,4 +1,5 @@
 """ Module contains a set of functions for fuzzing results interpretation."""
+
 from __future__ import annotations
 
 # Standard Imports

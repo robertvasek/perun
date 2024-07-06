@@ -1,4 +1,5 @@
 """Module for automatic recognizing file type and choosing appropriate fuzzing rules."""
+
 from __future__ import annotations
 
 # Standard Imports

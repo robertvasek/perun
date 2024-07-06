@@ -12,6 +12,7 @@ You can use some basic generators specified in shared configurations called ``ba
 (which generates text files with number of lines from interval (10, 10000), with increment of
 1000).
 """
+
 from __future__ import annotations
 
 from perun.logic import config

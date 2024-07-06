@@ -3,6 +3,7 @@
 This contains both helper constants, enums, and function, and most of all definitions
 of various version of index entries.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -168,7 +169,9 @@ class ExtendedIndexEntry(BasicIndexEntry):
         self.cmd: str = profile["header"]["cmd"]
         self.workload: str = profile["header"].get("workload", "")
         self.collector: str = profile["collector_info"]["name"]
-        self.postprocessors: list[dict[str, Any]] = [postprocessor["name"] for postprocessor in profile["postprocessors"]]
+        self.postprocessors: list[dict[str, Any]] = [
+            postprocessor["name"] for postprocessor in profile["postprocessors"]
+        ]
 
     def __eq__(self, other: object) -> bool:
         """Compares two IndexEntries simply by checking the equality of its internal dictionaries

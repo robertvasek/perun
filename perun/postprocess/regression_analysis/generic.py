@@ -12,6 +12,7 @@ This allows to extend and modify the computation process as long as all the func
 the given argument and return value conventions.
 
 """
+
 from __future__ import annotations
 
 # Standard Imports

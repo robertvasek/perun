@@ -4,6 +4,7 @@ Each checker has to implement single method called:
   1. `check`: which takes two profiles (baseline and target)
       and returns iterable of degradations
 """
+
 from __future__ import annotations
 
 # Standard Imports

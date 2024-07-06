@@ -632,7 +632,9 @@ class HandledSignals:
         """
         self.signals: tuple[int, ...] = signals
         self.handler: Callable = kwargs.get("handler", common_kit.default_signal_handler)
-        self.handler_exc: type[Exception | BaseException] = kwargs.get("handler_exception", SignalReceivedException)
+        self.handler_exc: type[Exception | BaseException] = kwargs.get(
+            "handler_exception", SignalReceivedException
+        )
         self.callback: Callable = kwargs.get("callback")
         self.callback_args: list[Any] = kwargs.get("callback_args", [])
         self.old_handlers: list[int | None | Callable[[int, Optional[types.FrameType]], Any]] = []

@@ -1,4 +1,5 @@
 """Abstraction of version control systems"""
+
 from __future__ import annotations
 
 # Standard Imports

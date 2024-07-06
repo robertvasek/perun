@@ -1,4 +1,5 @@
 """ Basic tests for table plot visualization """
+
 from __future__ import annotations
 
 # Standard Imports

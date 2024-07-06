@@ -1,4 +1,5 @@
 """Collection of tests for testing tracer"""
+
 from __future__ import annotations
 
 # Standard Imports

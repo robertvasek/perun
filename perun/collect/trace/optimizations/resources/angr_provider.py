@@ -3,7 +3,6 @@ incompatible with angr atm.
 
 """
 
-
 import os
 import angr
 

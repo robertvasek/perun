@@ -5,6 +5,7 @@ Original repository: https://github.com/PierreBdR/PyQt-fit/tree/master
 
 The port removes Cython and Python2 support and fixes various linter warnings.
 """
+
 from perun.thirdparty.pyqt_fit_port.nonparam_regression import NonParamRegression
 from perun.thirdparty.pyqt_fit_port.npr_methods import (
     LocalPolynomialKernel,

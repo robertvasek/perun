@@ -3,6 +3,7 @@
 Some of the stuff are stored in the stream, like e.g. yaml and are reused in several places.
 This module encapsulates such functions, so they can be used in CLI, in tests, in configs.
 """
+
 from __future__ import annotations
 
 # Standard Imports

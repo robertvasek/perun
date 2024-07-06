@@ -5,6 +5,7 @@ This module contains the methods that implements the whole set of methods
 to execute the kernel regression. Also contains the auxiliary methods to
 validate the options and to execute the individual computations.
 """
+
 from __future__ import annotations
 
 # Standard Imports

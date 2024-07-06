@@ -1,6 +1,7 @@
 """
 Postprocessor module with non-parametric analysis using the regressogram method.
 """
+
 from __future__ import annotations
 
 # Standard Imports

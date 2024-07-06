@@ -4,7 +4,6 @@ the Perun call graph provider handles storage of the internal call graph format 
 and loading call graphs from previous project versions.
 """
 
-
 import perun.logic.temp as temp
 import perun.logic.stats as stats
 from perun.utils.exceptions import StatsFileNotFoundException, SuppressedExceptions

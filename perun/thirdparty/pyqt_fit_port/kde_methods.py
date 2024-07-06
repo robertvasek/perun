@@ -33,6 +33,7 @@ References:
 .. [1] Jones, M. C. 1993. Simple boundary correction for kernel density
     estimation. Statistics and Computing 3: 135--146.
 """
+
 import numpy as np
 from scipy import fftpack, integrate, optimize
 

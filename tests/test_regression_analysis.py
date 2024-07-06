@@ -6,6 +6,7 @@ Sources (if any) to examples are provided in the test functions.
 
 The postprocessby CLI is tested in test_cli module.
 """
+
 from __future__ import annotations
 
 # Standard Imports

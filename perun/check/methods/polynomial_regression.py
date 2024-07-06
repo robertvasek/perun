@@ -3,6 +3,7 @@
 This module contains method for classification the performance change between two profiles
 according to computed metrics and models from these profiles, based on the polynomial regression.
 """
+
 from __future__ import annotations
 
 # Standard Imports

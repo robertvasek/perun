@@ -3,6 +3,7 @@
 Tests removing of profiles, within and outside of the scope of the wrapped perun system,
 removing nonexistent profiles, etc.
 """
+
 from __future__ import annotations
 
 # Standard Imports

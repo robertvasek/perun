@@ -1,7 +1,6 @@
 """ The extraction and storage methods for the Dynamic Stats resource.
 """
 
-
 import perun.logic.stats as stats
 import perun.logic.temp as temp
 import perun.collect.trace.optimizations.dynamic_stats as dyn_stats

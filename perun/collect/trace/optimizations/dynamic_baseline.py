@@ -6,7 +6,6 @@ not necessarily the same optimization settings. In particular, the method attemp
 identify functions that can be omitted from subsequent profiling.
 """
 
-
 _CONSTANT_MEDIAN_RATIO = 0.05
 _MEDIAN_RESOLUTION = 10
 _WRAPPER_THRESHOLD_RATIO = 0.8

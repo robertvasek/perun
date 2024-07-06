@@ -1,4 +1,5 @@
 """Basic tests of generators"""
+
 from __future__ import annotations
 
 # Standard Imports

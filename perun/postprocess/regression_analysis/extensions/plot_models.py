@@ -1,6 +1,7 @@
 """ Extension for regression model coefficients transformation into array of points. The points
     array can be then used for model plotting as a series of lines forming a (curved) line.
 """
+
 from __future__ import annotations
 
 # Standard Imports

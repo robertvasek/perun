@@ -50,6 +50,7 @@ compatible file is then registered as workload.
 Currently the templates are set by ``-t`` option of ``perun init`` command (see :ref:`cli-main-ref`
 for details on ``perun init``). By default **master** configuration is used.
 """
+
 from __future__ import annotations
 
 # Standard Imports

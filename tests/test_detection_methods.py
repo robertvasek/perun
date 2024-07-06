@@ -3,6 +3,7 @@
 Tests whether the change is correctly detected and classified. All types of models
 are tested to the three types of changes.
 """
+
 from __future__ import annotations
 
 # Standard Imports

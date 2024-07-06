@@ -1,4 +1,5 @@
 """Collection of tests for Perun's Profiles"""
+
 from __future__ import annotations
 
 # Standard Imports

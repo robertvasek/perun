@@ -4,6 +4,7 @@ This module contains method for classification the performance change between tw
 according to computed metrics and models from these profiles, based on the linear regression.
 
 """
+
 from __future__ import annotations
 
 # Standard Imports

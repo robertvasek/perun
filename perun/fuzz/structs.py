@@ -1,4 +1,5 @@
 """Collection of helpers structures for fuzzing"""
+
 from __future__ import annotations
 
 # Standard Imports

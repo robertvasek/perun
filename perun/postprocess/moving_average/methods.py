@@ -2,6 +2,7 @@
 Module with computational method of moving average and
 auxiliary methods at executing of this method.
 """
+
 from __future__ import annotations
 
 # Standard Imports

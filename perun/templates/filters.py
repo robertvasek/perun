@@ -1,6 +1,7 @@
 """
 Filters contain custom filters for working with jinja2
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -8,6 +9,7 @@ from __future__ import annotations
 # Third-Party Imports
 
 # Perun Imports
+
 
 def sanitize_variable_name(value: str) -> str:
     """Sanitiezes the string so it is applicable as variable name

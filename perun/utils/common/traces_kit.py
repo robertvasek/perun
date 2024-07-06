@@ -1,4 +1,5 @@
 """Set of helpers for working with traces """
+
 from __future__ import annotations
 
 import itertools
@@ -127,18 +128,18 @@ class TraceClassifierLayer:
         self.distance_cache: dict[str, float] = {}
         self.clusters: list[TraceCluster] = []
         if strategy == ClassificationStrategy.FIRST_FIT:
-            self.find_cluster: Callable[
-                [TraceClusterMember], TraceCluster
-            ] = self.find_first_fit_cluster_for
+            self.find_cluster: Callable[[TraceClusterMember], TraceCluster] = (
+                self.find_first_fit_cluster_for
+            )
         elif strategy == ClassificationStrategy.IDENTITY:
-            self.find_cluster: Callable[  # type: ignore
-                [TraceClusterMember], TraceCluster
-            ] = self.find_identity_for
+            self.find_cluster: Callable[[TraceClusterMember], TraceCluster] = (  # type: ignore
+                self.find_identity_for
+            )
         else:
             assert strategy == ClassificationStrategy.BEST_FIT
-            self.find_cluster: Callable[  # type: ignore
-                [TraceClusterMember], TraceCluster
-            ] = self.find_best_fit_cluster_for
+            self.find_cluster: Callable[[TraceClusterMember], TraceCluster] = (  # type: ignore
+                self.find_best_fit_cluster_for
+            )
         self.threshold: float = threshold
 
     def classify_trace(self, trace: list[str]) -> TraceCluster:

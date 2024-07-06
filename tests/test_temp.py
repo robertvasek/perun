@@ -1,4 +1,5 @@
 """Basic tests for testing temporary storage of Perun"""
+
 from __future__ import annotations
 
 # Standard Imports

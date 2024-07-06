@@ -1,4 +1,5 @@
 """This module provides methods for filtering the profile"""
+
 from __future__ import annotations
 
 # Standard Imports

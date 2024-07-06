@@ -30,6 +30,7 @@ The TextFile Generator can be configured by following options:
     from interval (``min_chars``, ``max_chars``). Otherwise, (if set to false), the lines will
     always be of maximal length (``max_chars``).
 """
+
 from __future__ import annotations
 
 # Standard Imports

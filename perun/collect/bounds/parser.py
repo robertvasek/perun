@@ -40,6 +40,7 @@ file func-queue.bc
 Total Complexity: FAILED
 
 """
+
 from __future__ import annotations
 
 # Standard Imports

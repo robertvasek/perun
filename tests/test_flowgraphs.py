@@ -1,4 +1,5 @@
 """Tests for flowgraph visualization"""
+
 from __future__ import annotations
 
 # Standard Imports

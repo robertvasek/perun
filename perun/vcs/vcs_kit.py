@@ -1,4 +1,5 @@
 """Helper functions for working with VCS"""
+
 from __future__ import annotations
 
 # Standard Imports
