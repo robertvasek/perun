@@ -93,13 +93,13 @@ int set_enabled(struct bpf_perf_event_data *ctx)
     if (is_enabled == NULL) {{
         return 0;
     }}
-    
+
     if (*is_enabled) {{
         *is_enabled = 0;
     }} else {{
         *is_enabled = 1;
     }}
-    
+
     struct duration_data data = {{}};
     data.id = {probe_id};
     data.pid = bpf_get_current_pid_tgid();
@@ -131,11 +131,11 @@ int entry_{name}(struct pt_regs *ctx)
 {{
 {timed_sampling}
 
-    u32 id = {probe_id}; 
+    u32 id = {probe_id};
 {sampling_before}
 {entry_body}
 {sampling_after}
-    
+
     return 0;
 }}
 """
@@ -158,23 +158,23 @@ int exit_{name}(struct pt_regs *ctx)
 
     u64 exit_timestamp = bpf_ktime_get_ns();
     u32 id = {probe_id};
-    
+
     u64 *entry_timestamp = timestamps.lookup(&id);
     if (entry_timestamp == NULL || *entry_timestamp == 0) {{
         return 0;
     }}
-    
+
     struct duration_data data = {{}};
     data.id = id;
     data.pid = bpf_get_current_pid_tgid();
     data.entry_ns = *entry_timestamp;
     data.exit_ns = exit_timestamp;
-    
+
     (*entry_timestamp) = 0;
 
     bpf_get_current_comm(&data.comm, sizeof(data.comm));
     records.perf_submit(ctx, &data, sizeof(data));
-    
+
     return 0;
 }}
 """
@@ -240,7 +240,7 @@ def _create_sampling_before(sample_value):
     if (sample == NULL) {
         return 0;
     }
-    
+
     if (*sample == 0) {"""
 
 
@@ -254,7 +254,7 @@ def _create_sampling_after(sample_value):
         return "   // sampling code omitted"
     return f"""
     }}
-        
+
     (*sample)++;
     if (*sample == {sample_value}) {{
         (*sample) = 0;
@@ -267,7 +267,7 @@ def _create_entry_body():
     :return: the generated code chunk
     """
     return """
-    u64 entry_timestamp = bpf_ktime_get_ns();        
+    u64 entry_timestamp = bpf_ktime_get_ns();
     timestamps.update(&id, &entry_timestamp);"""
 
 

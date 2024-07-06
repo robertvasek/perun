@@ -125,7 +125,7 @@ EXIT_PRECISE_SAMPLE_TEMPLATE = """
         {{probe_handler}}
         delete {recursion_hit}[tid, pname, {recursion_depth}[tid, pname]]
     }}}}
-    {recursion_depth}[tid, pname] -- 
+    {recursion_depth}[tid, pname] --
 """.format(
     recursion_depth=ARRAY_RECURSION_DEPTH, recursion_hit=ARRAY_RECURSION_SAMPLE_HIT
 )
@@ -228,7 +228,7 @@ def _add_thread_probes(handle, binary, sampling_on):
 probe process("{binary}").thread.begin {{
     {begin_handler}
 }}
-    
+
 probe process("{binary}").thread.end {{
     {end_handler}
     {sampling_cleanup}

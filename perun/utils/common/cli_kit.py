@@ -630,7 +630,7 @@ CLI_DUMP_TEMPLATE_STRING = """Environment Info
   * Perun {{ env.perun }}
   * Python:  {{ env.python.version }}
   * Installed Python packages:
-  
+
   // for pkg in env.python.packages
     * {{ pkg }}
   // endfor
@@ -640,31 +640,31 @@ Command Line Commands
 ---------------------
 
   .. code-block:: bash
-  
+
     $ {{ command }}
 
 Standard and Error Output
 -------------------------
 
   * Raised exception and trace:
-  
+
   .. code-block:: bash
-  
+
     {{ exception }}
 {{ trace}}
-  
+
 {% if output %}
   * Captured stdout:
 
-  .. code-block:: 
+  .. code-block::
 
 {{ output }}
 {% endif %}
-    
+
 {% if error %}
   * Captured stderr:
-  
-  .. code-block:: 
+
+  .. code-block::
 
 {{ error }}
 {% endif %}
@@ -673,36 +673,36 @@ Context
 -------
 {% if config.runtime %}
  * Runtime Config
- 
+
  .. code-block:: yaml
- 
+
 {{ config.runtime }}
 {% endif %}
-   
+
 {% if config.local %}
  * Local Config
- 
+
  .. code-block:: yaml
- 
+
 {{ config.local }}
 {% endif %}
-   
+
 {% if config.global %}
  * Global Config
- 
+
  .. code-block:: yaml
- 
+
 {{ config.global }}
 {% endif %}
 
 {% if context %}
  * Manipulated profiles
- 
+
   // for profile in context
-  
+
  .. code-block:: json
-   
-{{ profile }} 
+
+{{ profile }}
 
   // endfor
 {% endif %}
