@@ -69,21 +69,21 @@ def construct_job_matrix(
       }
     }
 
-    :param list cmd: binary that will be run
-    :param list workload: list of workloads
-    :param list collector: list of collectors
-    :param list postprocessor: list of postprocessors
-    :param dict kwargs: additional parameters issued from the command line
-    :returns dict, int: dict of jobs in form of {cmds: {workloads: {Job}}}, number of jobs
+    :param cmd: binary that will be run
+    :param workload: list of workloads
+    :param collector: list of collectors
+    :param postprocessor: list of postprocessors
+    :param kwargs: additional parameters issued from the command line
+    :return: dict of jobs in form of {cmds: {workloads: {Job}}}, number of jobs
     """
 
     def construct_unit(unit: str, unit_type: str, **ukwargs: Any) -> Unit:
         """Helper function for constructing the {'name', 'params'} objects for collectors and posts.
 
-        :param str unit: name of the unit (collector/postprocessor)
-        :param str unit_type: name of the unit type (collector or postprocessor)
-        :param dict ukwargs: dictionary of additional parameters
-        :returns dict: dictionary of the form {'name', 'params'}
+        :param unit: name of the unit (collector/postprocessor)
+        :param unit_type: name of the unit type (collector or postprocessor)
+        :param ukwargs: dictionary of additional parameters
+        :return: dictionary of the form {'name', 'params'}
         """
         # Get the dictionaries for from string and from file params obtained from commandline
         unit_param_dict = ukwargs.get(unit_type + "_params", {}).get(unit, {})
@@ -115,7 +115,7 @@ def construct_job_matrix(
 
 def load_job_info_from_config() -> dict[str, Any]:
     """
-    :returns dict: dictionary with cmds, args, workloads, collectors and postprocessors
+    :return: dictionary with cmds, args, workloads, collectors and postprocessors
     """
     local_config = pcs.local_config().data
 
@@ -174,7 +174,7 @@ def create_empty_pass(
 
     This is used to handle collectors and postprocessors that do not have before or after phases.
 
-    :param object return_code: either CollectStatus.OK or PostprocessorStatus.OK
+    :param return_code: either CollectStatus.OK or PostprocessorStatus.OK
     :return: function that does nothing
     """
 
@@ -183,7 +183,7 @@ def create_empty_pass(
     ) -> tuple[CollectStatus | PostprocessStatus, str, dict[str, Any]]:
         """Empty collection or postprocessing phase, doing nothing
 
-        :param dict kwargs: arguments of the phase
+        :param kwargs: arguments of the phase
         :return: return code, empty return message, non-modified arguments
         """
         return return_code, "", kwargs
@@ -198,8 +198,8 @@ def run_phase_function(report: RunnerReport, phase: str) -> None:
     nothing is returned. If any exception occurs, or if the phase return non-zero status,
     then the overall report ends with Error.
 
-    :param RunnerReport report: collective report about the run of the phase
-    :param str phase: name of the phase/function that is run
+    :param report: collective report about the run of the phase
+    :param phase: name of the phase/function that is run
     """
     phase_function: Callable[..., tuple[CollectStatus | PostprocessStatus, str, dict[str, Any]]] = (
         getattr(report.runner, phase, create_empty_pass(report.ok_status))
@@ -228,9 +228,9 @@ def check_integrity_of_runner(
     something with profile. Second it checks that the runner has corresponding collect or
     postprocess functions (though theoretically one can have only before and after phases)
 
-    :param module runner: module of the runner (postprocessor or collector)
-    :param str runner_type: string name of the runner (the run function is derived from this)
-    :param RunnerReport report: report of the collection phase
+    :param runner: module of the runner (postprocessor or collector)
+    :param runner_type: string name of the runner (the run function is derived from this)
+    :param report: report of the collection phase
     """
     runner_name = runner.__name__.split(".")[-2]
     if "profile" not in report.kwargs.keys() and report.is_ok():
@@ -244,7 +244,7 @@ def check_integrity_of_runner(
 def runner_teardown_handler(status_report: RunnerReport, **kwargs: Any) -> None:
     """The teardown callback used in the signal handler.
 
-    :param RunnerReport status_report: the collection report object
+    :param status_report: the collection report object
     :param kwargs: additional parameters as supplied by the HandledSignals CM
     """
     exc = kwargs["exc_val"]
@@ -260,8 +260,8 @@ def runner_signal_handler(signum: int, frame: Any) -> None:
     """Custom signal handler that blocks all the handled signals until the __exit__ sentinel of
     the CM is reached.
 
-    :param int signum: a representation of the encountered signal
-    :param object frame: a frame / stack trace object
+    :param signum: a representation of the encountered signal
+    :param frame: a frame / stack trace object
     """
     signal.signal(signal.SIGINT, signal.SIG_IGN)
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
@@ -281,10 +281,10 @@ def run_all_phases_for(
 
     Returns the computed profile
 
-    :param module runner: module that is going to be run
-    :param str runner_type: string type of the runner (either collector or postprocessor)
-    :param dict runner_params: dictionary of arguments for runner
-    :return RunnerReport: report about the run phase adn profile
+    :param runner: module that is going to be run
+    :param runner_type: string type of the runner (either collector or postprocessor)
+    :param runner_params: dictionary of arguments for runner
+    :return: report about the run phase adn profile
     """
     runner_verb = runner_type[:-2]
     # Create immutable list of resource that should hold even in case of problems
@@ -321,9 +321,9 @@ def run_collector(collector: Unit, job: Job) -> tuple[CollectStatus, dict[str, A
     Tries to look up the module containing the collector specified by the
     collector name, and then runs it with the parameters and returns collected profile.
 
-    :param Unit collector: object representing the collector
-    :param Job job: additional information about the running job
-    :returns (int, dict): status of the collection, generated profile
+    :param collector: object representing the collector
+    :param job: additional information about the running job
+    :return: status of the collection, generated profile
     """
     try:
         collector_module = common_kit.get_module(f"perun.collect.{collector.name}.run")
@@ -357,9 +357,9 @@ def run_collector_from_cli_context(
     This is used as a wrapper for calls from various collector modules. This was extracted,
     to minimize the needed input of new potential collectors.
 
-    :param Context ctx: click context containing arguments obtained by 'perun collect' command
-    :param str collector_name: name of the collector that will be run
-    :param dict collector_params: dictionary with collector params
+    :param ctx: click context containing arguments obtained by 'perun collect' command
+    :param collector_name: name of the collector that will be run
+    :param collector_params: dictionary with collector params
     """
     cmd, workload = ctx.obj["cmd"], ctx.obj["workload"]
     minor_versions = ctx.obj["minor_version_list"]
@@ -386,10 +386,10 @@ def run_postprocessor(
     postprocessor name, and then runs it with the parameters and returns processed
     profile.
 
-    :param Unit postprocessor: dictionary representing the postprocessor
-    :param Job job: additional information about the running job
-    :param dict prof: dictionary with profile
-    :returns (int, dict): status of the collection, postprocessed profile
+    :param postprocessor: dictionary representing the postprocessor
+    :param job: additional information about the running job
+    :param prof: dictionary with profile
+    :return: status of the collection, postprocessed profile
     """
     try:
         postprocessor_module = common_kit.get_module(f"perun.postprocess.{postprocessor.name}.run")
@@ -417,10 +417,10 @@ def store_generated_profile(
 ) -> None:
     """Stores the generated profile in the pending jobs' directory.
 
-    :param Profile prof: profile that we are storing in the repository
-    :param Job job: job with additional information about generated profiles
-    :param optional profile_name: user-defined name of the profile
-    :param optional profile_name: full path to the profile
+    :param prof: profile that we are storing in the repository
+    :param job: job with additional information about generated profiles
+    :param profile_name: user-defined name of the profile
+    :param profile_name: full path to the profile
     """
     full_profile = profile.finalize_profile_for_job(prof, job)
     if output_file is None:
@@ -458,11 +458,11 @@ def run_postprocessor_on_profile(
     then runs the given postprocessor that is appended to the list of postprocessors
     of the profile, and the postprocessed profile is stored in the pending jobs.
 
-    :param dict prof: dictionary with profile information
-    :param str postprocessor_name: name of the postprocessor that we are using
-    :param dict postprocessor_params: parameters for the postprocessor
-    :param bool skip_store: if set to true, then the profile will not be stored
-    :returns (PostprocessStatus, dict): status how the postprocessing went and the postprocessed
+    :param prof: dictionary with profile information
+    :param postprocessor_name: name of the postprocessor that we are using
+    :param postprocessor_params: parameters for the postprocessor
+    :param skip_store: if set to true, then the profile will not be stored
+    :return: status how the postprocessing went and the postprocessed
         profile
     """
     profile_job = profile.extract_job_from_profile(prof)
@@ -484,7 +484,7 @@ def run_prephase_commands(phase: str) -> None:
     The phase is specified in :doc:`config` by keys specified in section
     :cunit:`execute`.
 
-    :param str phase: name of the phase commands
+    :param phase: name of the phase commands
     """
     phase_key = ".".join(["execute", phase]) if not phase.startswith("execute") else phase
     cmds = pcs.local_config().safe_get(phase_key, [])
@@ -513,8 +513,8 @@ def generate_jobs_on_current_working_dir(
     This function expects no changes not commited in the repo, it excepts correct version
     checked out and just runs the matrix.
 
-    :param dict job_matrix: dictionary with jobs that will be run
-    :param int number_of_jobs: number of jobs that will be run
+    :param job_matrix: dictionary with jobs that will be run
+    :param number_of_jobs: number of jobs that will be run
     :return: status, generated profile, and associated job
     """
     workload_generators_specs: dict[str, GeneratorSpec] = workloads.load_generator_specifications()
@@ -574,9 +574,9 @@ def generate_jobs(
     number_of_jobs: int,
 ) -> Iterable[tuple[CollectStatus, Profile, Job]]:
     """
-    :param list minor_version_list: list of MinorVersion info
-    :param dict job_matrix: dictionary with jobs that will be run
-    :param int number_of_jobs: number of jobs that will be run
+    :param minor_version_list: list of MinorVersion info
+    :param job_matrix: dictionary with jobs that will be run
+    :param number_of_jobs: number of jobs that will be run
     """
     with vcs_kit.CleanState():
         for minor_version in minor_version_list:
@@ -591,9 +591,9 @@ def generate_jobs_with_history(
     number_of_jobs: int,
 ) -> Iterable[tuple[CollectStatus, Profile, Job]]:
     """
-    :param list minor_version_list: list of MinorVersion info
-    :param dict job_matrix: dictionary with jobs that will be run
-    :param int number_of_jobs: number of jobs that will be run
+    :param minor_version_list: list of MinorVersion info
+    :param job_matrix: dictionary with jobs that will be run
+    :param number_of_jobs: number of jobs that will be run
     """
     with log.History(minor_version_list[0].checksum) as history:
         with vcs_kit.CleanState():
@@ -621,12 +621,12 @@ def generate_profiles_for(
     This is mainly used for fuzzing, which requires to handle the profiles without any storage,
     since the generated profiles are not further used.
 
-    :param list cmd: list of commands that will be run
-    :param list workload: list of workloads
-    :param list collector: list of collectors
-    :param list postprocessor: list of postprocessors
-    :param list minor_version_list: list of MinorVersion info
-    :param dict kwargs: dictionary of additional params for postprocessor and collector
+    :param cmd: list of commands that will be run
+    :param workload: list of workloads
+    :param collector: list of collectors
+    :param postprocessor: list of postprocessors
+    :param minor_version_list: list of MinorVersion info
+    :param kwargs: dictionary of additional params for postprocessor and collector
     """
     job_matrix, number_of_jobs = construct_job_matrix(
         cmd, workload, collector, postprocessor, **kwargs
@@ -644,13 +644,13 @@ def run_single_job(
     **kwargs: Any,
 ) -> CollectStatus:
     """
-    :param list cmd: list of commands that will be run
-    :param list workload: list of workloads
-    :param list collector: list of collectors
-    :param list postprocessor: list of postprocessors
-    :param list minor_version_list: list of MinorVersion info
-    :param bool with_history: if set to true, then we will print the history object
-    :param dict kwargs: dictionary of additional params for postprocessor and collector
+    :param cmd: list of commands that will be run
+    :param workload: list of workloads
+    :param collector: list of collectors
+    :param postprocessor: list of postprocessors
+    :param minor_version_list: list of MinorVersion info
+    :param with_history: if set to true, then we will print the history object
+    :param kwargs: dictionary of additional params for postprocessor and collector
     :return: CollectStatus.OK if all jobs were successfully collected, CollectStatus.ERROR if any
         of collections or postprocessing failed
     """
@@ -671,8 +671,8 @@ def run_matrix_job(
     minor_version_list: list[MinorVersion], with_history: bool = False
 ) -> CollectStatus:
     """
-    :param list minor_version_list: list of MinorVersion info
-    :param bool with_history: if set to true, then we will print the history object
+    :param minor_version_list: list of MinorVersion info
+    :param with_history: if set to true, then we will print the history object
     :return: CollectStatus.OK if all jobs were successfully collected, CollectStatus.ERROR if any
         of collections or postprocessing failed
     """

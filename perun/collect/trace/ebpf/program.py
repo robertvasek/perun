@@ -11,9 +11,9 @@ from perun.collect.trace.optimizations.structs import Optimizations
 def assemble_ebpf_program(src_file, probes, config, **_):
     """Assembles the eBPF program.
 
-    :param str src_file: path to the program file, that should be generated
-    :param Probes probes: the probes object
-    :param Configuration config: the collection configuration
+    :param src_file: path to the program file, that should be generated
+    :param probes: the probes object
+    :param config: the collection configuration
     """
     WATCH_DOG.info(f"Attempting to assembly the eBPF program '{src_file}'")
 
@@ -48,9 +48,9 @@ def assemble_ebpf_program(src_file, probes, config, **_):
 def _add_structs_and_init(handle, probe_count, sampled_count, timed_sampling):
     """Add include statements, perf_event struct and the required BPF data structures.
 
-    :param TextIO handle: the program file handle
-    :param int probe_count: the number of traced function and USDT locations
-    :param int sampled_count: the number of sampled probes
+    :param handle: the program file handle
+    :param probe_count: the number of traced function and USDT locations
+    :param sampled_count: the number of sampled probes
     """
     # Create the sampling BPF array if there are any sampled probes
     if sampled_count > 0:
@@ -117,8 +117,8 @@ int set_enabled(struct bpf_perf_event_data *ctx)
 def _add_entry_probe(handle, probe, timed_sampling=False):
     """Add entry code for the given probe.
 
-    :param TextIO handle: the program file handle
-    :param dict probe: the traced probe
+    :param handle: the program file handle
+    :param probe: the traced probe
     """
     name = (probe["name"],)
     probe_id = (probe["id"],)
@@ -145,8 +145,8 @@ int entry_{name}(struct pt_regs *ctx)
 def _add_exit_probe(handle, probe, timed_sampling=False):
     """Add exit code for the given probe.
 
-    :param TextIO handle: the program file handle
-    :param dict probe: the traced probe
+    :param handle: the program file handle
+    :param probe: the traced probe
     """
     name = (probe["name"],)
     probe_id = (probe["id"],)
@@ -184,8 +184,8 @@ int exit_{name}(struct pt_regs *ctx)
 def _add_single_probe(handle, probe):
     """Add code for probe that has no paired probe, e.g. single USDT locations with no pairing.
 
-    :param TextIO handle: the program file handle
-    :param dict probe: the traced probe
+    :param handle: the program file handle
+    :param probe: the traced probe
     """
     probe_template = f"""
     int usdt_{probe['name']}(struct pt_regs *ctx)
@@ -211,7 +211,7 @@ def _add_cache_probes(handle):
     """Add code for cache probes that simply counts the HW cache events.
     Inspired by: https://github.com/iovisor/bcc/blob/master/tools/llcstat.py
 
-    :param TextIO handle: the program file handle
+    :param handle: the program file handle
     """
     template = """
 int on_cache_ref(struct bpf_perf_event_data *ctx) {
@@ -230,8 +230,8 @@ int on_cache_miss(struct bpf_perf_event_data *ctx) {
 def _create_sampling_before(sample_value):
     """Generate code that goes before the body for sampled probes.
 
-    :param int sample_value: the sample value of the probe
-    :return str: the generated code chunk
+    :param sample_value: the sample value of the probe
+    :return: the generated code chunk
     """
     if sample_value == 1:
         return "   // sampling code omitted"
@@ -247,8 +247,8 @@ def _create_sampling_before(sample_value):
 def _create_sampling_after(sample_value):
     """Generate code that goes after the body for sampled probes.
 
-    :param int sample_value: the sample value of the probe
-    :return str: the generated code chunk
+    :param sample_value: the sample value of the probe
+    :return: the generated code chunk
     """
     if sample_value == 1:
         return "   // sampling code omitted"
@@ -264,7 +264,7 @@ def _create_sampling_after(sample_value):
 def _create_entry_body():
     """Generate the generic body for all entry probes.
 
-    :return str: the generated code chunk
+    :return: the generated code chunk
     """
     return """
     u64 entry_timestamp = bpf_ktime_get_ns();        

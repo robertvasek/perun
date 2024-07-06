@@ -34,7 +34,7 @@ def _build_registers_set():
     Since the set of registers is rather large, we construct the set (instead of simple
     enumeration) using some base names and prefixes/suffixes/counters.
 
-    :return set: the set of x86-64 instructions
+    :return: the set of x86-64 instructions
     """
     # The set of registers used in the x86-64 architecture
     registers = set()
@@ -83,11 +83,11 @@ def _build_registers_set():
 def diff_tracing(call_graph, call_graph_old, keep_leaf, inspect_all, cfg_mode):
     """The Diff Tracing method.
 
-    :param CallGraphResource call_graph: the CGR of the current project version
-    :param CallGraphResource call_graph_old: the CGR of the previous project version
-    :param bool keep_leaf: if set to True, changed leaf functions will be kept
-    :param bool inspect_all: turns on a deep analysis of changes that includes the whole CG
-    :param DiffCfgMode cfg_mode: equivalence criterion for comparing CFGs
+    :param call_graph: the CGR of the current project version
+    :param call_graph_old: the CGR of the previous project version
+    :param keep_leaf: if set to True, changed leaf functions will be kept
+    :param inspect_all: turns on a deep analysis of changes that includes the whole CG
+    :param cfg_mode: equivalence criterion for comparing CFGs
     """
     if call_graph is None or call_graph_old is None:
         return
@@ -114,11 +114,11 @@ def diff_tracing(call_graph, call_graph_old, keep_leaf, inspect_all, cfg_mode):
 def _compare_cg(call_graph, call_graph_old, inspect_all):
     """The call graph comparison routine
 
-    :param CallGraphResource call_graph: the CGR of the current project version
-    :param CallGraphResource call_graph_old: the CGR of the previous project version
-    :param bool inspect_all: turns on a deep analysis of changes that includes the whole CG
+    :param call_graph: the CGR of the current project version
+    :param call_graph_old: the CGR of the previous project version
+    :param inspect_all: turns on a deep analysis of changes that includes the whole CG
 
-    :return tuple: sets of new, modified and renamed function according to the CG analysis
+    :return: sets of new, modified and renamed function according to the CG analysis
     """
     cg_funcs, cg_old_funcs = set(call_graph.cg_map.keys()), set(call_graph_old.cg_map.keys())
     new_funcs = list(cg_funcs - cg_old_funcs)
@@ -144,13 +144,13 @@ def _compare_cg(call_graph, call_graph_old, inspect_all):
 def _compare_cfgs(funcs, renames, cfg, cfg_old, mode):
     """The CFG comparison routine
 
-    :param set funcs: the set of functions that we compare CFG for
-    :param dict renames: the renames mapping
-    :param dict cfg: the CFGs from the current project version
-    :param dict cfg_old: the CFGs from the previous project version
-    :param DiffCfgMode mode: equivalence criterion for comparing CFGs
+    :param funcs: the set of functions that we compare CFG for
+    :param renames: the renames mapping
+    :param cfg: the CFGs from the current project version
+    :param cfg_old: the CFGs from the previous project version
+    :param mode: equivalence criterion for comparing CFGs
 
-    :return set: a set of changed functions according to the CFG analysis
+    :return: a set of changed functions according to the CFG analysis
     """
     changes = []
     for func in funcs:
@@ -181,10 +181,10 @@ def _compare_cfgs(funcs, renames, cfg, cfg_old, mode):
 def _compare_cfg_edges(edges, edges_old):
     """Compare the edges of new and old CFG
 
-    :param list edges: the list of edges from the current CFG
-    :param list edges_old: the list of edges from the previous CFG
+    :param edges: the list of edges from the current CFG
+    :param edges_old: the list of edges from the previous CFG
 
-    :return bool: True if the edges match
+    :return: True if the edges match
     """
     for (edge_from, edge_to), (edge_old_from, edge_old_to) in zip(edges, edges_old):
         if edge_from != edge_old_from or edge_to != edge_old_to:
@@ -195,12 +195,12 @@ def _compare_cfg_edges(edges, edges_old):
 def _compare_cfg_blocks(blocks, blocks_old, renames, eq_criterion):
     """Compare the blocks of new and old CFG based on the selected equivalence criterion.
 
-    :param list blocks: the list of blocks from the current CFG
-    :param list blocks_old: the list of blocks from the previous CFG
-    :param dict renames: the function rename mapping
-    :param function eq_criterion: equivalence criterion function for comparing CFGs
+    :param blocks: the list of blocks from the current CFG
+    :param blocks_old: the list of blocks from the previous CFG
+    :param renames: the function rename mapping
+    :param eq_criterion: equivalence criterion function for comparing CFGs
 
-    :return bool: True if the blocks match, False otherwise
+    :return: True if the blocks match, False otherwise
     """
     for block, block_old in zip(blocks, blocks_old):
         # The block is a function call, compare the names of the functions
@@ -219,10 +219,10 @@ def _compare_cfg_blocks(blocks, blocks_old, renames, eq_criterion):
 def _cfg_soft(block, block_old):
     """Soft mode only compares the number of instructions.
 
-    :param list block: list of (instruction, operands) tuples representing the basic block
-    :param list block_old: list of (instruction, operands) tuples representing the old basic block
+    :param block: list of (instruction, operands) tuples representing the basic block
+    :param block_old: list of (instruction, operands) tuples representing the old basic block
 
-    :return bool: True if the block match, False otherwise
+    :return: True if the block match, False otherwise
     """
     if len(block) != len(block_old):
         return False
@@ -232,10 +232,10 @@ def _cfg_soft(block, block_old):
 def _cfg_semistrict(block, block_old):
     """Semi-strict mode checks only that the instructions are the same.
 
-    :param list block: list of (instruction, operands) tuples representing the basic block
-    :param list block_old: list of (instruction, operands) tuples representing the old basic block
+    :param block: list of (instruction, operands) tuples representing the basic block
+    :param block_old: list of (instruction, operands) tuples representing the old basic block
 
-    :return bool: True if the block match, False otherwise
+    :return: True if the block match, False otherwise
     """
     # Make sure that the number of instruction matches
     if not _cfg_soft(block, block_old):
@@ -253,10 +253,10 @@ def _cfg_strict(block, block_old):
     but refer to the same CFG block - this jump / call destinations is however
     already covered by the CFG edges.
 
-    :param list block: list of (instruction, operands) tuples representing the basic block
-    :param list block_old: list of (instruction, operands) tuples representing the old basic block
+    :param block: list of (instruction, operands) tuples representing the basic block
+    :param block_old: list of (instruction, operands) tuples representing the old basic block
 
-    :return bool: True if the block match, False otherwise
+    :return: True if the block match, False otherwise
     """
     # Make sure that the number of instruction matches
     if not _cfg_soft(block, block_old):
@@ -273,19 +273,19 @@ def _cfg_coloring(block, block_old):
     by searching for possible bijection. This ensures that simple reordering of instructions or
     change of used registers is not regarded as a semantic change.
 
-    :param list block: list of (instruction, operands) tuples representing the basic block
-    :param list block_old: list of (instruction, operands) tuples representing the old basic block
+    :param block: list of (instruction, operands) tuples representing the basic block
+    :param block_old: list of (instruction, operands) tuples representing the old basic block
 
-    :return bool: True if the block match, False otherwise
+    :return: True if the block match, False otherwise
     """
 
     def _color_registers(operand_parts):
         """Identify registers within a parsed operand and color them.
         Colored registers are represented simply by the '<r>' expression.
 
-        :param list operand_parts: list of tokens from parsed operand
+        :param operand_parts: list of tokens from parsed operand
 
-        :return generator: generates updated operand tokens where registers are substituted
+        :return: generates updated operand tokens where registers are substituted
         """
         for expr in operand_parts:
             if expr in _cfg_coloring.registers:
@@ -331,10 +331,10 @@ def _cfg_coloring(block, block_old):
 def _filter_leaves(funcs, call_graph):
     """Filter leaf functions
 
-    :param set funcs: the set of functions to filter
-    :param CallGraphResource call_graph: the corresponding CGR
+    :param funcs: the set of functions to filter
+    :param call_graph: the corresponding CGR
 
-    :return list: list of non-leaf functions
+    :return: list of non-leaf functions
     """
     return [func for func in funcs if not call_graph[func]["leaf"]]
 
@@ -342,12 +342,12 @@ def _filter_leaves(funcs, call_graph):
 def _inspect_all(call_graph, call_graph_old, new_funcs, renamed):
     """Performs deep analysis of the CG structure in order to find differences
 
-    :param CallGraphResource call_graph: the CGR of the current project version
-    :param CallGraphResource call_graph_old: the CGR of the previous project version
-    :param list new_funcs: a collection of new functions
-    :param dict renamed: the function rename mapping
+    :param call_graph: the CGR of the current project version
+    :param call_graph_old: the CGR of the previous project version
+    :param new_funcs: a collection of new functions
+    :param renamed: the function rename mapping
 
-    :return list: a collection of changed function nodes
+    :return: a collection of changed function nodes
     """
     changed = []
     for func in call_graph.cg_map.values():
@@ -367,12 +367,12 @@ def _inspect_all(call_graph, call_graph_old, new_funcs, renamed):
 def _find_renames(new_funcs, del_funcs, call_graph, call_graph_old):
     """Creates the renames mapping
 
-    :param list new_funcs: a collection of new functions
-    :param list del_funcs: a collection of deleted functions
-    :param CallGraphResource call_graph: the CGR of the current project version
-    :param CallGraphResource call_graph_old: the CGR of the previous project version
+    :param new_funcs: a collection of new functions
+    :param del_funcs: a collection of deleted functions
+    :param call_graph: the CGR of the current project version
+    :param call_graph_old: the CGR of the previous project version
 
-    :return dict: the renames mapping
+    :return: the renames mapping
     """
     renamed = {}
     # Get the new functions sorted by level in descending order
@@ -398,11 +398,11 @@ def _find_renames(new_funcs, del_funcs, call_graph, call_graph_old):
 def _get_callers_and_callees(func_name, call_graph, rename_map=None):
     """Obtain callers and callees for a specified function
 
-    :param str func_name: the function name
-    :param CallGraphResource call_graph: the CGR of the current project version
-    :param dict rename_map: the renames mapping
+    :param func_name: the function name
+    :param call_graph: the CGR of the current project version
+    :param rename_map: the renames mapping
 
-    :return tuple: (callers, callees)
+    :return: (callers, callees)
     """
     func = call_graph[func_name]
     callers, callees = func["callers"], func["callees"]
@@ -412,10 +412,10 @@ def _get_callers_and_callees(func_name, call_graph, rename_map=None):
 def _rename_funcs(collection, rename_map=None):
     """Rename functions in the collection according to the rename mapping.
 
-    :param iterable collection: the collection of function names
-    :param dict rename_map: the rename mapping
+    :param collection: the collection of function names
+    :param rename_map: the rename mapping
 
-    :return iterable: the initial collection with some renamed functions
+    :return: the initial collection with some renamed functions
     """
     if rename_map is None:
         return collection
@@ -429,11 +429,11 @@ def _rename_funcs(collection, rename_map=None):
 def _parse_git_diff(funcs, version_1, version_2):
     """Parse the output of Git diff applied to two different project versions.
 
-    :param list funcs: a collection of all functions
-    :param str version_1: identification of the first project version
-    :param str version_2: identification of the second project version
+    :param funcs: a collection of all functions
+    :param version_1: identification of the first project version
+    :param version_2: identification of the second project version
 
-    :return set: a set of modified functions according to the git diff
+    :return: a set of modified functions according to the git diff
     """
     diff_output = pcs.vcs().minor_versions_diff(version_1, version_2)
     modified_funcs = []

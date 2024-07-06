@@ -36,12 +36,12 @@ GCOV_VERSION_W_JSON_FORMAT = 9.0
 @dataclasses.dataclass
 class Mutation:
     """
-    :ivar str path: path to the workload
-    :ivar list history: list of predecessors
-    :ivar Mutation predecessor: predecessor of the mutation (form which we mutated)
-    :ivar int cov: achieved coverage
-    :ivar float deg_ratio: achieved degradation ration
-    :ivar float fitness: fitness of the mutation
+    :ivar path: path to the workload
+    :ivar history: list of predecessors
+    :ivar predecessor: predecessor of the mutation (form which we mutated)
+    :ivar cov: achieved coverage
+    :ivar deg_ratio: achieved degradation ration
+    :ivar fitness: fitness of the mutation
     """
 
     __slots__ = ["path", "history", "predecessor", "cov", "deg_ratio", "fitness"]
@@ -56,12 +56,12 @@ class Mutation:
         fitness: float = 0.0,
     ):
         """
-        :param str path: path to the workload
-        :param list history: list of rules applied to get the mutation
-        :param Optional["Mutation"] predecessor: predecessor of the mutation (from which we mutated)
-        :param int cov: achieved coverage
-        :param int deg_ratio: achieved degradation ration
-        :param float fitness: fitness of the mutation
+        :param path: path to the workload
+        :param history: list of rules applied to get the mutation
+        :param predecessor: predecessor of the mutation (from which we mutated)
+        :param cov: achieved coverage
+        :param deg_ratio: achieved degradation ration
+        :param fitness: fitness of the mutation
         """
         self.path: str = path
         self.history: list[int] = history
@@ -84,18 +84,18 @@ def get_gcov_version() -> int:
 class CoverageConfiguration:
     """Configuration of the coverage testing
 
-    :ivar str gcno_path: path to the directory, where .gcno files are stored
-    :ivar str source_path: path to the directory, where source codes are stored
-    :ivar int gcov_version: version of the gcov utility
-    :ivar list gcov_files: list of gcov files
-    :ivar list source_files: list of source files
+    :ivar gcno_path: path to the directory, where .gcno files are stored
+    :ivar source_path: path to the directory, where source codes are stored
+    :ivar gcov_version: version of the gcov utility
+    :ivar gcov_files: list of gcov files
+    :ivar source_files: list of source files
     """
 
     __slots__ = ["gcno_path", "source_path", "gcov_version", "gcov_files", "source_files"]
 
     def __init__(self, **kwargs: Any) -> None:
         """
-        :param dict kwargs: set of keyword configurations
+        :param kwargs: set of keyword configurations
         """
         self.gcno_path: str = kwargs.get("gcno_path", ".")
         self.source_path: str = kwargs.get("source_path", ".")
@@ -125,22 +125,22 @@ class FuzzingConfiguration:
     This encapsulates all possibly used configurations to be passed around functions, in
     order to reduce the number of local variables and parameters.
 
-    :ivar int timeout: specifies how long the fuzzing should be running
-    :ivar int hang_timeout: specifies how long the tested program should run with the mutations
-    :ivar str output_dir: directory, where resulting logs, workloads etc. are generated
-    :ivar str workloads_filter: regular expression used to filter workloads
-    :ivar list regex_rules: list of user defined rules (described by regular expressions)
-    :ivar int max: maximal size of the generated workloads in B
-    :ivar int max_size_ratio: maximal percentual increase in the size of the workloads
-    :ivar int max_size_gain: the maximal increase in size of the mutated workload, in comparison
+    :ivar timeout: specifies how long the fuzzing should be running
+    :ivar hang_timeout: specifies how long the tested program should run with the mutations
+    :ivar output_dir: directory, where resulting logs, workloads etc. are generated
+    :ivar workloads_filter: regular expression used to filter workloads
+    :ivar regex_rules: list of user defined rules (described by regular expressions)
+    :ivar max: maximal size of the generated workloads in B
+    :ivar max_size_ratio: maximal percentual increase in the size of the workloads
+    :ivar max_size_gain: the maximal increase in size of the mutated workload, in comparison
         with input seeds.
-    :ivar int exec_limit: limit to number of execution of number of mutation per fuzzing loop
-    :ivar int precollect_limit: limit for number of generated mutations per fuzzing loop
-    :ivar int mutations_per_rule: strategy used for determining how many workloads will be generated
+    :ivar exec_limit: limit to number of execution of number of mutation per fuzzing loop
+    :ivar precollect_limit: limit for number of generated mutations per fuzzing loop
+    :ivar mutations_per_rule: strategy used for determining how many workloads will be generated
         per mutation rule.
-    :ivar bool no_plotting: specifies if the result of the fuzzing should be plotted by graphs
-    :ivar int cov_rate: threshold for the increase of the coverage
-    :ivar bool coverage_testing: specifies if the mutations should be tested for coverage also,
+    :ivar no_plotting: specifies if the result of the fuzzing should be plotted by graphs
+    :ivar cov_rate: threshold for the increase of the coverage
+    :ivar coverage_testing: specifies if the mutations should be tested for coverage also,
         or only using perun
     """
 
@@ -164,7 +164,7 @@ class FuzzingConfiguration:
 
     def __init__(self, **kwargs: Any) -> None:
         """
-        :param dict kwargs: set of keyword configurations
+        :param kwargs: set of keyword configurations
         """
         self.timeout: float = kwargs.get("timeout", 0.0)
         self.hang_timeout: float = kwargs.get("hang_timeout", 0.0)
@@ -188,7 +188,7 @@ class FuzzingConfiguration:
     def refine_coverage_rate(self, found_workloads: list[Mutation]) -> None:
         """Refines the coverage rate according to so far founded interesting workloads
 
-        :param list found_workloads: list of interesting workloads
+        :param found_workloads: list of interesting workloads
         """
         if found_workloads:
             self.cov_rate += FuzzingConfiguration.RATIO_INCR_CONST
@@ -199,13 +199,13 @@ class FuzzingConfiguration:
 class FuzzingProgress:
     """Collection of statistics and states used during fuzzing
 
-    :ivar list faults: list of workloads leading to faults
-    :ivar list hangs: list of workloads leading to hangs
-    :ivar list interesting_workloads: list of potentially interesting workloads
-    :ivar list parents: list of fitness values for parents
-    :ivar list final_results: list of final results
-    :ivar int timeout: timeout of the fuzzing
-    :ivar dict stats: additional stats of fuzz testing
+    :ivar faults: list of workloads leading to faults
+    :ivar hangs: list of workloads leading to hangs
+    :ivar interesting_workloads: list of potentially interesting workloads
+    :ivar parents: list of fitness values for parents
+    :ivar final_results: list of final results
+    :ivar timeout: timeout of the fuzzing
+    :ivar stats: additional stats of fuzz testing
     """
 
     __slots__ = [

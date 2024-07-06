@@ -12,14 +12,14 @@ from perun.utils.common.common_kit import partition_list
 class Probes:
     """Stores the function and USDT probe specifications, extraction strategy, global sampling etc.
 
-    :ivar dict func: the function probes specification with function name as the key
-    :ivar dict usdt: the USDT probes specification
-    :ivar list sampled_func: a list of function names that are sampled
-    :ivar list sampled_usdt: a list of USDT names that are sampled
-    :ivar dict usdt_reversed: a reverse USDT pairs mapping
-    :ivar Strategy strategy: the probes extraction strategy
-    :ivar bool with_usdt: specifies if USDT probes should be collected
-    :ivar int global_sampling: a sampling value applied to all the probes, if specific sampling is
+    :ivar func: the function probes specification with function name as the key
+    :ivar usdt: the USDT probes specification
+    :ivar sampled_func: a list of function names that are sampled
+    :ivar sampled_usdt: a list of USDT names that are sampled
+    :ivar usdt_reversed: a reverse USDT pairs mapping
+    :ivar strategy: the probes extraction strategy
+    :ivar with_usdt: specifies if USDT probes should be collected
+    :ivar global_sampling: a sampling value applied to all the probes, if specific sampling is
                                not provided by the user
     """
 
@@ -27,8 +27,8 @@ class Probes:
     def __init__(self, main_binary, libraries, **cli_config):
         """Constructs the Probes object using the profiled binary and CLI parameters.
 
-        :param str main_binary: the main profiled binary
-        :param list libraries: a list of profiled libraries
+        :param main_binary: the main profiled binary
+        :param libraries: a list of profiled libraries
         :param cli_config: the CLI configuration
         """
         # The dicts of function and USDT probes
@@ -68,10 +68,10 @@ class Probes:
     def _add_probes(self, probe_set, storage, probe_type, binary):
         """Parse probes and store them in the appropriate storage.
 
-        :param list probe_set: list of probe names
-        :param dict storage: target dictionary to store the probes into
-        :param ProbeType probe_type: type of the parsed probe
-        :param str binary: name of the binary file
+        :param probe_set: list of probe names
+        :param storage: target dictionary to store the probes into
+        :param probe_type: type of the parsed probe
+        :param binary: name of the binary file
         """
         for probe in probe_set:
             parsed = self._parse_probe(probe, probe_type, binary)
@@ -81,10 +81,10 @@ class Probes:
         """Parses the given probe specification in format <lib>#<probe>#<sampling> into the
         separate components and builds the probe dictionary.
 
-        :param str probe_specification: the probe specification as a string
-        :param ProbeType probe_type: the type of the probe
+        :param probe_specification: the probe specification as a string
+        :param probe_type: the type of the probe
 
-        :return dict: the created probe dictionary
+        :return: the created probe dictionary
         """
         parts = probe_specification.split("#")
         name, lib, sample = None, binary, self.global_sampling
@@ -119,15 +119,15 @@ class Probes:
     ):
         """Build the probe dictionary according to the given parameters
 
-        :param str name: the name of probed function or USDT
-        :param ProbeType probe_type: the type of the probe
-        :param str pair: the name of the paired probe, used only by the USDT probes
-        :param str lib: a library (if any) which contains the specified probe
-        :param int sample: the probe sampling value
-        :param int sample_index: a sampling index, used during the script / program assembling
-        :param int probe_id: a unique probe identification
+        :param name: the name of probed function or USDT
+        :param probe_type: the type of the probe
+        :param pair: the name of the paired probe, used only by the USDT probes
+        :param lib: a library (if any) which contains the specified probe
+        :param sample: the probe sampling value
+        :param sample_index: a sampling index, used during the script / program assembling
+        :param probe_id: a unique probe identification
 
-        :return dict: the resulting probe dictionary
+        :return: the resulting probe dictionary
         """
         return {
             "type": probe_type,
@@ -161,8 +161,8 @@ class Probes:
     def _register_sampled_probe(self, probe_name, probe_type):
         """Stores a record about sampled probe into the sampled list based on the probe type
 
-        :param str probe_name: the name of the probe
-        :param ProbeType probe_type: the type of the probe
+        :param probe_name: the name of the probe
+        :param probe_type: the type of the probe
         """
         if probe_type == ProbeType.FUNC:
             self.sampled_func.append(probe_name)
@@ -172,7 +172,7 @@ class Probes:
     def get_probes(self):
         """Return all function and USDT probes, sorted according to the name of the probe.
 
-        :return iterable: a generator object which provides the probe dictionaries
+        :return: a generator object which provides the probe dictionaries
         """
         for probe_set in [self.func.values(), self.usdt.values()]:
             for probe in sorted(list(probe_set), key=lambda value: value["name"]):
@@ -182,7 +182,7 @@ class Probes:
         """Return all registered function probes, sorted by name and partitioned into two lists
         based on the sampling: [sampled] and [unsampled] probes.
 
-        :return tuple (list, list): lists of sampled and unsampled function probes
+        :return: lists of sampled and unsampled function probes
         """
         return partition_list(
             sorted(list(self.func.values()), key=lambda value: value["name"]),
@@ -194,7 +194,7 @@ class Probes:
         based on the sampling and probe type: [sampled (paired)], [unsampled (paired)] and
         [single (non-paired)] probes.
 
-        :return tuple (list, list, list): lists of sampled, unsampled and single USDT probes.
+        :return: lists of sampled, unsampled and single USDT probes.
         """
         paired_sampled, paired_nonsampled, single = [], [], []
         # Sort the collection of USDT probes
@@ -211,7 +211,7 @@ class Probes:
         """Provides the dictionary of all the sampled probes from all the probe sources (i.e.
         func and USDT).
 
-        :return iterable: a generator object which provides the dictionaries
+        :return: a generator object which provides the dictionaries
         """
         # Generate the sequence of sampled probes from all the sources
         for probes, sampled in [
@@ -224,14 +224,14 @@ class Probes:
     def sampled_probes_len(self):
         """Counts the number of sampled function and USDT probes.
 
-        :return int: the number of sampled probes
+        :return: the number of sampled probes
         """
         return len(self.sampled_func) + len(self.sampled_usdt)
 
     def total_probes_len(self):
         """Counts the number of total function and USDT probes.
 
-        :return int: the total number of probes
+        :return: the total number of probes
         """
         return len(self.func.keys()) + len(self.usdt.keys())
 
@@ -239,8 +239,8 @@ class Probes:
 def _retrieve_probes(probe_list):
     """Sort a list of probes by name and transform them to a generator
 
-    :param list probe_list: a list of probe dictionaries to generate
-    :return generator: generator object
+    :param probe_list: a list of probe dictionaries to generate
+    :return: generator object
     """
     for probe in sorted(probe_list, key=lambda value: value["name"]):
         yield probe

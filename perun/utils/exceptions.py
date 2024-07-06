@@ -19,9 +19,9 @@ class InvalidParameterException(Exception):
 
     def __init__(self, parameter: str, parameter_value: Any, choices_msg: str = "") -> None:
         """
-        :param str parameter: name of the parameter that is invalid
-        :param object parameter_value: value of the parameter
-        :param str choices_msg: string with choices for the valid parameters
+        :param parameter: name of the parameter that is invalid
+        :param parameter_value: value of the parameter
+        :param choices_msg: string with choices for the valid parameters
         """
         super().__init__("")
         self.parameter = parameter
@@ -75,8 +75,8 @@ class ExternalEditorErrorException(Exception):
 
     def __init__(self, editor: str, reason: str) -> None:
         """
-        :param str editor: name of the invoked editor
-        :param str reason: reason why the editor failed
+        :param editor: name of the invoked editor
+        :param reason: reason why the editor failed
         """
         super().__init__("")
         self.editor = editor
@@ -93,7 +93,7 @@ class MalformedIndexFileException(Exception):
 
     def __init__(self, reason: str) -> None:
         """
-        :param str reason: the reason that the index is considered to be malformed
+        :param reason: the reason that the index is considered to be malformed
         """
         super().__init__("")
         self.reason = reason
@@ -109,7 +109,7 @@ class EntryNotFoundException(Exception):
 
     def __init__(self, entry: str, cause: str = "") -> None:
         """
-        :param str entry: entry we are looking up in the index
+        :param entry: entry we are looking up in the index
         """
         super().__init__("")
         self.entry = entry
@@ -127,7 +127,7 @@ class IndexNotFoundException(Exception):
 
     def __init__(self, minor_version: str) -> None:
         """
-        :param str minor_version: the minor version that was supposed to have an index file
+        :param minor_version: the minor version that was supposed to have an index file
         """
         super().__init__("")
         self.minor_version = minor_version
@@ -188,8 +188,8 @@ class VersionControlSystemException(Exception):
 
     def __init__(self, msg: str, *args: Any) -> None:
         """
-        :param str msg: format string of the error message
-        :param list args: list of arguments for format string
+        :param msg: format string of the error message
+        :param args: list of arguments for format string
         """
         super().__init__(msg)
         self.msg = msg
@@ -206,8 +206,8 @@ class IncorrectProfileFormatException(Exception):
 
     def __init__(self, filename: str, msg: str) -> None:
         """
-        :param str filename: filename of the profile in the wrong format
-        :param str msg: additional message what is wrong withe profile
+        :param filename: filename of the profile in the wrong format
+        :param msg: additional message what is wrong withe profile
         """
         super().__init__("")
         self.filename = filename
@@ -255,9 +255,9 @@ class DictionaryKeysValidationFailed(Exception):
         excess_keys: list[str],
     ) -> None:
         """
-        :param dict dictionary: the validated dictionary
-        :param list missing_keys: list of missing keys in the dictionary
-        :param list excess_keys: list of excess forbidden keys in the dictionary
+        :param dictionary: the validated dictionary
+        :param missing_keys: list of missing keys in the dictionary
+        :param excess_keys: list of excess forbidden keys in the dictionary
         """
         super().__init__("")
         self.dictionary = dictionary
@@ -366,7 +366,7 @@ class InvalidBinaryException(Exception):
 
     def __init__(self, binary: str) -> None:
         """
-        :param str binary: the supplied binary parameter
+        :param binary: the supplied binary parameter
         """
         super().__init__("")
         self.binary = binary
@@ -386,8 +386,8 @@ class SystemTapScriptCompilationException(Exception):
 
     def __init__(self, logfile: str, code: int) -> None:
         """
-        :param str logfile: log file that contains more details regarding the error
-        :param int code: the exit code of the compilation process
+        :param logfile: log file that contains more details regarding the error
+        :param code: the exit code of the compilation process
         """
         super().__init__("")
         self.logfile = logfile
@@ -407,7 +407,7 @@ class SystemTapStartupException(Exception):
 
     def __init__(self, logfile: str) -> None:
         """
-        :param str logfile: log file that contains more details regarding the error
+        :param logfile: log file that contains more details regarding the error
         """
         super().__init__("")
         self.logfile = logfile
@@ -453,7 +453,7 @@ class UnexpectedPrototypeSyntaxError(Exception):
 
     def __init__(self, prototype_name: str, syntax_error: str = "unknown cause") -> None:
         """
-        :param str prototype_name: name of the prototype where the issue happened
+        :param prototype_name: name of the prototype where the issue happened
         """
         super().__init__()
         self.prototype_name = prototype_name
@@ -471,8 +471,8 @@ class SignalReceivedException(BaseException):
 
     def __init__(self, signum: int, frame: traceback.StackSummary) -> None:
         """
-        :param int signum: a representation of the encountered signal
-        :param object frame: a frame / stack trace object
+        :param signum: a representation of the encountered signal
+        :param frame: a frame / stack trace object
         """
         super().__init__("")
         self.signum = signum
@@ -486,19 +486,19 @@ class SuppressedExceptions:
     """Context manager class for code blocks that need to suppress / ignore some exceptions
     and simply continue in the execution if those exceptions are encountered.
 
-    :ivar list exc: the list of exception classes that should be ignored
+    :ivar exc: the list of exception classes that should be ignored
     """
 
     def __init__(self, *exception_list: type[Exception]) -> None:
         """
         :param exception_list: the exception classes to ignore
         """
-        self.exc = exception_list
+        self.exc: tuple[type[Exception], ...] = exception_list
 
     def __enter__(self) -> "SuppressedExceptions":
         """Context manager entry sentinel, no set up needed
 
-        :return object: the context manager class instance, shouldn't be needed
+        :return: the context manager class instance, shouldn't be needed
         """
         return self
 
@@ -506,10 +506,10 @@ class SuppressedExceptions:
         """Context manager exit sentinel, check if the code raised an exception and if the
         exception belongs to the list of suppressed exceptions.
 
-        :param type exc_type: the type of the exception
-        :param exception exc_val: the value of the exception
-        :param traceback exc_tb: the traceback of the exception
-        :return bool: True if the encountered exception should be ignored, False otherwise or if
+        :param exc_type: the type of the exception
+        :param exc_val: the value of the exception
+        :param exc_tb: the traceback of the exception
+        :return: True if the encountered exception should be ignored, False otherwise or if
                       no exception was raised
         """
-        return isinstance(exc_val, tuple(self.exc))
+        return isinstance(exc_val, self.exc)

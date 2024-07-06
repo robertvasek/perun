@@ -205,7 +205,7 @@ def cli(
 def configure_local_perun(perun_path: str) -> None:
     """Configures the local perun repository with the interactive help of the user
 
-    :param str perun_path: destination path of the perun repository
+    :param perun_path: destination path of the perun repository
     :raises: ExternalEditorErrorException: when underlying editor makes any mistake
     """
     editor = perun_config.lookup_key_recursively("general.editor")

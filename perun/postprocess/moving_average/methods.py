@@ -38,7 +38,7 @@ def get_supported_decay_params() -> list[str]:
     the relationship to determine the smoothing parameter at Exponential
     Moving Average.
 
-    :returns list of str: the names of all supported parameters
+    :return: the names of all supported parameters
     """
     return list(_DECAY_PARAMS_INFO.keys())
 
@@ -57,9 +57,9 @@ def compute_window_width_change(window_width: int, r_square: float) -> int:
         - value of the increase constant of the window width: WINDOW_WIDTH_INCREASE
     The resulting change of the window width is the product of multiplication of these values.
 
-    :param int window_width: current window width from the last run of computation
-    :param float r_square: coefficient of determination from the current moving average model
-    :return int: new value of window width for next run of iterative computation
+    :param window_width: current window width from the last run of computation
+    :param r_square: coefficient of determination from the current moving average model
+    :return: new value of window width for next run of iterative computation
     """
     window_change = _WINDOW_WIDTH_INCREASE * (window_width - 1) * (_MIN_R_SQUARE - r_square)
     return max(1, window_width - max(1, int(min(0.9 * window_width - 1, window_change))))
@@ -72,8 +72,8 @@ def compute_moving_average(
     """
     The moving average wrapper to execute the analysis on the individual chunks of resources.
 
-    :param iter data_gen: the generator object with collected data (data provider generators)
-    :param dict configuration: the perun and option context
+    :param data_gen: the generator object with collected data (data provider generators)
+    :param configuration: the perun and option context
     :return: list of dict: the computation results
     """
     # checking the presence of specific keys in individual methods
@@ -107,9 +107,9 @@ def execute_computation(y_pts: list[float], config: dict[str, Any]) -> tuple[Any
 
     For more details about these methods, you can see the Perun or Pandas documentation.
 
-    :param list y_pts: the tuple of y-coordinates for computation
-    :param dict config: the dict contains the needed parameters to compute the individual methods
-    :return tuple: pandas.Series with the computed result, coefficient of determination float value
+    :param y_pts: the tuple of y-coordinates for computation
+    :param config: the dict contains the needed parameters to compute the individual methods
+    :return: pandas.Series with the computed result, coefficient of determination float value
     """
     # computation of Simple Moving Average and Simple Moving Median
     if config["moving_method"] in ("sma", "smm"):
@@ -156,10 +156,10 @@ def moving_average(
     This dictionary contains the whole set of helpful keys, and it is the result of
     the whole moving average analysis.
 
-    :param list x_pts: the list of x points coordinates
-    :param list y_pts: the list of y points coordinates
-    :param dict configuration: the perun and option context with needed parameters
-    :return dict: the output dictionary with result of analysis
+    :param x_pts: the list of x points coordinates
+    :param y_pts: the list of y points coordinates
+    :param configuration: the perun and option context with needed parameters
+    :return: the output dictionary with result of analysis
     """
     # Sort the points to the right order for computation
     # Fixme: this is needed for type checking
@@ -200,10 +200,10 @@ def iterative_analysis(
     given dataset, which runs until the value of `coefficient of determination`
     will not reach the required level.
 
-    :param list x_pts: the list of x points coordinates
-    :param list y_pts: the list of y points coordinates
-    :param dict config: the perun and option context with needed parameters
-    :return tuple: pandas.Series with the computed result -
+    :param x_pts: the list of x points coordinates
+    :param y_pts: the list of y points coordinates
+    :param config: the perun and option context with needed parameters
+    :return: pandas.Series with the computed result -
         coefficient of determination float value - window width (int)
     """
     # set the initial value of window width by a few percents of the length of the interval
@@ -235,11 +235,11 @@ def validate_decay_param(
     In the case of unsuccessful validation will be raised the exception with the
     relevant warning message about the entered value out of the acceptable range.
 
-    :param click.Context _: the current perun and option context
-    :param click.Option param:  additive options from relevant commands decorator
-    :param tuple value: the value of the parameter that invoked the callback method (name, value)
+    :param _: the current perun and option context
+    :param param:  additive options from relevant commands decorator
+    :param value: the value of the parameter that invoked the callback method (name, value)
     :raises click.BadOptionsUsage: in the case when was entered the value from the invalid range
-    :return float: returns value of the parameter after the executing successful validation
+    :return: returns value of the parameter after the executing successful validation
     """
     # calling the condition and then checking its validity
     # - value[0] contains the name of the selected `decay` method (e.g. com)

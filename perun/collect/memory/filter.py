@@ -16,8 +16,8 @@ def remove_allocators(profile: dict[str, Any]) -> dict[str, Any]:
         Allocators are better to remove because they are
         in all traces. Removing them makes profile clearer.
 
-    :param dict profile: dictionary including "snapshots" and "global" sections in the profile
-    :returns dict: updated profile
+    :param profile: dictionary including "snapshots" and "global" sections in the profile
+    :return: updated profile
     """
     allocators = [
         "malloc",
@@ -37,10 +37,10 @@ def remove_allocators(profile: dict[str, Any]) -> dict[str, Any]:
 def trace_filter(profile: dict[str, Any], function: list[str], source: list[str]) -> dict[str, Any]:
     """Remove records in trace section matching source or function
 
-    :param dict profile: dictionary including "snapshots" and "global" sections in the profile
-    :param list function: list of "function" records to omit
-    :param list source: list of "source" records to omit
-    :returns dict: updated profile
+    :param profile: dictionary including "snapshots" and "global" sections in the profile
+    :param function: list of "function" records to omit
+    :param source: list of "source" records to omit
+    :return: updated profile
     """
 
     def determinate(call: dict[str, Any]) -> bool:
@@ -61,7 +61,7 @@ def trace_filter(profile: dict[str, Any], function: list[str], source: list[str]
 
 def set_global_region(profile: dict[str, Any]) -> None:
     """
-    :param dict profile: partially computed profile
+    :param profile: partially computed profile
     """
     profile["global"] = {}
 
@@ -71,10 +71,10 @@ def allocation_filter(
 ) -> dict[str, Any]:
     """Remove record of specified function or source code out of the profile
 
-    :param dict profile: dictionary including "snapshots" and "global" sections in the profile
-    :param list function: function's name to remove record of
-    :param list source: source's name to remove record of
-    :returns dict: updated profile
+    :param profile: dictionary including "snapshots" and "global" sections in the profile
+    :param function: function's name to remove record of
+    :param source: source's name to remove record of
+    :return: updated profile
     """
 
     def determinate(uid: dict[str, Any]) -> bool:
@@ -97,8 +97,8 @@ def allocation_filter(
 def remove_uidless_records_from(profile: dict[str, Any]) -> dict[str, Any]:
     """Remove record without UID out of the profile
 
-    :param dict profile: dictionary including "snapshots" and "global" sections in the profile
-    :returns dict: updated profile
+    :param profile: dictionary including "snapshots" and "global" sections in the profile
+    :return: updated profile
     """
     snapshots = profile["snapshots"]
     for snapshot in snapshots:

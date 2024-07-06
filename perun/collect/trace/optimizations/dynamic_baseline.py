@@ -15,9 +15,9 @@ _WRAPPER_THRESHOLD_RATIO = 0.8
 def filter_functions(call_graph, stats_map, checks):
     """The Dynamic Baseline method.
 
-    :param CallGraphResource call_graph: the CGR optimization resource
-    :param dict stats_map: the Dynamic Stats resource
-    :param list checks: the list of checks to run
+    :param call_graph: the CGR optimization resource
+    :param stats_map: the Dynamic Stats resource
+    :param checks: the list of checks to run
     """
     filtered_funcs = []
     changes = call_graph.get_diff()
@@ -45,11 +45,11 @@ def filter_functions(call_graph, stats_map, checks):
 def call_limit_filter(stats, func, threshold, **_):
     """Checks whether the call limit has exceeded the hard threshold.
 
-    :param dict stats: the Dynamic Stats resource
-    :param str func: name of the checked function
-    :param int threshold: the threshold to compare to
+    :param stats: the Dynamic Stats resource
+    :param func: name of the checked function
+    :param threshold: the threshold to compare to
 
-    :return bool: True if the function should be filtered, False otherwise
+    :return: True if the function should be filtered, False otherwise
     """
     return stats[func]["count"] > threshold
 
@@ -58,11 +58,11 @@ def constant_filter(stats, func, threshold, **_):
     """Checks whether the call limit has exceeded the soft threshold and moreover, if the
     function shows a constant-like behaviour.
 
-    :param dict stats: the Dynamic Stats resource
-    :param str func: name of the checked function
-    :param int threshold: the threshold to compare to
+    :param stats: the Dynamic Stats resource
+    :param func: name of the checked function
+    :param threshold: the threshold to compare to
 
-    :return bool: True if the function should be filtered, False otherwise
+    :return: True if the function should be filtered, False otherwise
     """
     calls, iqr, median = stats[func]["count"], stats[func]["IQR"], stats[func]["median"]
     return (calls > threshold) and (
@@ -75,11 +75,11 @@ def wrapper_filter(call_graph, func, stats, **_):
     are met - if as much as a single caller does not meet the requirements, we do not filter the
     function.
 
-    :param CallGraphResource call_graph: the CGR optimization resource
-    :param dict stats: the Dynamic Stats resource
-    :param str func: name of the checked function
+    :param call_graph: the CGR optimization resource
+    :param stats: the Dynamic Stats resource
+    :param func: name of the checked function
 
-    :return bool: True if the function should be filtered, False otherwise
+    :return: True if the function should be filtered, False otherwise
     """
     # Inspect all func callers
     calls, median = stats[func]["count"], stats[func]["median"]

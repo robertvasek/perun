@@ -32,9 +32,9 @@ def validate_dictionary_keys(
 ) -> None:
     """Checks the dictionary for missing required keys and excess forbidden keys.
 
-    :param dict dictionary: validated dictionary
-    :param list of str required_keys: keys that must be present in the inspected dictionary
-    :param list of str forbidden_keys: keys that must not be in the inspected dictionary
+    :param dictionary: validated dictionary
+    :param required_keys: keys that must be present in the inspected dictionary
+    :param forbidden_keys: keys that must not be in the inspected dictionary
     :raises DictionaryKeysValidationFailed: if the dictionary inspection fails
     """
     missing_keys, excess_keys = [], []
@@ -56,9 +56,9 @@ def validate_dictionary_keys(
 def check_points(x_len: int, y_len: int, threshold: int) -> None:
     """Checks the regression points for possible problems
 
-    :param int x_len: the count of x coordinates
-    :param int y_len: the count of y coordinates
-    :param int threshold: the minimum number of points
+    :param x_len: the count of x coordinates
+    :param y_len: the count of y coordinates
+    :param threshold: the minimum number of points
     :raises InvalidPointsException: if the points count is too low or their coordinates list have
         different lengths
     """
@@ -70,10 +70,10 @@ def split_sequence(length: int, parts: int) -> Iterable[tuple[int, int]]:
     """Generator. Splits the given (collection) length into roughly equal parts and yields the part
        start and end indices pair one by one.
 
-    :param int length: the length to split
-    :param int parts: the number of parts
+    :param length: the length to split
+    :param parts: the number of parts
     :raises InvalidSequenceSplitException: if the result of split produces too few points
-    :returns iterable: the generator object
+    :return: the generator object
     """
     # Check if the split would produce meaningful values
     if length / parts < 2.0:
@@ -90,11 +90,11 @@ def split_sequence(length: int, parts: int) -> Iterable[tuple[int, int]]:
 def shuffle_points(x_pts: list[float], y_pts: list[float]) -> tuple[list[float], list[float]]:
     """Shuffles the x and y coordinates sequence to produce random points sequence.
 
-    :param list x_pts: the x coordinates list
-    :param list y_pts: the y coordinates list
+    :param x_pts: the x coordinates list
+    :param y_pts: the y coordinates list
     :raises InvalidPointsException: if the points count is too low or their coordinates list have
         different lengths
-    :returns tuple: (x: the randomized x sequence, y: the randomized y sequence)
+    :return: (x: the randomized x sequence, y: the randomized y sequence)
     """
     # Build one list to ensure the coordinates are paired after the shuffle
     check_points(len(x_pts), len(y_pts), MIN_POINTS_COUNT)
@@ -107,11 +107,11 @@ def shuffle_points(x_pts: list[float], y_pts: list[float]) -> tuple[list[float],
 def sort_points(x_pts: list[float], y_pts: list[float]) -> tuple[list[float], list[float]]:
     """Sorts the x and y_pts coordinates sequence by x values in the ascending order.
 
-    :param list x_pts: the x coordinates list
-    :param list y_pts: the y_pts coordinates list
+    :param x_pts: the x coordinates list
+    :param y_pts: the y_pts coordinates list
     :raises InvalidPointsException: if the points count is too low or their coordinates list have
         different lengths
-    :returns tuple: (x: the sorted x sequence, y_pts: the sorted y_pts sequence)
+    :return: (x: the sorted x sequence, y_pts: the sorted y_pts sequence)
     """
     # Build one list to ensure the coordinates are paired after the sorting
     check_points(len(x_pts), len(y_pts), MIN_POINTS_COUNT)
@@ -125,10 +125,10 @@ def split_model_interval(start: int, end: int, steps: int) -> npt.NDArray[np.flo
     """Splits the interval defined by its edges to #steps points in a safe manner, i.e. no zero
         points in the array, which prevents zero division errors.
 
-    :param int or float start: the start of interval
-    :param int or float end: the end of interval
-    :param int steps: number of points to split the interval into
-    :returns ndarray: the numpy array containing points
+    :param start: the start of interval
+    :param end: the end of interval
+    :param steps: number of points to split the interval into
+    :return: the numpy array containing points
     """
     # Slice the interval to points
     x_pts = np.linspace(start, end, steps)
@@ -141,7 +141,7 @@ def split_model_interval(start: int, end: int, steps: int) -> npt.NDArray[np.flo
 def as_plot_x_dict(plot_x: Any) -> dict[str, Any]:
     """Returns the argument as dictionary with given key
 
-    :param object plot_x: object that contains plot_x data
+    :param plot_x: object that contains plot_x data
     :return: dictionary with key 'plot_x' set to plot_x
     """
     return dict(plot_x=plot_x)
@@ -150,7 +150,7 @@ def as_plot_x_dict(plot_x: Any) -> dict[str, Any]:
 def as_plot_y_dict(plot_y: Any) -> dict[str, Any]:
     """Returns the argument as dictionary with given key
 
-    :param object plot_y: object that contains plot_y data
+    :param plot_y: object that contains plot_y data
     :return: dictionary with key 'plot_y' set to plot_y
     """
     return {"plot_y": plot_y}
@@ -162,9 +162,8 @@ def add_models_to_profile(
     """
     Add newly generated models from analysis by postprocessor to relevant profile.
 
-    :param Profile profile: profile to add the results to
-    :param list models: analysis executed by the individual postprocessor
-    :return: method has no return value
+    :param profile: profile to add the results to
+    :param models: analysis executed by the individual postprocessor
     """
     # Store the results into the original profile
     if "models" not in profile.keys():

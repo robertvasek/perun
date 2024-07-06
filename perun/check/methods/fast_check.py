@@ -29,9 +29,9 @@ class FastCheck(AbstractBaseChecker):
         """Temporary function, which call the general function and subsequently returns the
         information about performance changes to calling function.
 
-        :param dict baseline_profile: base against which we are checking the degradation
-        :param dict target_profile: profile corresponding to the checked minor version
-        :param dict _: unification with other detection methods (unused in this method)
+        :param baseline_profile: base against which we are checking the degradation
+        :param target_profile: profile corresponding to the checked minor version
+        :param _: unification with other detection methods (unused in this method)
         :returns: tuple (degradation result, degradation location, degradation rate, confidence)
         """
         return detect.general_detection(
@@ -48,11 +48,11 @@ def exec_fast_check(
     """For the values specified in the abs_error points, constructs a profile and performs
     a regression analysis inferring set of models.
 
-    :param string uid: unique identifier of function for which we are creating the model
-    :param Profile baseline_profile: baseline against which we are checking the degradation
-    :param np_array baseline_x_pts: the value absolute error computed from the linear models
+    :param uid: unique identifier of function for which we are creating the model
+    :param baseline_profile: baseline against which we are checking the degradation
+    :param baseline_x_pts: the value absolute error computed from the linear models
         obtained from both profiles
-    :param integer abs_error: values of the independent variables from both profiles
+    :param abs_error: values of the independent variables from both profiles
     :returns: string (classification of the change)
     """
     # creating the new profile

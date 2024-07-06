@@ -60,7 +60,7 @@ def resources_to_pandas_dataframe(profile: Profile) -> pandas.DataFrame:
         0  main:../memo...:22         main        22   ../memory_collect_test.c
         1  main:../memo...:27         main        27   ../memory_collect_test.c
 
-    :param Profile profile: dictionary with profile w.r.t. :ref:`profile-spec`
+    :param profile: dictionary with profile w.r.t. :ref:`profile-spec`
     :returns: converted profile to ``pandas.DataFramelist`` with resources
         flattened as a pandas dataframe
     """
@@ -88,7 +88,7 @@ def models_to_pandas_dataframe(profile: Profile) -> pandas.DataFrame:
     key and value to the tabular representation. Refer to `pandas`_ library for
     more possibilities how to work with the tabular representation of models.
 
-    :param Profile profile: dictionary with profile w.r.t. :ref:`profile-spec`
+    :param profile: dictionary with profile w.r.t. :ref:`profile-spec`
     :returns: converted models of profile to ``pandas.DataFramelist``
     """
     # Note that we need to this inefficiently, because some keys can be missing in resources
@@ -129,7 +129,7 @@ def to_flame_graph_format(
     allocated memory) preceeded by its trace (i.e. functions or other unique
     identifiers joined using ``;`` character).
 
-    :param Profile profile: the memory profile
+    :param profile: the memory profile
     :param profile_key: key that is used to obtain the data
     :param minimize: minimizes the uids
     :returns: list of lines, each representing one allocation call stack
@@ -168,8 +168,8 @@ def to_uid(record: dict[str, Any] | str, minimize: bool = False) -> str:
 def to_string_line(frame: dict[str, Any] | str) -> str:
     """Create string representing call stack's frame
 
-    :param dict frame: call stack's frame
-    :returns str: line representing call stack's frame
+    :param frame: call stack's frame
+    :return: line representing call stack's frame
     """
     if isinstance(frame, str):
         return frame
@@ -186,9 +186,9 @@ def plot_data_from_coefficients_of(model: dict[str, Any]) -> dict[str, Any]:
     plotable as a function or curve. This function serves as a public wrapper
     over regression analysis transformation function.
 
-    :param dict model: the models dictionary from profile (refer to
+    :param model: the models dictionary from profile (refer to
         :pkey:`models`)
-    :returns dict: updated models dictionary extended with `plot_x` and
+    :return: updated models dictionary extended with `plot_x` and
         `plot_y` lists
     """
     model.update(transform.coefficients_to_points(**model))
@@ -202,7 +202,7 @@ def flatten(flattened_value: Any) -> Any:
     rest is left as it is.
     TODO: Add caching
 
-    :param object flattened_value: value that is flattened
+    :param flattened_value: value that is flattened
     :returns: either decimal, string, or something else
     """
     # Dictionary is processed recursively according to the all items that are nested

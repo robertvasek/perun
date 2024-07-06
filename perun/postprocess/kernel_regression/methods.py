@@ -61,7 +61,7 @@ class KernelRidge(sklearn.BaseEstimator, sklearn.RegressorMixin):
         """
         Initialization method for `KernelRidge` class.
 
-        :param np.ndarray/float gamma: parameter for the `rbf` kernel represent kernel bandwidth,
+        :param gamma: parameter for the `rbf` kernel represent kernel bandwidth,
                 if the np.ndarray is given, then is executing the selection with minimizing the
                 `mse` of leave-one-out cross-validation
         """
@@ -78,9 +78,9 @@ class KernelRidge(sklearn.BaseEstimator, sklearn.RegressorMixin):
         selected by application the minimizing mean-squared-error in leave-one-out
         cross-validation.
 
-        :param list x_pts: the list of x points coordinates
-        :param list y_pts: the list of y points coordinates
-        :return KernelRidge: return fitted instance of a self-class
+        :param x_pts: the list of x points coordinates
+        :param y_pts: the list of y points coordinates
+        :return: return fitted instance of a self-class
         """
         self.x_pts = x_pts
         self.y_pts = y_pts
@@ -95,8 +95,8 @@ class KernelRidge(sklearn.BaseEstimator, sklearn.RegressorMixin):
         """
         This method predict target values using the kernel function.
 
-        :param list x_pts: the list of x points coordinates to predict
-        :return np.ndarray: array with values of resulting kernel estimates
+        :param x_pts: the list of x points coordinates to predict
+        :return: array with values of resulting kernel estimates
         """
         kernel = kernels.pairwise_kernels(self.x_pts, x_pts, metric=self.kernel, gamma=self.gamma)
         return (kernel * self.y_pts[:, None]).sum(axis=0) / kernel.sum(axis=0)
@@ -110,8 +110,8 @@ class KernelRidge(sklearn.BaseEstimator, sklearn.RegressorMixin):
         one-out cross-validation. More details about this selection method
         are available in the Perun documentation.
 
-        :param np.ndarray gamma_values: range of gamma values to select one of them
-        :return float: selected specific value of gamma from a given range of values
+        :param gamma_values: range of gamma values to select one of them
+        :return: selected specific value of gamma from a given range of values
         """
         mse = np.empty_like(gamma_values, dtype=float)
         for i, gamma in enumerate(gamma_values):
@@ -135,9 +135,9 @@ def compute_kernel_regression(
     add to obtained model relevant `uid` of current resources and the name of the analysis.
     After the analyzing whole profile returns the dictionary with created kernel models.
 
-    :param iter data_gen: the generator object with collected data (data provider generator)
-    :param dict config: the perun and option context contains the entered options and commands
-    :return list of dict: the computed kernel models according to selected specification
+    :param data_gen: the generator object with collected data (data provider generator)
+    :param config: the perun and option context contains the entered options and commands
+    :return: the computed kernel models according to selected specification
     """
     # checking the presence of specific keys according to selected modes of kernel regression
     tools.validate_dictionary_keys(
@@ -175,10 +175,10 @@ def kernel_regression(
     the computation are setting the parameters in the resulting dictionary, that will
     be return.
 
-    :param list x_pts: the list of x points coordinates
-    :param list y_pts: the list of y points coordinates
-    :param dict config: the perun and option context contains the entered options and commands
-    :return dict: the output dictionary with result of kernel regression
+    :param x_pts: the list of x points coordinates
+    :param y_pts: the list of y points coordinates
+    :param config: the perun and option context contains the entered options and commands
+    :return: the output dictionary with result of kernel regression
     """
     estimator_settings_flag = config["kernel_mode"] == "estimator-settings"
     if estimator_settings_flag:
@@ -241,12 +241,12 @@ def iterative_computation(
     until it is not appropriate for the resulting kernel estimate. The resulting
     accuracy of kernel estimate is not affected by this increase.
 
-    :param list x_pts: the list of x points coordinates
-    :param list y_pts: the list of y points coordinates
-    :param pyqt_fit.NonParamRegression kernel_estimate: class performing kernel-based
+    :param x_pts: the list of x points coordinates
+    :param y_pts: the list of y points coordinates
+    :param kernel_estimate: class performing kernel-based
                 non-parametric regression
     :param kwargs: key args contain another required parameters: `kernel` and `model`
-    :return pyqt_fit.NonParamRegression: returns the kernel estimate with optimized bandwidth
+    :return: returns the kernel estimate with optimized bandwidth
     """
     kernel_values = None
     # Repeat the computation of kernel estimate until the fitting is not successful.
@@ -282,10 +282,10 @@ def kernel_smoothing(
     last steps of this analysis is fitted the estimated data a returns the obtained kernel
     models.
 
-    :param list in_x_pts: the list of x points coordinates
-    :param list in_y_pts: the list of y points coordinates
-    :param dict config: the perun and option context contains the entered options and commands
-    :return dict: the output dictionary with result of kernel regression
+    :param in_x_pts: the list of x points coordinates
+    :param in_y_pts: the list of y points coordinates
+    :param config: the perun and option context contains the entered options and commands
+    :return: the output dictionary with result of kernel regression
     """
     # Retype the coordinated list for requirements of computational class
     x_pts = np.asanyarray(in_x_pts, dtype=np.float64)
@@ -348,10 +348,10 @@ def kernel_ridge(
     `Kernel Regressor` class from `sklearn` package. For more details about
     this approach you can see class `KernelRidge` or Perun Documentation.
 
-    :param list in_x_pts: the list of x points coordinates
-    :param list in_y_pts: the list of y points coordinates
-    :param dict config: the perun and option context contains the entered options and commands
-    :return dict: the output dictionary with result of kernel regression
+    :param in_x_pts: the list of x points coordinates
+    :param in_y_pts: the list of y points coordinates
+    :param config: the perun and option context contains the entered options and commands
+    :return: the output dictionary with result of kernel regression
     """
     # Retype the coordinated list for requirements of computational class
     x_pts = np.asanyarray(in_x_pts, dtype=np.float64).reshape(-1, 1)
@@ -389,10 +389,10 @@ def execute_kernel_regression(
     the selected mode. If the list of coordinates contains only one resources then
     no calculation is made.
 
-    :param list x_pts: the list of x points coordinates
-    :param list y_pts: the list of y points coordinates
-    :param dict config: the perun and option context contains the entered options and commands
-    :return dict: the output dictionary with result of kernel regression
+    :param x_pts: the list of x points coordinates
+    :param y_pts: the list of y points coordinates
+    :param config: the perun and option context contains the entered options and commands
+    :return: the output dictionary with result of kernel regression
     """
     # Sort the points to the right order for computation
     x_pts, y_pts = cast(tuple[list[float], list[float]], zip(*sorted(zip(x_pts, y_pts))))
@@ -440,12 +440,12 @@ def valid_range_values(
     must be in logical order, that is, the first value is smaller than
     the second value.
 
-    :param click.Context _: the perun and option context contains the entered options and commands
-    :param click.Option param: additive options from relevant commands decorator
-    :param tuple value: the value of the parameter that invoked the callback method (name, value)
+    :param _: the perun and option context contains the entered options and commands
+    :param param: additive options from relevant commands decorator
+    :param value: the value of the parameter that invoked the callback method (name, value)
     :raises click.BadOptionsUsage: in the case when was not entered the first value smaller than
                 the second value
-    :return tuple(double, double): returns values (range) if the first value is lower than
+    :return: returns values (range) if the first value is lower than
                 the second value
     """
     if value[0] < value[1]:
@@ -472,7 +472,7 @@ def valid_step_size(step: float, step_range: tuple[float, float]) -> bool:
     :param step_range: tuple of length of the entered gamma range
     :raises click.BadOptionsUsage: in the case when the step is not smaller than the length of
                 the given range
-    :return bool: return True if the control was successful
+    :return: return True if the control was successful
     """
     range_length = step_range[1] - step_range[0]
     if step < range_length:

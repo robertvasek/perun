@@ -11,10 +11,10 @@ from perun.utils.exceptions import StatsFileNotFoundException, SuppressedExcepti
 def extract(stats_name, reset_cache, **_):
     """Load the DynamicStats cache (in file) from the last profiled version.
 
-    :param str stats_name: name of the Dynamic Stats file
-    :param bool reset_cache: determines whether the Dynamic Stats should be recreated or not
+    :param stats_name: name of the Dynamic Stats file
+    :param reset_cache: determines whether the Dynamic Stats should be recreated or not
 
-    :return DynamicStats: the Dynamic Stats object
+    :return: the Dynamic Stats object
     """
     dynamic_stats = dyn_stats.DynamicStats()
     if not reset_cache:
@@ -28,9 +28,9 @@ def extract(stats_name, reset_cache, **_):
 def store(stats_name, dynamic_stats, no_update, **_):
     """Store the supplied DynamicStats resource object
 
-    :param str stats_name: name of the stats file
-    :param DynamicStats dynamic_stats: the DynamicStats content
-    :param bool no_update: disables dynamic stats updates
+    :param stats_name: name of the stats file
+    :param dynamic_stats: the DynamicStats content
+    :param no_update: disables dynamic stats updates
     """
     if no_update:
         # Do not save the file again if it already exists

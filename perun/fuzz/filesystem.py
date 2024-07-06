@@ -17,9 +17,9 @@ from perun.utils import exceptions, log
 def get_corpus(workloads: list[str], pattern: str) -> list[Mutation]:
     """Iteratively search for files to fill input corpus.
 
-    :param list workloads: list of paths to sample files or directories of sample files
-    :param str pattern: regular expression for filtering the workloads
-    :return list: list of dictionaries, dictionary contains information about file
+    :param workloads: list of paths to sample files or directories of sample files
+    :param pattern: regular expression for filtering the workloads
+    :return: list of dictionaries, dictionary contains information about file
     """
     init_seeds = []
 
@@ -47,9 +47,9 @@ def get_corpus(workloads: list[str], pattern: str) -> list[Mutation]:
 def move_file_to(filename: str, directory: str) -> str:
     """Useful function for moving file to the special output directory.
 
-    :param str filename: path to a file
-    :param str directory: path of destination directory, where file should be moved
-    :return str: new path of the moved file
+    :param filename: path to a file
+    :param directory: path of destination directory, where file should be moved
+    :return: new path of the moved file
     """
     _, file = os.path.split(filename)
     os.rename(filename, os.path.join(directory, file))
@@ -59,8 +59,8 @@ def move_file_to(filename: str, directory: str) -> str:
 def make_output_dirs(output_dir: str) -> dict[str, str]:
     """Creates special output directories for diffs and mutations causing fault or hang.
 
-    :param str output_dir: path to user-specified output directory
-    :return list: paths to newly created directories
+    :param output_dir: path to user-specified output directory
+    :return: paths to newly created directories
     """
     dirs_dict = {}
     for dir_name in ["hangs", "faults", "diffs", "logs", "graphs"]:
@@ -74,9 +74,9 @@ def del_temp_files(
 ) -> None:
     """Deletes temporary files that are not positive results of fuzz testing
 
-    :param list parents: list of parent mutations
-    :param FuzzingProgress fuzz_progress: progress of the fuzzing
-    :param str output_dir: path to directory, where fuzzed files are stored
+    :param parents: list of parent mutations
+    :param fuzz_progress: progress of the fuzzing
+    :param output_dir: path to directory, where fuzzed files are stored
     """
     log.minor_info("Removing mutations")
     for mutation in progressbar.progressbar(parents):

@@ -95,15 +95,15 @@ class PostprocessStatus(Enum):
 class RunnerReport:
     """Collection of results reported during the running of the unit
 
-    :ivar object status: overall status of the whole run of the unit, one of the CollectStatus or
+    :ivar status: overall status of the whole run of the unit, one of the CollectStatus or
         PostprocessStatus enum
-    :ivar module runner: module of the collector or postprocessor
-    :ivar str runner_type: string name of the runner type, either collector or postprocessor
-    :ivar int stat_code: sub status returned by the unit, 0 if nothing happened
-    :ivar str phase: name of the last executed phase (before, collect/postprocess, after)
-    :ivar Exception exception: exception (if it was raised) during the run otherwise None
-    :ivar str message: string message describing the result of run
-    :ivar dict kwargs: kwargs of the process (should include "profile")
+    :ivar runner: module of the collector or postprocessor
+    :ivar runner_type: string name of the runner type, either collector or postprocessor
+    :ivar stat_code: sub status returned by the unit, 0 if nothing happened
+    :ivar phase: name of the last executed phase (before, collect/postprocess, after)
+    :ivar exception: exception (if it was raised) during the run otherwise None
+    :ivar message: string message describing the result of run
+    :ivar kwargs: kwargs of the process (should include "profile")
     """
 
     ok_statuses: dict[str, CollectStatus | PostprocessStatus] = {
@@ -129,9 +129,9 @@ class RunnerReport:
 
     def __init__(self, runner: types.ModuleType, runner_type: str, kwargs: Any) -> None:
         """
-        :param module runner: module of the runner
-        :param str runner_type: type of the runner (either 'collector' or 'postprocessor'
-        :param dict kwargs: initial keyword arguments
+        :param runner: module of the runner
+        :param runner_type: type of the runner (either 'collector' or 'postprocessor'
+        :param kwargs: initial keyword arguments
         """
         self.ok_status = RunnerReport.ok_statuses[runner_type]
         self.error_status = RunnerReport.error_statues[runner_type]
@@ -148,9 +148,9 @@ class RunnerReport:
     def update_from(self, stat_code: int | enum.Enum, message: str, params: dict[str, Any]) -> None:
         """Updates the report according to the successful results of one of the phases
 
-        :param int stat_code: returned code of the run
-        :param str message: additional message about the run process
-        :param dict params: updated params
+        :param stat_code: returned code of the run
+        :param message: additional message about the run process
+        :param params: updated params
         :return:
         """
         self.stat_code = stat_code
@@ -176,9 +176,9 @@ class RunnerReport:
 class Executable:
     """Represents executable command with arguments and workload
 
-    :ivar str cmd: command to be executed (i.e. script, binary, etc.); including arguments
-    :ivar str workload: optional workloads (or inputs) of the command (i.e. files, whatever)
-    :ivar str original_workload: workload that was used as an origin (stated from the configuration),
+    :ivar cmd: command to be executed (i.e. script, binary, etc.); including arguments
+    :ivar workload: optional workloads (or inputs) of the command (i.e. files, whatever)
+    :ivar original_workload: workload that was used as an origin (stated from the configuration),
         note that this is to differentiate between actually generated workloads from generators and
         names of the generators.
     """
@@ -188,12 +188,12 @@ class Executable:
     def __init__(self, cmd: str, workload: str = "") -> None:
         """Initializes the executable
 
-        :param str cmd: command to be executed
-        :param str workload: optional workloads of the command
+        :param cmd: command to be executed
+        :param workload: optional workloads of the command
         """
-        self.cmd = cmd
-        self.workload = workload
-        self.origin_workload = workload
+        self.cmd: str = cmd
+        self.workload: str = workload
+        self.origin_workload: str = workload
 
     def __str__(self) -> str:
         """Returns nonescaped, nonlexed string representation of the executable
@@ -217,8 +217,8 @@ class Executable:
 class Unit:
     """Specification of the unit that is part of run process
 
-    :ivar str name: name of the unit
-    :ivar dict params: parameters for the unit
+    :ivar name: name of the unit
+    :ivar params: parameters for the unit
     """
 
     __slots__ = ["name", "params"]
@@ -226,11 +226,11 @@ class Unit:
     def __init__(self, name: str, params: dict[str, Any]) -> None:
         """Constructs the unit, with name being sanitized
 
-        :param str name: name of the unit
-        :param dict params: parameters for the unit
+        :param name: name of the unit
+        :param params: parameters for the unit
         """
-        self.name = Unit.sanitize_unit_name(name)
-        self.params = params
+        self.name: str = Unit.sanitize_unit_name(name)
+        self.params: dict[str, Any] = params
 
     @classmethod
     def desanitize_unit_name(cls, unit_name: str) -> str:
@@ -239,7 +239,7 @@ class Unit:
         In Click 7.0 all subcommands have automatically replaced underscores (_) with dashes (-).
         We have to sanitize/desanitize the unit name through the Perun.
 
-        :param str unit_name: name of the unit that is desanitized
+        :param unit_name: name of the unit that is desanitized
         :return:
         """
         return unit_name.replace("_", "-")
@@ -254,7 +254,7 @@ class Unit:
         this fecking function to make sure the CLI names are replaced back to underscores. Rant
         over.
 
-        :param str unit_name: module name that we are sanitizing
+        :param unit_name: module name that we are sanitizing
         :return: sanitized module name usable inside the Perun (with underscores instead of dashes)
         """
         return unit_name.replace("-", "_")
@@ -288,17 +288,17 @@ class DetectionChangeResult:
 class DegradationInfo:
     """The returned results for performance check methods
 
-    :ivar PerformanceChange result: result of the performance change, either can be optimization,
+    :ivar result: result of the performance change, either can be optimization,
         degradation, no change, or certain type of unknown
-    :ivar str type: string representing the type of the degradation, e.g. "order" degradation
-    :ivar str location: location, where the degradation has happened
-    :ivar str from_baseline: value or model representing the baseline, i.e. from which the new
+    :ivar type: string representing the type of the degradation, e.g. "order" degradation
+    :ivar location: location, where the degradation has happened
+    :ivar from_baseline: value or model representing the baseline, i.e. from which the new
         version was optimized or degraded
-    :ivar str to_target: value or model representing the target, i.e. to which the new version was
+    :ivar to_target: value or model representing the target, i.e. to which the new version was
         optimized or degraded
-    :ivar str confidence_type: type of the confidence we have in the detected degradation, e.g. r^2
-    :ivar float confidence_rate: value of the confidence we have in the detected degradation
-    :ivar float rate_degradation_relative: relative rate of the degradation
+    :ivar confidence_type: type of the confidence we have in the detected degradation, e.g. r^2
+    :ivar confidence_rate: value of the confidence we have in the detected degradation
+    :ivar rate_degradation_relative: relative rate of the degradation
     """
 
     __slots__ = [
@@ -335,18 +335,18 @@ class DegradationInfo:
         higher the confidence the more likely we predicted successfully the degradation or
         optimization.
 
-        :param PerformanceChange res: result of the performance change, either can be optimization,
+        :param res: result of the performance change, either can be optimization,
             degradation, no change, or certain type of unknown
-        :param str t: string representing the type of the degradation, e.g. "order" degradation
-        :param str loc: location, where the degradation has happened
-        :param str fb: value or model representing the baseline, i.e. from which the new version was
+        :param t: string representing the type of the degradation, e.g. "order" degradation
+        :param loc: location, where the degradation has happened
+        :param fb: value or model representing the baseline, i.e. from which the new version was
             optimized or degraded
-        :param str tt: value or model representing the target, i.e. to which the new version was
+        :param tt: value or model representing the target, i.e. to which the new version was
             optimized or degraded
-        :param float rd: quantified rate of the degradation, i.e. how much exactly it degrades
-        :param str ct: type of the confidence we have in the detected degradation, e.g. r^2
-        :param float cr: value of the confidence we have in the detected degradation
-        :param float rdr: relative rate of the degradation (i.e. to the entire program run)
+        :param rd: quantified rate of the degradation, i.e. how much exactly it degrades
+        :param ct: type of the confidence we have in the detected degradation, e.g. r^2
+        :param cr: value of the confidence we have in the detected degradation
+        :param rdr: relative rate of the degradation (i.e. to the entire program run)
         """
         self.result: PerformanceChange = res
         self.type: str = t
@@ -383,9 +383,9 @@ class DegradationInfo:
 class Job:
     """Represents one profiling task in the Perun
 
-    :ivar Unit collector: collection unit used to collect the SUP
-    :ivar list postprocessors: list of postprocessing units applied after the collection
-    :ivar Executable executable: System Under Profiling (SUP)
+    :ivar collector: collection unit used to collect the SUP
+    :ivar postprocessors: list of postprocessing units applied after the collection
+    :ivar executable: System Under Profiling (SUP)
     """
 
     __slots__ = ["collector", "postprocessors", "executable"]
@@ -410,7 +410,7 @@ class OrderedEnum(Enum):
     wrt their order. Taken from:
         https://stackoverflow.com/questions/42369749/use-definition-order-of-enum-as-natural-order
 
-    :ivar int order: the order of the new element
+    :ivar order: the order of the new element
     """
 
     def __init__(self, *args: Any) -> None:
@@ -422,13 +422,13 @@ class OrderedEnum(Enum):
             # attempt to initialize other parents in the hierarchy
             super().__init__(*args)
         ordered = len(self.__class__.__members__) + 1
-        self.order = ordered
+        self.order: int = ordered
 
     def __ge__(self, other: object) -> bool:
         """Comparison operator >=.
 
-        :param OrderedEnum other: the other enumeration element
-        :return bool: the comparison result
+        :param other: the other enumeration element
+        :return: the comparison result
         """
         if isinstance(other, self.__class__):
             return self.order >= other.order
@@ -437,8 +437,8 @@ class OrderedEnum(Enum):
     def __gt__(self, other: object) -> bool:
         """Comparison operator >.
 
-        :param OrderedEnum other: the other enumeration element
-        :return bool: the comparison result
+        :param other: the other enumeration element
+        :return: the comparison result
         """
         if isinstance(other, self.__class__):
             return self.order > other.order
@@ -447,8 +447,8 @@ class OrderedEnum(Enum):
     def __le__(self, other: object) -> bool:
         """Comparison operator <=.
 
-        :param OrderedEnum other: the other enumeration element
-        :return bool: the comparison result
+        :param other: the other enumeration element
+        :return: the comparison result
         """
         if isinstance(other, self.__class__):
             return self.order <= other.order
@@ -457,8 +457,8 @@ class OrderedEnum(Enum):
     def __lt__(self, other: object) -> bool:
         """Comparison operator <.
 
-        :param OrderedEnum other: the other enumeration element
-        :return bool: the comparison result
+        :param other: the other enumeration element
+        :return: the comparison result
         """
         if isinstance(other, self.__class__):
             return self.order < other.order
@@ -467,13 +467,13 @@ class OrderedEnum(Enum):
 
 class ProfileListConfig:
     """
-    :ivar str colour: colour of the printed list
-    :ivar str ending: ending for summary of the number of profiles
-    :ivar int list_len: length of the profile list
-    :ivar str id_char: character that represents either pending (p) or indexed (i) profiles
-    :ivar int id_width: number of characters needed for the left column that counts the index of
+    :ivar colour: colour of the printed list
+    :ivar ending: ending for summary of the number of profiles
+    :ivar list_len: length of the profile list
+    :ivar id_char: character that represents either pending (p) or indexed (i) profiles
+    :ivar id_width: number of characters needed for the left column that counts the index of
         the profile in the list
-    :ivar int header_width: overall width of the profile list
+    :ivar header_width: overall width of the profile list
     """
 
     __slots__ = ["colour", "ending", "list_len", "id_char", "id_width", "header_width"]
@@ -481,31 +481,31 @@ class ProfileListConfig:
     def __init__(self, list_type: str, short: bool, profile_list: list[Any]) -> None:
         """Initializes the configuration for the profile list.
 
-        :param str list_type: type of the profile list (either untracked or untracked)
-        :param bool short: true if the list should be short
-        :param list profile_list: list of profiles
+        :param list_type: type of the profile list (either untracked or untracked)
+        :param short: true if the list should be short
+        :param profile_list: list of profiles
         """
         self.colour: ColorChoiceType = (
             PROFILE_UNTRACKED if list_type != "tracked" else PROFILE_TRACKED
         )
-        self.ending = ":\n\n" if not short else "\n"
-        self.list_len = len(profile_list)
-        self.id_char = "i" if list_type == "tracked" else "p"
-        self.id_width = len(str(self.list_len))
+        self.ending: str = ":\n\n" if not short else "\n"
+        self.list_len: int = len(profile_list)
+        self.id_char: str = "i" if list_type == "tracked" else "p"
+        self.id_width: int = len(str(self.list_len))
         # The magic 3 corresponds to the fixed string @p or @i
-        self.header_width = self.id_width + 3
+        self.header_width: int = self.id_width + 3
 
 
 @dataclass()
 class MinorVersion:
     """Single MinorVersion (commit) from the Version Control System
 
-    :ivar str data: date when the minor version was commited
-    :ivar str author: author of the minor version
-    :ivar str email: email of the author of the minor version
-    :ivar str checksum: sha checksum of the minor version
-    :ivar str desc: description of the changes commited in the minor version
-    :ivar list parents: list of parents of the minor version (empty if root)
+    :ivar data: date when the minor version was commited
+    :ivar author: author of the minor version
+    :ivar email: email of the author of the minor version
+    :ivar checksum: sha checksum of the minor version
+    :ivar desc: description of the changes commited in the minor version
+    :ivar parents: list of parents of the minor version (empty if root)
     """
 
     __slots__ = ["date", "author", "email", "checksum", "desc", "parents"]
@@ -543,8 +543,8 @@ class MinorVersion:
 class MajorVersion:
     """Single Major Version (branch) of the Version Control System
 
-    :ivar str name: name of the major version
-    :ivar str head: sha checksum of the corresponding head minor version
+    :ivar name: name of the major version
+    :ivar head: sha checksum of the corresponding head minor version
     """
 
     __slots__ = ["name", "head"]
@@ -558,13 +558,13 @@ class ModelRecord:
     """
     Helper class for holding the model parts
 
-    :ivar str type: type of the model (i.e. its class)
-    :ivar float r_square: R^2 value of the model
-    :ivar float b0: constant coefficient of the model
-    :ivar float b1: slope coefficient of the model
-    :ivar float b2: quadratic coefficient of the model
-    :ivar int x_start: start of the interval, where the model holds
-    :ivar int x_end: end of the interval, where the model holds
+    :ivar type: type of the model (i.e. its class)
+    :ivar r_square: R^2 value of the model
+    :ivar b0: constant coefficient of the model
+    :ivar b1: slope coefficient of the model
+    :ivar b2: quadratic coefficient of the model
+    :ivar x_start: start of the interval, where the model holds
+    :ivar x_end: end of the interval, where the model holds
     """
 
     __slots__ = ["type", "r_square", "b0", "b1", "b2", "x_start", "x_end"]
@@ -614,12 +614,12 @@ class HandledSignals:
     handling function uses a different exception then the default, it should be supplied to the CM
     as well.
 
-    :ivar list signals: the list of signals that are being handled by the CM
-    :ivar function handler: the function used to handle the registered signals
-    :ivar exception handler_exc: the exception type related to the signal handler
-    :ivar function callback: the function that is always invoked during the CM exit
-    :ivar list callback_args: arguments for the callback function
-    :ivar list old_handlers: the list of previous signal handlers
+    :ivar signals: the list of signals that are being handled by the CM
+    :ivar handler: the function used to handle the registered signals
+    :ivar handler_exc: the exception type related to the signal handler
+    :ivar callback: the function that is always invoked during the CM exit
+    :ivar callback_args: arguments for the callback function
+    :ivar old_handlers: the list of previous signal handlers
 
     """
 
@@ -630,17 +630,17 @@ class HandledSignals:
         :param signals: the identification of the handled signal, 'signal.SIG_' is recommended
         :param kwargs: additional properties of the context manager
         """
-        self.signals = signals
-        self.handler = kwargs.get("handler", common_kit.default_signal_handler)
-        self.handler_exc = kwargs.get("handler_exception", SignalReceivedException)
-        self.callback = kwargs.get("callback")
-        self.callback_args = kwargs.get("callback_args", [])
+        self.signals: tuple[int, ...] = signals
+        self.handler: Callable = kwargs.get("handler", common_kit.default_signal_handler)
+        self.handler_exc: type[Exception | BaseException] = kwargs.get("handler_exception", SignalReceivedException)
+        self.callback: Callable = kwargs.get("callback")
+        self.callback_args: list[Any] = kwargs.get("callback_args", [])
         self.old_handlers: list[int | None | Callable[[int, Optional[types.FrameType]], Any]] = []
 
-    def __enter__(self) -> "HandledSignals":
+    def __enter__(self) -> HandledSignals:
         """The CM entry sentinel, register the new signal handlers and store the previous ones.
 
-        :return object: the CM instance
+        :return: the CM instance
         """
         for sig in self.signals:
             self.old_handlers.append(signal.signal(sig, self.handler))
@@ -649,10 +649,10 @@ class HandledSignals:
     def __exit__(self, exc_type: str, exc_val: Exception, exc_tb: traceback.StackSummary) -> bool:
         """The CM exit sentinel, perform the callback and reset the signal handlers.
 
-        :param type exc_type: the type of the exception
-        :param exception exc_val: the value of the exception
-        :param traceback exc_tb: the traceback of the exception
-        :return bool: True if the encountered exception should be ignored, False otherwise or if
+        :param exc_type: the type of the exception
+        :param exc_val: the value of the exception
+        :param exc_tb: the traceback of the exception
+        :return: True if the encountered exception should be ignored, False otherwise or if
                       no exception was raised
         """
         # Ignore all the handled signals temporarily

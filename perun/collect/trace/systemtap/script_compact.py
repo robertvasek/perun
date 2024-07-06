@@ -137,9 +137,9 @@ EXIT_PRECISE_SAMPLE_TEMPLATE = """
 def assemble_system_tap_script(script_file, config, probes, **_):
     """Assembles SystemTap script according to the configuration and probes specification.
 
-    :param str script_file: path to the script file, that should be generated
-    :param Configuration config: the configuration parameters
-    :param Probes probes: the probes specification
+    :param script_file: path to the script file, that should be generated
+    :param config: the configuration parameters
+    :param probes: the probes specification
     """
     WATCH_DOG.info(f"Attempting to assembly the SystemTap script '{script_file}'")
 
@@ -171,10 +171,10 @@ def _add_script_init(handle, config, probes, timed_sampling):
     when e.g., sampling is turned off), necessary global variables, as well as add the process
     begin and end probe.
 
-    :param TextIO handle: the script file handle
-    :param Configuration config: the configuration parameters
-    :param Probes probes: the probes specification
-    :param bool timed_sampling: specifies whether Timed Sampling is on or off
+    :param handle: the script file handle
+    :param config: the configuration parameters
+    :param probes: the probes specification
+    :param timed_sampling: specifies whether Timed Sampling is on or off
     """
     script_init = """
 {array_declaration}
@@ -221,9 +221,9 @@ probe process("{binary}").end
 def _add_thread_probes(handle, binary, sampling_on):
     """Add thread begin and end probes.
 
-    :param TextIO handle: the script file handle
-    :param str binary: the name of the binary file
-    :param bool sampling_on: specifies whether per-function sampling is on
+    :param handle: the script file handle
+    :param binary: the name of the binary file
+    :param sampling_on: specifies whether per-function sampling is on
     """
     end_probe = """
 probe process("{binary}").thread.begin {{
@@ -257,8 +257,8 @@ probe process("{binary}").thread.end {{
 def _add_timer_probe(handle, sampling_frequency):
     """Add a probe for timed event that enables / disables function probes.
 
-    :param TextIO handle: the script file handle
-    :param int sampling_frequency: timer (ns) value of the timer probe firing
+    :param handle: the script file handle
+    :param sampling_frequency: timer (ns) value of the timer probe firing
     """
     # Create the sampling timer
     timer_probe = """
@@ -274,10 +274,10 @@ probe timer.ns({freq}) if ({stopwatch}) {{
 def _add_program_probes(handle, probes, verbose_trace, timed_sampling):
     """Add function and USDT probe definitions to the script.
 
-    :param TextIO handle: the script file handle
-    :param Probes probes: the Probes configuration
-    :param bool verbose_trace: the verbosity level of the data output
-    :param bool timed_sampling: specifies whether timed sampling is on or off
+    :param handle: the script file handle
+    :param probes: the Probes configuration
+    :param verbose_trace: the verbosity level of the data output
+    :param timed_sampling: specifies whether timed sampling is on or off
     """
     # Obtain the distinct set of function and usdt probes
     sampled_func, nonsampled_func = probes.get_partitioned_func_probes()
@@ -347,11 +347,11 @@ def _build_array_declaration(probes, verbose_trace, max_threads):
     create / omit probe ID mapping array based on the verbosity
     create / omit sampling arrays based on the presence / absence of sampled probes, etc.
 
-    :param Probes probes: the Probes object
-    :param bool verbose_trace: the verbosity level of the output
-    :param int max_threads: maximum number of expected simultaneous threads
+    :param probes: the Probes object
+    :param verbose_trace: the verbosity level of the output
+    :param max_threads: maximum number of expected simultaneous threads
 
-    :return str: the built array declaration string
+    :return: the built array declaration string
     """
     # Currently three types of arrays
     id_array = "# ID array omitted"
@@ -381,10 +381,10 @@ def _array_assign(arr_id, arr_idx, arr_value):
 def _build_id_init(probes, verbose_trace):
     """Build the probe name -> ID mapping initialization code
 
-    :param Probes probes: the Probes object
-    :param bool verbose_trace: the verbosity level of the output
+    :param probes: the Probes object
+    :param verbose_trace: the verbosity level of the output
 
-    :return str: the built ID array initialization code
+    :return: the built ID array initialization code
     """
     # The name -> ID mapping is not used in verbose mode
     if verbose_trace:
@@ -399,9 +399,9 @@ def _build_id_init(probes, verbose_trace):
 def _build_sampling_init(probes):
     """Build the sampling arrays initialization code
 
-    :param Probes probes: the Probes object
+    :param probes: the Probes object
 
-    :return str: the built sampling array initialization code
+    :return: the built sampling array initialization code
     """
     # The threshold array contains the sampling values for each function
     # When the threshold is reached, the probe generates a data record
@@ -415,10 +415,10 @@ def _build_sampling_init(probes):
 def _build_probe_body(probe_type, verbose_trace):
     """Build the probe innermost body.
 
-    :param RecordType probe_type: the probe type
-    :param bool verbose_trace: the verbosity level of the data output
+    :param probe_type: the probe type
+    :param verbose_trace: the verbosity level of the data output
 
-    :return str: the probe handler code
+    :return: the probe handler code
     """
     # Set how the probe will be identified in the output and how we obtain the identification
     # based on the trace verbosity
@@ -433,10 +433,10 @@ def _build_func_events(probe_iter, timed_sampling):
     """Build function probe events code, which is basically a list of events that share some
     common handler.
 
-    :param iter probe_iter: iterator of probe configurations
-    :param bool timed_sampling: specifies whether Timed Sampling is on or off
+    :param probe_iter: iterator of probe configurations
+    :param timed_sampling: specifies whether Timed Sampling is on or off
 
-    :return str: the built probe events code
+    :return: the built probe events code
     """
 
     def timed_switch(func_name):
@@ -454,9 +454,9 @@ def _build_usdt_events(probe_iter, probe_id="name"):
     """Build USDT probe events code, which is basically a list of events that share some
     common handler.
 
-    :param iter probe_iter: iterator of probe configurations
+    :param probe_iter: iterator of probe configurations
 
-    :return str: the built probe events code
+    :return: the built probe events code
     """
     return ",\n      ".join(
         USDT_EVENT_TEMPLATE.format(binary=prb["lib"], loc=prb[probe_id]) for prb in probe_iter
@@ -466,10 +466,10 @@ def _build_usdt_events(probe_iter, probe_id="name"):
 def _id_type_value(value_set, verbose_trace):
     """Select the type and value of printed data based on the verbosity level of the output.
 
-    :param tuple value_set: a set of nonverbose / verbose data output
-    :param bool verbose_trace: the verbosity level of the output
+    :param value_set: a set of nonverbose / verbose data output
+    :param verbose_trace: the verbosity level of the output
 
-    :return tuple (str, str): the 'type' and 'value' objects for the print statement
+    :return: the 'type' and 'value' objects for the print statement
     """
     if verbose_trace:
         return "%s", value_set[1]

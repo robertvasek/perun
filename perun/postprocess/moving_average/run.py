@@ -50,7 +50,7 @@ def postprocess(
     """
     Invoked from perun core, handles the postprocess actions
 
-    :param dict profile: the profile to analyze
+    :param profile: the profile to analyze
     :param configuration: the perun and options context
     """
     # Perform the non-parametric analysis using the moving average methods
@@ -73,7 +73,7 @@ def common_sma_options(
     The wrapper of common options for both supported commands represents simple
     moving average methods: Simple Moving Average and Simple Moving Average Median.
 
-    :param function func_obj: the function in which the decorator of common options is applied
+    :param func_obj: the function in which the decorator of common options is applied
     :return: returns sequence of the single options for the current function (f) as decorators
     """
     options = [

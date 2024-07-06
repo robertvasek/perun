@@ -31,9 +31,9 @@ class PolynomialRegression(AbstractBaseChecker):
         """Temporary function, which call the general function and subsequently returns the
         information about performance changes to calling function.
 
-        :param dict baseline_profile: baseline against which we are checking the degradation
-        :param dict target_profile: profile corresponding to the checked minor version
-        :param dict _: unification with other detection methods (unused in this method)
+        :param baseline_profile: baseline against which we are checking the degradation
+        :param target_profile: profile corresponding to the checked minor version
+        :param _: unification with other detection methods (unused in this method)
         :returns: tuple (degradation result, degradation location, degradation rate, confidence)
         """
         return detect.general_detection(
@@ -52,9 +52,9 @@ def exec_polynomial_regression(
     the data by polynomials of the certain degrees can pretty accurately classify how big change
     has occurred between profiles
 
-    :param np_array baseline_x_pts: the value absolute error computed from the linear models
+    :param baseline_x_pts: the value absolute error computed from the linear models
         obtained from both profiles
-    :param integer lin_abs_error: values of the independent variables from both profiles
+    :param lin_abs_error: values of the independent variables from both profiles
     :returns: string (classification of the change)
     """
     degree = 0

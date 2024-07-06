@@ -14,14 +14,14 @@ class SafeQueue:
 
     Note: The wrapper expects a one-directional usage (i.e., no duplex)
 
-    :ivar Event _eoi_event: event used to signal that no more input will be written
-    :ivar Queue _queue: a multiprocessing queue
-    :ivar bool _is_closed: a flag indicating whether the queue has already been closed
+    :ivar _eoi_event: event used to signal that no more input will be written
+    :ivar _queue: a multiprocessing queue
+    :ivar _is_closed: a flag indicating whether the queue has already been closed
     """
 
     def __init__(self, maxsize=-1):
         """
-        :param int maxsize: the queue capacity
+        :param maxsize: the queue capacity
         """
         self._eoi_event = Event()
         self._queue = Queue(maxsize)
@@ -49,7 +49,7 @@ class SafeQueue:
     def write(self, data):
         """Send data through the queue.
 
-        :param object data: the data to send
+        :param data: the data to send
         """
         while True:
             # Attempt to send the data, repeat if queue is currently full
@@ -62,7 +62,7 @@ class SafeQueue:
     def read(self, timeout=QUEUE_TIMEOUT, retries=1):
         """Read data from the queue.
 
-        :return object: the obtained data.
+        :return: the obtained data.
         """
         retry = 0
         while True:
@@ -85,7 +85,7 @@ class SafeQueue:
     def read_large(self):
         """Read large data from the queue (i.e., Profile object)
 
-        :return object: the obtained data.
+        :return: the obtained data.
         """
         # We know that a profile has been sent through a queue, however, it might take a while
         # until it is accessible

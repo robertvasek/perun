@@ -19,8 +19,8 @@ def get_build_directories(root: str = ".", template: Optional[list[str]] = None)
     """Search for build directories in project tree. The build directories can be specified as an
     argument or default templates are used.
 
-    :param str root: directory tree root
-    :param list template: list of directory names to search for
+    :param root: directory tree root
+    :param template: list of directory names to search for
     :return: generator object of build directories
     """
     if template is None:
@@ -43,8 +43,8 @@ def _is_nested(path: str, templates: Iterable[str]) -> bool:
     """Check if any element from template is contained within the path - resolve nested template
     directories
 
-    :param str path: path to be resolved
-    :param list templates: list of directory names to search for
+    :param path: path to be resolved
+    :param templates: list of directory names to search for
     :return: bool value representing result
     """
     for template in templates:
@@ -57,9 +57,9 @@ def find_executable(cmd: Optional[str]) -> Optional[str]:
     """Check if the supplied cmd is executable and find its real path
     (i.e. absolute path with resolved symlinks)
 
-    :param str cmd: the command to check
+    :param cmd: the command to check
 
-    :return str: resolved command path
+    :return: resolved command path
     """
     # Ignore invalid paths
     if cmd is None:
@@ -79,8 +79,8 @@ def find_executable(cmd: Optional[str]) -> Optional[str]:
 def is_executable_elf(file: str, only_not_stripped: bool = False) -> bool:
     """Check if file is executable ELF binary.
 
-    :param str file: the file path
-    :param bool only_not_stripped: flag indicating whether also check stripped binaries or not
+    :param file: the file path
+    :param only_not_stripped: flag indicating whether also check stripped binaries or not
     :return: bool value representing check result
     """
     # Determine file magic code, we are looking out for ELF files
@@ -96,8 +96,8 @@ def get_directory_elf_executables(
 ) -> Iterable[str]:
     """Get all ELF executable (stripped or not) from directory tree recursively.
 
-    :param str root: directory tree root
-    :param bool only_not_stripped: flag indicating whether collect only binaries not stripped
+    :param root: directory tree root
+    :param only_not_stripped: flag indicating whether collect only binaries not stripped
     :return: generator object of executable binaries as file paths
     """
     root = os.path.join(root, "")
@@ -117,8 +117,8 @@ def get_project_elf_executables(root: str = ".", only_not_stripped: bool = False
     The function searches for executable files in build directories - if there are any, otherwise
     the whole project directory tree is traversed.
 
-    :param str root: directory tree root
-    :param bool only_not_stripped: flag indicating whether collect only binaries not stripped
+    :param root: directory tree root
+    :param only_not_stripped: flag indicating whether collect only binaries not stripped
     :return: list of project executable binaries as file paths
     """
     # Get possible binaries in build directories

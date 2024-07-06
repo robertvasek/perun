@@ -30,12 +30,12 @@ def specific_quad_data(
     Yielded data dictionary contains 'x_sum', 'y_sum', 'xy_sum', 'x_sq_sum', 'y_sq_sum',
     x_cube_sum, x4_sum, x_sq_y_sum, 'pts_num', 'x_start' and 'x_end' keys.
 
-    :param list x_pts: the list of x data points
-    :param list y_pts: the list of y data points
-    :param int steps: splits the data generation into specified steps
+    :param x_pts: the list of x data points
+    :param y_pts: the list of y data points
+    :param steps: splits the data generation into specified steps
     :raises GenericRegressionExceptionBase: the derived exceptions
     :raises TypeError: if the required function arguments are not in the unpacked dictionary input
-    :returns iterable: generator object which produces intermediate results for each computation
+    :return: generator object which produces intermediate results for each computation
         step in a data dictionary
     """
     # We also need the min and max values
@@ -113,16 +113,16 @@ def specific_quad_coefficients(
             S_x2x2 = SUM(x^4) - (SUM(x^2)^2 / n)
 
 
-    :param float x_sum: sum of x points values
-    :param float y_sum: sum of y points values
-    :param float xy_sum: sum of x*y values
-    :param float x_sq_sum: sum of x^2 values
-    :param float x_cube_sum: sum of x^3 values
-    :param float x4_sum: sum of x^4 values
-    :param float x_sq_y_sum: sum of x^2 * y values
-    :param int pts_num: number of summed points
+    :param x_sum: sum of x points values
+    :param y_sum: sum of y points values
+    :param xy_sum: sum of x*y values
+    :param x_sq_sum: sum of x^2 values
+    :param x_cube_sum: sum of x^3 values
+    :param x4_sum: sum of x^4 values
+    :param x_sq_y_sum: sum of x^2 * y values
+    :param pts_num: number of summed points
     :raises TypeError: if the required function arguments are not in the unpacked dictionary input
-    :returns dict: data dictionary with coefficients and intermediate results
+    :return: data dictionary with coefficients and intermediate results
     """
     # Compute the intermediate values
     s_xx = x_sq_sum - (x_sum**2 / pts_num)
@@ -166,14 +166,14 @@ def specific_quad_error(
         SSE equals to the Residual sum of squares, alternatively sum of squared error.
         TSS corresponds to the Total sum of squares.
 
-    :param list coeffs: list of computed coefficients in ascending order
-    :param float y_sum: sum of y values
-    :param float y_sq_sum: sum of y^2 values
-    :param float xy_sum: sum of x*y values
-    :param float x_sq_y_sum: sum of x^2 * y values
-    :param int pts_num: number of summed points
+    :param coeffs: list of computed coefficients in ascending order
+    :param y_sum: sum of y values
+    :param y_sq_sum: sum of y^2 values
+    :param xy_sum: sum of x*y values
+    :param x_sq_y_sum: sum of x^2 * y values
+    :param pts_num: number of summed points
     :raises TypeError: if the required function arguments are not in the unpacked dictionary input
-    :returns dict: data dictionary with error value, tss and sse results
+    :return: data dictionary with error value, tss and sse results
     """
     # Compute the TSS
     tss = y_sq_sum - ((y_sum**2) / pts_num)

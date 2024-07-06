@@ -54,9 +54,9 @@ def compute_window_stats(
     sub-intervals. A method returns the dictionary contains the computed statistical
     metrics and array which includes the edges of sub-intervals.
 
-    :param list x_pts: array with values of x-coordinates
-    :param list y_pts: array with values of y-coordinates
-    :return tuple: (dictionary with computed statistics, edges of individual sub-intervals)
+    :param x_pts: array with values of x-coordinates
+    :param y_pts: array with values of y-coordinates
+    :return: (dictionary with computed statistics, edges of individual sub-intervals)
     """
 
     def reshape_array(array: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
@@ -64,8 +64,8 @@ def compute_window_stats(
         The method reshapes the given array into several
         smaller arrays according to the given count.
 
-        :param npt.NDArray array: array with points to reshape
-        :return npt.NDArray: the reshaped array according to the given options
+        :param array: array with points to reshape
+        :return: the reshaped array according to the given options
         """
         # check whether the array contains the sufficient number of points to reshape
         if array.size % n:
@@ -134,9 +134,9 @@ def classify_stats_diff(
     the iteration over all metrics. Finally, a method determines the change states
     and computes the average relative error.
 
-    :param dict baseline_stats: contains the metrics on relevant sub-intervals from baseline model
-    :param dict target_stats: contains the metrics on relevant sub-intervals from target model
-    :return tuple: (change states on individual sub-intervals, average relative error)
+    :param baseline_stats: contains the metrics on relevant sub-intervals from baseline model
+    :param target_stats: contains the metrics on relevant sub-intervals from target model
+    :return: (change states on individual sub-intervals, average relative error)
     """
     # create vectorized functions which take a np.arrays as inputs and perform actions over it
     compare_diffs = np.vectorize(compare_diff_values)
@@ -184,9 +184,9 @@ def compare_diff_values(change_score: float, rel_error: float) -> float:
         || -> elif REL_ERROR <= CHANGE_THRESHOLD then change_score=change_score+(0.5*change_state)
         ||| -> else REL_ERROR > CHANGE_THRESHOLD then change_state=change_score+(1.0*change_state)
 
-    :param npt.NDArray change_score: array contains the values of relative error for sub-intervals
-    :param float rel_error: current value of relative error
-    :return npt.NDArray: update array with new values of change score
+    :param change_score: array contains the values of relative error for sub-intervals
+    :param rel_error: current value of relative error
+    :return: update array with new values of change score
     """
     if abs(rel_error) <= _STATS_DIFF_NO_CHANGE:
         change_score += 0
@@ -215,11 +215,11 @@ def execute_analysis(
     detected changes on all analysed sub-intervals commonly with the overall change between
     compared models.
 
-    :param str uid: unique identification of both analysed models
-    :param dict baseline_model: baseline model with all its parameters for comparison
-    :param dict target_model: target model with all its parameters for comparison
-    :param Profile target_profile: target model for the comparison
-    :param dict __: dictionary with baseline and target profiles
+    :param uid: unique identification of both analysed models
+    :param baseline_model: baseline model with all its parameters for comparison
+    :param target_model: target model with all its parameters for comparison
+    :param target_profile: target model for the comparison
+    :param __: dictionary with baseline and target profiles
     :return:
     """
     (
@@ -262,9 +262,9 @@ class LocalStatistics(AbstractBaseChecker):
         for running the detection between pairs of profile (baseline and target) and subsequently
         returns the information about detected changes.
 
-        :param Profile baseline_profile: base against which we are checking the degradation
-        :param Profile target_profile: profile corresponding to the checked minor version
-        :param str models_strategy: detection model strategy for obtains the relevant kind of models
+        :param baseline_profile: base against which we are checking the degradation
+        :param target_profile: profile corresponding to the checked minor version
+        :param models_strategy: detection model strategy for obtains the relevant kind of models
         :returns: tuple - degradation result
         """
         for degradation_info in factory.run_detection_with_strategy(

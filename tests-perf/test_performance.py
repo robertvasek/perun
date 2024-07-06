@@ -24,8 +24,8 @@ RUN_SINGLE = False
 def run_benchmark(benchmark_dir, performance_tests):
     """Runs the benchmark on all of the files in the given benchmark directory
 
-    :param str benchmark_dir: directory, where benchmarks are stored
-    :param list performance_tests: list of performance tests that should be run
+    :param benchmark_dir: directory, where benchmarks are stored
+    :param performance_tests: list of performance tests that should be run
     """
     possible_tests = ("load", "query", "convert", "store")
     executed_tests = performance_tests or possible_tests
@@ -48,10 +48,10 @@ def run_benchmark(benchmark_dir, performance_tests):
 def performance_test(bench_dir, file, store_dir, executed_tests):
     """Runs sets of different operations over the profile stored in file
 
-    :param str bench_dir: directory, where benchmark file is stored
-    :param str file: file that is benchmarked
-    :param str store_dir:  directory, where benchmark file will be stored
-    :param list executed_tests: tests that should be executed
+    :param bench_dir: directory, where benchmark file is stored
+    :param file: file that is benchmarked
+    :param store_dir:  directory, where benchmark file will be stored
+    :param executed_tests: tests that should be executed
     :return: list of elapsed times in seconds
     """
     results = [file]

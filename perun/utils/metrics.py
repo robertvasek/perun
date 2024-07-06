@@ -18,11 +18,11 @@ from perun.utils import log
 class MetricsManager:
     """The metrics structure that keeps the records and all related properties.
 
-    :ivar bool enabled: specifies if metrics are to be collected or not
-    :ivar str metrics_id: the name under which the metrics are stored
-    :ivar str metrics_filename: the name of the temp file that stores the metrics
-    :ivar dict timers: keeps track of running timers
-    :ivar dict records: stores the metrics
+    :ivar enabled: specifies if metrics are to be collected or not
+    :ivar metrics_id: the name under which the metrics are stored
+    :ivar metrics_filename: the name of the temp file that stores the metrics
+    :ivar timers: keeps track of running timers
+    :ivar records: stores the metrics
     """
 
     __slots__ = ["enabled", "id_base", "metrics_id", "metrics_filename", "timers", "records"]
@@ -39,8 +39,8 @@ class MetricsManager:
     def configure(self, metrics_filename: str, metrics_id: str) -> None:
         """Sets the required properties for collecting metrics.
 
-        :param str metrics_filename: the name of the temp file that stores the metrics
-        :param str metrics_id: the name under which the metrics are stored
+        :param metrics_filename: the name of the temp file that stores the metrics
+        :param metrics_id: the name under which the metrics are stored
         """
         self.enabled = True
         self.id_base = metrics_id
@@ -51,7 +51,7 @@ class MetricsManager:
     def switch_id(self, new_id: str) -> None:
         """Assigns new active ID.
 
-        :param str new_id: the name under which the metrics are stored
+        :param new_id: the name under which the metrics are stored
         """
         self.timers = {}
         self.id_base = new_id
@@ -61,7 +61,7 @@ class MetricsManager:
     def add_sub_id(self, sub_id: str) -> None:
         """Creates a new ID in the metrics file in format <base_id>.<sub_id>
 
-        :param str sub_id: a suffix to the current base ID.
+        :param sub_id: a suffix to the current base ID.
         """
         new_id = f"{self.id_base}.{sub_id}"
         self.records[new_id] = self.records.pop(self.id_base, {})
@@ -75,7 +75,7 @@ Metrics = MetricsManager()
 def is_enabled() -> bool:
     """Checks if metrics collection is enabled.
 
-    :return bool: True if metrics are being collected, False otherwise
+    :return: True if metrics are being collected, False otherwise
     """
     return Metrics.enabled
 
@@ -83,7 +83,7 @@ def is_enabled() -> bool:
 def start_timer(name: str) -> None:
     """Starts a new timer.
 
-    :param str name: the name of the timer (and also the metric)
+    :param name: the name of the timer (and also the metric)
     """
     if Metrics.enabled:
         Metrics.timers[name] = time.time()
@@ -92,7 +92,7 @@ def start_timer(name: str) -> None:
 def end_timer(name: str) -> None:
     """Stops the specified running timer and stores the resulting time into metrics
 
-    :param str name: the name of the timer
+    :param name: the name of the timer
     """
     if Metrics.enabled:
         if name in Metrics.timers:
@@ -104,8 +104,8 @@ def end_timer(name: str) -> None:
 def add_metric(name: str, value: Any) -> None:
     """Add new metric and its value.
 
-    :param str name: name of the metric
-    :param object value: the value of the metric
+    :param name: name of the metric
+    :param value: the value of the metric
     """
     if Metrics.enabled:
         Metrics.records[Metrics.metrics_id][name] = value
@@ -114,9 +114,9 @@ def add_metric(name: str, value: Any) -> None:
 def read_metric(name: str, default: Optional[Any] = None) -> Optional[Any]:
     """Read the current value of a metric specified by its ID
 
-    :param str name: the ID of the metric to fetch
-    :param object default: the default value in case no metric is recorded under the given ID
-    :return object: the metric value or default
+    :param name: the ID of the metric to fetch
+    :param default: the default value in case no metric is recorded under the given ID
+    :return: the metric value or default
     """
     if Metrics.enabled:
         return Metrics.records[Metrics.metrics_id].get(name, default)

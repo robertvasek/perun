@@ -56,8 +56,8 @@ class LockType(Enum):
     def suffix_to_type(cls, suffix: str) -> Optional["LockType"]:
         """Transforms the given suffix into the corresponding LockType item.
 
-        :param str suffix: the suffix to transform
-        :return LockType or None: corresponding LockType or None if the suffix has none
+        :param suffix: the suffix to transform
+        :return: corresponding LockType or None if the suffix has none
         """
         for resource in cls:
             if resource.value == suffix:
@@ -69,11 +69,11 @@ class ResourceLock:
     """A class for locking certain resources (given by the LockType enum) used by the trace
     collector.
 
-    :ivar str name: the name of the lock (e.g. the name of the profiled binary file)
-    :ivar LockType type: the type of the resource that is being locked
-    :ivar int pid: the PID of the locking process
-    :ivar str locks_dir: the path to the .perun directory where lock files are stored
-    :ivar str file: the full path of the resulting lock file
+    :ivar name: the name of the lock (e.g. the name of the profiled binary file)
+    :ivar type: the type of the resource that is being locked
+    :ivar pid: the PID of the locking process
+    :ivar locks_dir: the path to the .perun directory where lock files are stored
+    :ivar file: the full path of the resulting lock file
     """
 
     __slots__ = ["name", "type", "pid", "locks_dir", "file"]
@@ -83,10 +83,10 @@ class ResourceLock:
     ) -> None:
         """Construct lock object
 
-        :param LockType resource_type: the type of the resource to lock
-        :param str resource_name: the name of the lock (e.g. the name of the profiled binary file)
-        :param int pid: the PID of the locking process
-        :param str locks_dir: the path to the .perun directory where lock files are stored
+        :param resource_type: the type of the resource to lock
+        :param resource_name: the name of the lock (e.g. the name of the profiled binary file)
+        :param pid: the PID of the locking process
+        :param locks_dir: the path to the .perun directory where lock files are stored
         """
         self.name = resource_name
         self.type = resource_type
@@ -98,8 +98,8 @@ class ResourceLock:
     def fromfile(cls, lock_file: str) -> Optional["ResourceLock"]:
         """Construct ResourceLock object from a lock file
 
-        :param str lock_file: the path of the lock file
-        :return ResourceLock or None: the lock object or None if the file does not represent a lock
+        :param lock_file: the path of the lock file
+        :return: the lock object or None if the file does not represent a lock
         """
         with SuppressedExceptions(ValueError):
             # Get the resource name and pid
@@ -182,12 +182,12 @@ def get_active_locks_for(
     constraints in terms of resource name, type and PIDs. If the constraint is set to None, then
     it is simply ignored.
 
-    :param str locks_dir: the directory where to look for the lock files
-    :param list names: the list of resource names to look for
-    :param list resource_types: the types of locks to look for
-    :param list pids: the PIDs to look for
+    :param locks_dir: the directory where to look for the lock files
+    :param names: the list of resource names to look for
+    :param resource_types: the types of locks to look for
+    :param pids: the PIDs to look for
 
-    :return list: the list of ResourceLock objects
+    :return: the list of ResourceLock objects
     """
 
     def is_matching(
@@ -195,11 +195,11 @@ def get_active_locks_for(
     ) -> bool:
         """Checks the given parameters and compares them with the filtering constraints.
 
-        :param str name: the resource name to check
-        :param LockType r_type: the type of resource lock
-        :param int lock_pid: the pid of the lock
+        :param name: the resource name to check
+        :param r_type: the type of resource lock
+        :param lock_pid: the pid of the lock
 
-        :return bool: true if the parameters are conforming to the filtering rules
+        :return: true if the parameters are conforming to the filtering rules
         """
         return (
             (names is None or name in names)
@@ -220,9 +220,9 @@ def get_active_locks_for(
 def _is_running_perun_process(pid: int) -> bool:
     """Checks if the given PID represents a currently running perun process,
 
-    :param int pid: the PID of the process
+    :param pid: the PID of the process
 
-    :return bool: true if the PID belongs to a running perun process, false otherwise
+    :return: true if the PID belongs to a running perun process, false otherwise
     """
     # Request information about process with the given PID
     WATCH_DOG.debug(f"Checking the details of a process '{pid}'")

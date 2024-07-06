@@ -19,8 +19,8 @@ def predicate_from_cli(cli_result: click.testing.Result | list[str] | str, predi
     debugging, since CliRunner of click captures the output. Currently, the function lists the
     captured output and trace leading to the error/exception (if raised).
 
-    :param click.testing.Result cli_result: result object of
-    :param bool predicate: predicate returning true or false
+    :param cli_result: result object of
+    :param predicate: predicate returning true or false
     """
     try:
         assert predicate
@@ -47,9 +47,9 @@ def invalid_cli_choice(
 ) -> None:
     """Checks, that click correctly ended as invalid choice
 
-    :param click.testing.Result cli_result: result of the commandline interface
-    :param str choice: choice that we tried
-    :param str file: name of the file that should not be created (optional)
+    :param cli_result: result of the commandline interface
+    :param choice: choice that we tried
+    :param file: name of the file that should not be created (optional)
     """
     predicate_from_cli(cli_result, cli_result.exit_code == 2)
     predicate_from_cli(cli_result, f"'{choice}' is not one of" in cli_result.output)
@@ -61,9 +61,9 @@ def invalid_param_choice(
     cli_result: click.testing.Result, choice: str, file: Optional[str] = None
 ) -> None:
     """Checks that click correctly ended with invalid choice and 1 return code
-    :param click.test.Result cli_result: result of the commandline interface
-    :param str choice: choice that we tried
-    :param str file: name of the file that should not be created (optional)
+    :param cli_result: result of the commandline interface
+    :param choice: choice that we tried
+    :param file: name of the file that should not be created (optional)
     """
     predicate_from_cli(cli_result, cli_result.exit_code == 1)
     predicate_from_cli(cli_result, f"Invalid value '{choice}'" in cli_result.output)

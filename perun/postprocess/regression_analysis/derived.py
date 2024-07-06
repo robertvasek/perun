@@ -39,9 +39,9 @@ def derived_const(
        value of the threshold and add 1
      - multiply the 1 - (linear)R^2 by the coefficient
 
-    :param list of dict analysis: computed regression models
-    :param dict const_ref: the constant model template from _MODELS dictionary
-    :returns iterable: generator which produces constant model for every computed linear model
+    :param analysis: computed regression models
+    :param const_ref: the constant model template from _MODELS dictionary
+    :return: generator which produces constant model for every computed linear model
     """
     # Filter the required models from computed regression models
     analysis = _filter_by_models(analysis, const_ref["required"])
@@ -96,9 +96,9 @@ def derived_const(
 def _filter_by_models(analysis: list[dict[str, Any]], models: list[str]) -> list[dict[str, Any]]:
     """Filters regression results by computed models.
 
-    :param list of dict analysis: the computed regression models
-    :param list of str models: the list of models to filter from the analysis
-    :returns list: the filtered analysis results
+    :param analysis: the computed regression models
+    :param models: the list of models to filter from the analysis
+    :return: the filtered analysis results
     """
     # Filter the required models from the analysis list
     return list(filter(lambda m: "model" in m and m["model"] in models, analysis))

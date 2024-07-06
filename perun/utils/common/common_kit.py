@@ -131,8 +131,8 @@ def perun_confirm(confirm_message: str) -> bool:
 def first_index_of_attr(input_list: list[Any], attr: str, value: Any) -> int:
     """Helper function for getting the first index of a value in list of objects
 
-    :param list input_list: list of object that have attributes
-    :param str attr: name of the attribute we are getting
+    :param input_list: list of object that have attributes
+    :param attr: name of the attribute we are getting
     :param value: looked up value
     :return: index in the list or exception
     :raises: ValueError when there is no object with attribute with given value
@@ -149,7 +149,7 @@ def uid_getter(uid: tuple[str, Any]) -> int:
     or methods, on lines up to instruction. If we encounter unknown key, then we
     use some kind of lexicographic sorting
 
-    :param tuple uid: the part of the uid
+    :param uid: the part of the uid
     :return: the rank of the uid in the ordering
     """
     uid_priority = {
@@ -177,8 +177,8 @@ def uid_getter(uid: tuple[str, Any]) -> int:
 def str_to_plural(count: int, verb: str) -> str:
     """Helper function that returns the plural of the string if count is more than 1
 
-    :param int count: number of the verbs
-    :param str verb: name of the verb we are creating a plural for
+    :param count: number of the verbs
+    :param verb: name of the verb we are creating a plural for
     """
     return str(count) + " " + (verb + "s" if count != 1 else verb)
 
@@ -204,8 +204,8 @@ def format_counter_number(count: int, max_number: int) -> str:
     """Helper function that returns string formatted to number of places given by the length of max
     counter number.
 
-    :param int count: the current number of the counter
-    :param int max_number: the maximal number of counter
+    :param count: the current number of the counter
+    :param max_number: the maximal number of counter
     :return:
     """
     return f"{count:{len(str(max_number))}d}"
@@ -226,8 +226,8 @@ def default_signal_handler(signum: int, frame: traceback.StackSummary) -> None:
     To block all the signals handled by a certain HandledSignals context manager, a custom handler
     should be constructed in such a way that all the handled signals are set to signal.SIG_IGN.
 
-    :param int signum: representation of the signal that caused the handler to be invoked
-    :param object frame: the frame / stack trace object
+    :param signum: representation of the signal that caused the handler to be invoked
+    :param frame: the frame / stack trace object
     """
     signal.signal(signum, signal.SIG_IGN)
     raise SignalReceivedException(signum, frame)
@@ -239,7 +239,7 @@ def is_variable_len_dict(list_value: list[dict[Any, Any]]) -> bool:
 
     This the case, e.g. for coefficients of models.
 
-    :param list list_value: object we are testing
+    :param list_value: object we are testing
     :return: true if list_value is variable length dictionary
     """
     return len(list_value) != 0 and all(
@@ -252,7 +252,7 @@ def escape_ansi(line: str) -> str:
 
     Based on: https://stackoverflow.com/a/38662876
 
-    :param str line: line with ansi control characters
+    :param line: line with ansi control characters
     :return: ansi control-free string
     """
     ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
@@ -265,8 +265,8 @@ def touch_file(touched_filename: str, times: Optional[tuple[int, int]] = None) -
     Courtesy of:
     https://stackoverflow.com/questions/1158076/implement-touch-using-python
 
-    :param str touched_filename: filename that will be touched
-    :param time times: access times of the file
+    :param touched_filename: filename that will be touched
+    :param times: access times of the file
     """
     with open(touched_filename, "a"):
         os.utime(touched_filename, times)
@@ -277,7 +277,7 @@ def touch_dir(touched_dir: str) -> None:
     Touches directory, i.e. if it exists it does nothing and
     if the directory does not exist, then it creates it.
 
-    :param str touched_dir: path that will be touched
+    :param touched_dir: path that will be touched
     """
     if not os.path.exists(touched_dir):
         os.makedirs(touched_dir)
@@ -289,8 +289,8 @@ def path_to_subpaths(path: str) -> list[str]:
     >>> path_to_subpaths('/dir/subdir/subsubdir')
     ['/dir', '/dir/subdir', '/dir/subdir/subsubdir']
 
-    :param str path: path separated by os.sep separator
-    :returns list: list of subpaths
+    :param path: path separated by os.sep separator
+    :return: list of subpaths
     """
     components = os.path.abspath(path).split(os.sep)
     return [os.sep + components[0]] + [
@@ -304,8 +304,8 @@ def locate_perun_dir_on(path: str) -> str:
     Locates the nearest perun directory starting from the @p path. It walks all
     subpaths sorted by their length and checks if .perun directory exists there.
 
-    :param str path: starting point of the perun dir search
-    :returns str: path to perun dir or "" if the path is not underneath some underlying perun
+    :param path: starting point of the perun dir search
+    :return: path to perun dir or "" if the path is not underneath some underlying perun
         control
     """
     perun_dir = locate_dir_on(path, ".perun")
@@ -317,9 +317,9 @@ def locate_perun_dir_on(path: str) -> str:
 def locate_dir_on(path: str, searched_dir: str) -> str:
     """Locates the nearest directory containing the other directory
 
-    :param str path: starting point of the search
-    :param str path: dir we are searching
-    :returns str: path to dir or "" if the path is not underneath some underlying perun control
+    :param path: starting point of the search
+    :param path: dir we are searching
+    :return: path to dir or "" if the path is not underneath some underlying perun control
     """
     # convert path to subpaths and reverse the list so deepest subpaths are traversed first
     lookup_paths = path_to_subpaths(path)[::-1]
@@ -333,8 +333,8 @@ def locate_dir_on(path: str, searched_dir: str) -> str:
 def try_convert(value: Any, list_of_types: list[type]) -> Any:
     """Tries to convert a value into one of the specified types
 
-    :param object value: object that is going to be converted to one of the types
-    :param list list_of_types: list or tuple of supported types
+    :param value: object that is going to be converted to one of the types
+    :param list_of_types: list or tuple of supported types
     :return: converted value or None, if conversion failed for all the types
     """
     for checked_type in list_of_types:
@@ -347,7 +347,7 @@ def try_min(lhs: Optional[int | float], rhs: int | float) -> int | float:
 
     :param lhs: optional left side
     :param rhs: right side
-    :return minimum of two numbers or right number
+    :return: minimum of two numbers or right number
     """
     return rhs if lhs is None else min(lhs, rhs)
 
@@ -358,7 +358,7 @@ def identity(*args: Any) -> Any:
     Note that this is used as default transformator for to be used in arguments for transforming
     the data.
 
-    :param list args: list of input arguments
+    :param args: list of input arguments
     :return: non-changed list of arguments
     """
     # Unpack the tuple if it is single
@@ -368,9 +368,9 @@ def identity(*args: Any) -> Any:
 def safe_match(pattern: re.Pattern[str], searched_string: str, default: str) -> str:
     """Safely matches groups in searched string; if string not found returns @p default
 
-    :param re.Pattern pattern: compiled regular expression pattern
-    :param str searched_string: searched string
-    :param Optional[Any] default: default value returned if no match is found
+    :param pattern: compiled regular expression pattern
+    :param searched_string: searched string
+    :param default: default value returned if no match is found
     :return: matched value or default
     """
     match = pattern.search(searched_string)
@@ -390,8 +390,8 @@ def sanitize_filepart(part: str) -> str:
 def safe_division(dividend: float, divisor: float) -> float:
     """Safe division of dividend by operand
 
-    :param number dividend: upper operand of the division
-    :param number divisor: lower operand of the division, may be zero
+    :param dividend: upper operand of the division
+    :param divisor: lower operand of the division, may be zero
     :return: safe value after division of approximated zero
     """
     try:
@@ -412,9 +412,9 @@ def chunkify(generator: Iterable[Any], chunk_size: int) -> Iterable[Any]:
         _it3: 100,
         _it4: 50
 
-    :param generator generator: a generator object
-    :param int chunk_size: the maximum size of each chunk
-    :return generator: a generator object
+    :param generator: a generator object
+    :param chunk_size: the maximum size of each chunk
+    :return: a generator object
     """
     for first in generator:
         yield itertools.chain([first], itertools.islice(generator, chunk_size - 1))
@@ -425,8 +425,8 @@ def abs_in_absolute_range(value: float, border: float) -> bool:
 
     -border <= value <= border
 
-    :param numeric value: tests if the
-    :param numeric border:
+    :param value: tests if the
+    :param border:
     :return: true if the value is in absolute range
     """
     return -abs(border) <= value <= abs(border)
@@ -437,9 +437,9 @@ def abs_in_relative_range(value: float, range_val: float, range_rate: float) -> 
 
     (1 - range_rate) * range_val <= value <= (1 + range_rate) * range_val
 
-    :param numeric value: value we are testing if it is in the range
-    :param numeric range_val: value which gives the range
-    :param float range_rate: the rate in percents which specifies the range
+    :param value: value we are testing if it is in the range
+    :param range_val: value which gives the range
+    :param range_rate: the rate in percents which specifies the range
     :return: true if the value is in relative range
     """
     range_rate = range_rate if 0.0 <= range_rate <= 1.0 else 0.0
@@ -449,7 +449,7 @@ def abs_in_relative_range(value: float, range_val: float, range_rate: float) -> 
 def merge_dictionaries(*args: dict[Any, Any]) -> dict[Any, Any]:
     """Helper function for merging range (list, ...) of dictionaries to one to be used as oneliner.
 
-    :param list args: list of dictionaries
+    :param args: list of dictionaries
     :return: one merged dictionary
     """
     res = {}
@@ -467,9 +467,9 @@ def partition_list(
     Based on a SO answer featuring multiple methods and their performance comparison:
     'https://stackoverflow.com/a/31448772'
 
-    :param iterator input_list: the input list to be partitioned
-    :param function condition: the condition that should be evaluated on every list item
-    :return tuple: (list of items evaluated to True, list of items evaluated to False)
+    :param input_list: the input list to be partitioned
+    :param condition: the condition that should be evaluated on every list item
+    :return: (list of items evaluated to True, list of items evaluated to False)
     """
     good, bad = [], []
     for item in input_list:
@@ -483,7 +483,7 @@ def partition_list(
 def get_module(module_name: str) -> types.ModuleType:
     """Finds module by its name.
 
-    :param str module_name: dynamically load a module (but first check the cache)
+    :param module_name: dynamically load a module (but first check the cache)
     :return: loaded module
     """
     if module_name not in MODULE_CACHE.keys():
@@ -498,7 +498,7 @@ def compact_convert_list_to_str(
 
     :param number_list: list of numbers
     :param float_precision: float precision of the numbers
-    :return list of compact strings
+    :return: list of compact strings
     """
     return [compact_convert_num_to_str(num, 2) for num in number_list]
 
@@ -508,7 +508,7 @@ def compact_convert_num_to_str(number: int | float, float_precision: int = 2) ->
 
     :param number: converted number
     :param float_precision: float precision, i.e. number of decimal places in number
-    :return compact string
+    :return: compact string
     """
     return str(to_compact_num(number, float_precision))
 
@@ -518,7 +518,7 @@ def to_compact_num(number: int | float, float_precision: int = 2) -> int | float
 
     :param number: converted number
     :param float_precision: float precision, i.e. number of decimal places in number
-    :return compact num
+    :return: compact num
     """
     if isinstance(number, int):
         return number
@@ -599,7 +599,7 @@ def hide_generics(uid: str) -> str:
     This transforms std::<std::<type>> into std::<*>
 
     :param uid: uid with generics
-    :return uid without generics
+    :return: uid without generics
     """
     nesting = 0
     chars = []

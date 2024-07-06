@@ -49,9 +49,9 @@ class CGLevelMixin:
     def _estimator_dispatcher(self, estimator):
         """Fetches the appropriate handler function according to the selected estimator.
 
-        :param LevelEstimator estimator: the selected estimator
+        :param estimator: the selected estimator
 
-        :return function: appropriate estimator function
+        :return: appropriate estimator function
         """
         _dispatcher = {
             LevelEstimator.DFS: self._dfs_estimator,
@@ -221,11 +221,11 @@ class CGLevelMixin:
         select functions that have the currently lowest level estimate, since they might cause a
         domino effect by subsequently breaking other cycles.
 
-        :param dict tested: an internal structure that keeps track of the fully unresolved functions
-        :param set finished: a set of already fully resolved functions
-        :param list inspect_list: the set of functions that are queued for further expansion
+        :param tested: an internal structure that keeps track of the fully unresolved functions
+        :param finished: a set of already fully resolved functions
+        :param inspect_list: the set of functions that are queued for further expansion
 
-        :return bool: True if we managed to find and process a candidate, False otherwise
+        :return: True if we managed to find and process a candidate, False otherwise
         """
         # No more candidates, every function should have a valid level estimate
         if not tested["levels"]:
@@ -250,7 +250,7 @@ class CGLevelMixin:
         We set the level according to the maximum caller and callee level (to avoid e.g., two
         functions that call one another on the same level).
 
-        :param dict node: the object representing a CG function
+        :param node: the object representing a CG function
         """
         callers_max = max(node["level"])
         # Inspect the callees, however, they might or might not be already resolved
@@ -271,11 +271,11 @@ def _find_backedges_for(vertex, successors, idom):
     """Identifies backedges by computing the dominance relation that uses the transitive property
     of the immediate dominators.
 
-    :param str vertex: the CG vertex
-    :param iter successors: iterator of the vertex successors
-    :param dict idom: the immediate dominators dictionary
+    :param vertex: the CG vertex
+    :param successors: iterator of the vertex successors
+    :param idom: the immediate dominators dictionary
 
-    :return set: a set of backedges originating from the vertex
+    :return: a set of backedges originating from the vertex
     """
     # Get the trivial dominator (the vertex itself) and its immediate dominator
     dom = [vertex, idom[vertex]]
@@ -295,9 +295,9 @@ def _update_tested(tested, node, caller):
     """Update the internal structure that keeps track of candidates and their levels in a
     fast-access structure.
 
-    :param dict tested: the helper structure used during computing the CG levels property
-    :param dict node: the updated function, supplied as dictionary
-    :param str caller: the caller context, i.e., name of the caller function
+    :param tested: the helper structure used during computing the CG levels property
+    :param node: the updated function, supplied as dictionary
+    :param caller: the caller context, i.e., name of the caller function
     """
     # Get the node and levels structures
     levels = tested["levels"]
@@ -327,9 +327,9 @@ def _update_tested(tested, node, caller):
 def _delete_from_levels(levels, level, name):
     """Delete the specified function from the helper levels structure for candidates.
 
-    :param list levels: a list structure that bundles and keeps track of candidate levels
-    :param int level: the level containing the function to remove
-    :param str name: name of the function to remove
+    :param levels: a list structure that bundles and keeps track of candidate levels
+    :param level: the level containing the function to remove
+    :param name: name of the function to remove
     """
     if level != -1:
         levels[level].discard(name)

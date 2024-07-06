@@ -29,7 +29,7 @@ def build_demangle_cache(names: set[str]) -> None:
     Instead of continuous calls to subprocess, this takes all of the collected names
     and calls the demangle just once, while constructing the cache.
 
-    :param set names: set of names that will be demangled in future
+    :param names: set of names that will be demangled in future
     """
     global demangle_cache
 
@@ -41,8 +41,8 @@ def build_demangle_cache(names: set[str]) -> None:
 
 def demangle(name: str) -> str:
     """
-    :param string name: name to demangle
-    :returns string: demangled name
+    :param name: name to demangle
+    :return: demangled name
     """
     return demangle_cache[name]
 
@@ -53,8 +53,8 @@ def build_address_to_line_cache(addresses: set[tuple[str, str]], binary_name: st
     Instead of continuous calls to subprocess, this takes all of collected
     names and calls the addr2line just once.
 
-    :param set addresses: set of addresses that will be translated to line info
-    :param str binary_name: name of the binary which will be parsed for info
+    :param addresses: set of addresses that will be translated to line info
+    :param binary_name: name of the binary which will be parsed for info
     """
     global address_to_line_cache
 
@@ -69,16 +69,16 @@ def build_address_to_line_cache(addresses: set[tuple[str, str]], binary_name: st
 
 def address_to_line(ip: str) -> list[Any]:
     """
-    :param string ip: instruction pointer value
-    :returns list: list of two objects, 1st is the name of the source file, 2nd is the line number
+    :param ip: instruction pointer value
+    :return: list of two objects, 1st is the name of the source file, 2nd is the line number
     """
     return address_to_line_cache[ip][:]
 
 
 def run(executable: Executable) -> tuple[int, str]:
     """
-    :param Executable executable: executable command
-    :returns int: return code of executed binary
+    :param executable: executable command
+    :return: return code of executed binary
     """
     pwd = os.path.dirname(os.path.abspath(__file__))
     sys_call = 'LD_PRELOAD="' + pwd + '/malloc.so" ' + str(executable)
@@ -95,7 +95,7 @@ def run(executable: Executable) -> tuple[int, str]:
 def init() -> int:
     """Initialize the injected library
 
-    :returns bool: success of the operation
+    :return: success of the operation
     """
     pwd = os.path.dirname(os.path.abspath(__file__))
     ret = 1
@@ -108,8 +108,8 @@ def init() -> int:
 def check_debug_symbols(cmd: str) -> bool:
     """Check if binary was compiled with debug symbols
 
-    :param string cmd: binary file to profile
-    :returns bool: True if binary was compiled with debug symbols
+    :param cmd: binary file to profile
+    :return: True if binary was compiled with debug symbols
     """
     with SuppressedExceptions(subprocess.CalledProcessError):
         output = subprocess.check_output(["objdump", "-h", cmd])

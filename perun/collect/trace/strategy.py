@@ -34,8 +34,8 @@ def extract_configuration(engine, probes):
     according to the specific strategy. However the user can specify additional rules
     that have higher priority than the extracted ones.
 
-    :param CollectEngine engine: the collection engine object
-    :param Probes probes: the probes object
+    :param engine: the collection engine object
+    :param probes: the probes object
 
     """
     WATCH_DOG.info("Attempting to build the probes configuration")
@@ -64,10 +64,10 @@ def _extract_strategy_specifics(engine, probes):
     """Handles specific operations related to various strategies such as extracting function
     and USDT probe symbols.
 
-    :param CollectEngine engine: the collection engine object
-    :param Probes probes: the probes object
+    :param engine: the collection engine object
+    :param probes: the probes object
 
-    :return tuple: extracted functions or {}, extracted USDT probes or {}
+    :return: extracted functions or {}, extracted USDT probes or {}
     """
     # Extract the functions and usdt probes if needed
     func, usdt = {}, {}
@@ -89,9 +89,9 @@ def _pair_rules(usdt_probes):
     - the pairing algorithm first tries to pair the exact combination (e.g. begin, end) and if
       such exact combination is not found, then tries to pair rules among other combinations
 
-    :param dict usdt_probes: the collection of USDT probes that should be paired
+    :param usdt_probes: the collection of USDT probes that should be paired
 
-    :return dict: a new USDT probe collection with removed paired probes and updated 'pair' value
+    :return: a new USDT probe collection with removed paired probes and updated 'pair' value
                   for every probe (the probe is paired with itself in case no paired rule is found)
     """
     # Add reverse mapping for paired probes
@@ -158,10 +158,10 @@ def _classify_usdt_probes(usdt_probes, suffix_pairs):
        - probes with 'starting' suffixes specified in suffix pairs or without suffix
        - probes with 'ending' suffixes
 
-    :param dict usdt_probes: the dictionary of USDT probes to be paired
-    :param dict suffix_pairs: the suffix pairing combinations
+    :param usdt_probes: the dictionary of USDT probes to be paired
+    :param suffix_pairs: the suffix pairing combinations
 
-    :return tuple: delimited probes, starting probes, ending probes
+    :return: delimited probes, starting probes, ending probes
     """
     # Split the probes into group with and without delimiter ';'
     delimited, basic = dict(), dict()
@@ -187,9 +187,9 @@ def _check_suffix_of(usdt_probe, suffix_group, cls):
     """Checks if the probe name contains any suffix from the suffix group and if yes, classifies it
     into the specified cls. Also stores the delimiter between the probe name and suffix, if any.
 
-    :param dict usdt_probe: the given probe specification
-    :param collection suffix_group: the collection of suffixes to check
-    :param dict cls: the resulting class
+    :param usdt_probe: the given probe specification
+    :param suffix_group: the collection of suffixes to check
+    :param cls: the resulting class
     """
     # Iterate the suffixes from suffix group and check if the probe name ends with one of them
     for suffix in suffix_group:
@@ -209,11 +209,11 @@ def _pair_suffixes(b_suffixes, e_suffixes, pair_by):
     """Pairs the starting and ending suffixes of one probe according to the provided
     pairing function. Successfully paired suffixes are removed from the suffix lists.
 
-    :param list b_suffixes: the list of beginning suffixes associated with the probe
-    :param list e_suffixes: the list of ending suffixes
-    :param function pair_by: function that takes beginning suffix (in lowercase) and should
+    :param b_suffixes: the list of beginning suffixes associated with the probe
+    :param e_suffixes: the list of ending suffixes
+    :param pair_by: function that takes beginning suffix (in lowercase) and should
                              return the expected ending suffix or collection of them
-    :return list: the list of combined suffix pairs
+    :return: the list of combined suffix pairs
     """
     # Check if the probe has matching starting and ending suffixes
     pairs = []
@@ -233,19 +233,19 @@ def _pair_suffixes(b_suffixes, e_suffixes, pair_by):
 def _add_paired_probe(probe_start, probe_end, usdt_probes, result):
     """Add paired rule to the resulting probe dictionary.
 
-    :param str probe_start: the starting probe name
-    :param str probe_end: the paired ending probe name
-    :param dict usdt_probes: the probes dictionary
-    :param dict result: the new dictionary of USDT probes
+    :param probe_start: the starting probe name
+    :param probe_end: the paired ending probe name
+    :param usdt_probes: the probes dictionary
+    :param result: the new dictionary of USDT probes
     """
 
     def is_unique(probe_name):
         """A helper function for determining if the given probe name is not already contained
         in the resulting dictionary or if it has not been already removed.
 
-        :param str probe_name: the name of the probe to check
+        :param probe_name: the name of the probe to check
 
-        :return bool: specifies if the probe is indeed unique
+        :return: specifies if the probe is indeed unique
         """
         return probe_name not in result and probe_name not in result["#pairs_reversed#"]
 
@@ -267,10 +267,10 @@ def _add_paired_probe(probe_start, probe_end, usdt_probes, result):
 def _add_suffix_probes(name, suffixes, usdt_probes, result):
     """Add USDT probe rules created from name and suffixes as non-paired rules
 
-    :param str name: the base name of the probe
-    :param list suffixes: list of all the suffixes to add
-    :param dict usdt_probes: the original USDT probes dictionary
-    :param dict result: the new USDT probe dictionary
+    :param name: the base name of the probe
+    :param suffixes: list of all the suffixes to add
+    :param usdt_probes: the original USDT probes dictionary
+    :param result: the new USDT probe dictionary
     """
     if not suffixes:
         _add_single_probe(name, usdt_probes, result)
@@ -283,9 +283,9 @@ def _add_suffix_probes(name, suffixes, usdt_probes, result):
 def _add_single_probe(name, usdt_probes, result):
     """Add non-paired USDT probe to the resulting probe collection.
 
-    :param str name: the probe name
-    :param dict usdt_probes: the original probes dictionary
-    :param dict result: the new USDT probe dictionary
+    :param name: the probe name
+    :param usdt_probes: the original probes dictionary
+    :param result: the new USDT probe dictionary
     """
     if name in usdt_probes and name not in result["#pairs_reversed#"]:
         usdt_probes[name]["pair"] = name
@@ -297,11 +297,11 @@ def _add_single_probe(name, usdt_probes, result):
 def _extract_functions(targets, strategy, global_sampling):
     """Extracts function symbols from the supplied binary.
 
-    :param list targets: paths to executables / libraries that should have their symbols extracted
-    :param str strategy: name of the applied extraction strategy
-    :param int global_sampling: the sampling value applied to all extracted function locations
+    :param targets: paths to executables / libraries that should have their symbols extracted
+    :param strategy: name of the applied extraction strategy
+    :param global_sampling: the sampling value applied to all extracted function locations
 
-    :return dict: extracted function symbols stored as probes = dictionaries
+    :return: extracted function symbols stored as probes = dictionaries
     """
     # Load userspace / all function symbols from the binary
     user = strategy in (Strategy.USERSPACE, Strategy.USERSPACE_SAMPLED)
@@ -326,10 +326,10 @@ def _extract_functions(targets, strategy, global_sampling):
 def _extract_usdt(engine, global_sampling):
     """Extract USDT probe locations from the supplied binary file.
 
-    :param CollectEngine engine: the collection engine object
-    :param int global_sampling: the sampling value applied to all extracted USDT probe locations
+    :param engine: the collection engine object
+    :param global_sampling: the sampling value applied to all extracted USDT probe locations
 
-    :return dict: extracted USDT locations stored as probes = dictionaries
+    :return: extracted USDT locations stored as probes = dictionaries
     """
     # Extract the usdt probe locations from the binary
     usdt_probes = engine.available_usdt()
@@ -345,10 +345,10 @@ def _extract_usdt(engine, global_sampling):
 def _load_function_names(binary, only_user):
     """Load all / userspace function symbols from the supplied binary.
 
-    :param str binary: the path to the profiled binary
-    :param bool only_user: True if only userspace symbols are to be extracted
+    :param binary: the path to the profiled binary
+    :param only_user: True if only userspace symbols are to be extracted
 
-    :return str: the output of the symbol extraction as a string
+    :return: the output of the symbol extraction as a string
     """
     # Extract user function symbols from the supplied binary
     awk_filter = '$2 == "T" || $2 == "t"' if only_user else '$2 == "T" || $2 == "W"'
@@ -362,9 +362,9 @@ def _filter_user_symbol(func):
     """Filtering function for extracted function symbols from the executable,
     specifically used to filter symbols that are from standard library etc.
 
-    :param str func: the (mangled) function name
+    :param func: the (mangled) function name
 
-    :return bool: True if the function is from the user, false otherwise
+    :return: True if the function is from the user, false otherwise
     """
     if not func:
         return False

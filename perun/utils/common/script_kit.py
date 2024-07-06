@@ -22,7 +22,7 @@ def get_script(script_name: str) -> str:
     """Retrieves path to the script
 
     :param script_name: name of the retrieved script
-    :return path to the script
+    :return: path to the script
     """
     script_dir = Path(Path(__file__).resolve().parent, "..", "..", "scripts")
     return os.path.join(script_dir, script_name)
@@ -39,9 +39,9 @@ def create_unit_from_template(template_type: str, no_edit: bool, **kwargs: Any) 
     where new modules has to be registered) are opened in the editor set in the general.config key
     (which is looked up recursively).
 
-    :param str template_type: name of the template set, that will be created
-    :param bool no_edit: if set to true, then external editor will not be called to edit the files
-    :param dict kwargs: additional parameters to the concrete templates
+    :param template_type: name of the template set, that will be created
+    :param no_edit: if set to true, then external editor will not be called to edit the files
+    :param kwargs: additional parameters to the concrete templates
     :raises ExternalEditorErrorException: When anything bad happens when processing newly created
         files with editor
     """
@@ -49,7 +49,7 @@ def create_unit_from_template(template_type: str, no_edit: bool, **kwargs: Any) 
     def template_name_filter(template_name: str) -> bool:
         """Helper function for filtering functions which starts with the template_type name
 
-        :param str template_name: name of the template set
+        :param template_name: name of the template set
         :return: true if the function starts with template_type
         """
         return template_name.startswith(template_type)

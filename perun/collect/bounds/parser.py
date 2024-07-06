@@ -62,7 +62,7 @@ def partition_list(source_list: list[str], pred: Callable[[str], bool]) -> list[
     First we find all the elements of the list that satisfy @p pred, then we break the list into
     chunks between these indexes.
 
-    :param list source_list:
+    :param source_list:
     :param pred:
     :return:
     """
@@ -78,8 +78,8 @@ def parse_file(file_info: str, source_map: dict[str, str]) -> list[dict[str, Any
     Each file consist of several functions which are preceded by keyword Function and the function
     name. Then a list of individual bounds for each cycle in the function is listed.
 
-    :param str file_info: result of analysis of one single file
-    :param dict source_map: mapping of compiled files to real sources
+    :param file_info: result of analysis of one single file
+    :param source_map: mapping of compiled files to real sources
     :return: list of resources
     """
     filtered_file = list(filter(lambda line: not re.match(r"^\s*$", line), file_info.split("\n")))
@@ -98,9 +98,9 @@ def lookup_function_location(
 
     If no bounds were inferred we return 0, 0, since we do not really precisely detect the position.
 
-    :param str function_name: name of the looked-up function
-    :param str file_name: source file, where function is defined
-    :param list lines_for_bounds: list of inferred bounds
+    :param function_name: name of the looked-up function
+    :param file_name: source file, where function is defined
+    :param lines_for_bounds: list of inferred bounds
     :return: line and column of the definition of given function
     """
     if not lines_for_bounds:
@@ -134,8 +134,8 @@ def parse_function(func_info: list[str], file_name: str) -> list[dict[str, Any]]
         line <row> / <col>
         FAILED to compute RF  ( RFComputationFailed)
 
-    :param list func_info: list of lines in function
-    :param str file_name: the name of the analysed file that contains the function
+    :param func_info: list of lines in function
+    :param file_name: the name of the analysed file that contains the function
     :return: list of resources
     """
     resources = []
@@ -196,8 +196,8 @@ def parse_output(output: str, source_map: dict[str, str]) -> list[dict[str, Any]
 
     Each resource specifies the collection fo bounds of functions specified in files.
 
-    :param str output: string output of the Loopus; format is specified above at docstring
-    :param dict source_map: mapping of compiled files to real sources
+    :param output: string output of the Loopus; format is specified above at docstring
+    :param source_map: mapping of compiled files to real sources
     :return: list of resources
     """
     files = [finfo for finfo in output.split("--------------------------------------\n") if finfo]

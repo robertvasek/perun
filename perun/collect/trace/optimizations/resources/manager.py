@@ -25,10 +25,10 @@ class Resources(Enum):
 def extract(resource, **kwargs):
     """Extract the selected resource.
 
-    :param Resources resource: the requested optimization resource
+    :param resource: the requested optimization resource
     :param kwargs: additional extraction parameters
 
-    :return object: the extracted resource object
+    :return: the extracted resource object
     """
     provider_method = resource.value[0]
     resource = provider_method(**kwargs)
@@ -38,7 +38,7 @@ def extract(resource, **kwargs):
 def store(resource, **kwargs):
     """Store the selected resource.
 
-    :param Resource resource: the stored optimization resource
+    :param resource: the stored optimization resource
     :param kwargs: additional parameters for the specific methods
     """
     store_method = resource.value[1]

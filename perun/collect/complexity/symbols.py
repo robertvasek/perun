@@ -47,9 +47,9 @@ class RuleKey:
 def extract_symbols(executable_path: str) -> list[str]:
     """Extracts only defined function symbol names from the executable
 
-    :param str executable_path: path to the executable
+    :param executable_path: path to the executable
 
-    :return list: function symbol names
+    :return: function symbol names
     """
     return _get_symbols(executable_path, [_SYMTABLE_NAME_COLUMN])
 
@@ -57,9 +57,9 @@ def extract_symbols(executable_path: str) -> list[str]:
 def extract_symbol_map(executable_path: str) -> dict[str, str]:
     """Extracts defined function symbol names and their addresses from the executable
 
-    :param str executable_path: path to the executable
+    :param executable_path: path to the executable
 
-    :return dict: function symbols map in form 'mangled name: hex address'
+    :return: function symbols map in form 'mangled name: hex address'
     """
     # Get the mangled function names and addresses
     symbols = _get_symbols(executable_path, [_SYMTABLE_ADDR_COLUMN, _SYMTABLE_NAME_COLUMN])
@@ -73,9 +73,9 @@ def extract_symbol_map(executable_path: str) -> dict[str, str]:
 def extract_symbol_address_map(executable_path: str) -> dict[str, str]:
     """Extracts defined function symbol addresses and demangled names
 
-    :param str executable_path: path to the executable
+    :param executable_path: path to the executable
 
-    :return dict: function symbols map in form 'hex address: demangled name'
+    :return: function symbols map in form 'hex address: demangled name'
     """
     # Get the mangled function names and addresses
     symbols = _get_symbols(executable_path, [_SYMTABLE_ADDR_COLUMN, _SYMTABLE_NAME_COLUMN])
@@ -93,9 +93,9 @@ def extract_symbol_address_map(executable_path: str) -> dict[str, str]:
 def translate_mangled_symbols(mangled_names: list[str]) -> dict[str, str]:
     """Translates the mangled names to their demangled counterparts
 
-    :param list mangled_names: the names to be translated
+    :param mangled_names: the names to be translated
 
-    :return dict: function symbols name map in form 'mangled name: demangled name'
+    :return: function symbols name map in form 'mangled name: demangled name'
     """
     # Transform the names to string parameter
     mangled_str = "\n".join(mangled_names)
@@ -115,10 +115,10 @@ def filter_symbols(
 ) -> tuple[list[RuleKey], list[str], list[str]]:
     """Filters the function symbols and creates the static exclude and include dict
 
-    :param list symbols: function symbols mangled names extracted from an executable
-    :param list profile_rules: rules specifying which functions should be profiled
+    :param symbols: function symbols mangled names extracted from an executable
+    :param profile_rules: rules specifying which functions should be profiled
 
-    :return tuple:  list of include symbols as rule_key tuple
+    :return:  list of include symbols as rule_key tuple
                     list of statically excluded function symbols
                     list of runtime filtered function symbols in mangled format
     """
@@ -134,7 +134,7 @@ def filter_symbols(
 def unify_sample_func(func: str) -> str:
     """Unifies the sampling function specification.
 
-    :param str func: the function prototype to be unified
+    :param func: the function prototype to be unified
 
     :return: str: the unified function prototype
     """
@@ -145,10 +145,10 @@ def unify_sample_func(func: str) -> str:
 def _get_symbols(executable_path: str, columns: list[int]) -> list[str]:
     """Creates the pipe of linux utils to access and filter executable symbol table
 
-    :param str executable_path: path to the executable
-    :param list columns: symbol table column numbers which should be captured
+    :param executable_path: path to the executable
+    :param columns: symbol table column numbers which should be captured
 
-    :return list: sequential symbol table values [column1, column2, column1, ...]
+    :return: sequential symbol table values [column1, column2, column1, ...]
     """
     # Convert the columns list to string parameter
     columns_str = ",".join(str(column) for column in columns)
@@ -179,12 +179,12 @@ def _finalize_exclude_lists(
         to function overloading and identifier duplication, provides final static exclude list
         and runtime filter list.
 
-    :param dict exclude_list: function symbols to be excluded as
+    :param exclude_list: function symbols to be excluded as
                                 'mangled name: prototype parts tuple'
-    :param dict include_list: function symbols to be profiled as
+    :param include_list: function symbols to be profiled as
                                 'rule_key tuple: prototype parts tuple'
 
-    :return tuple:  list of statically excluded function identifiers
+    :return:  list of statically excluded function identifiers
                     list of runtime filtered function symbols in mangled format
     """
     # Solves the collisions in names
@@ -206,9 +206,9 @@ def _dismantle_symbols(symbol_map: dict[str, str]) -> dict[str, PrototypeParts]:
         identifier; argument list; scoped identifier name; scoped argument list; full identifier
         name (with all template specializations); full argument list (also template specializations)
 
-    :param dict symbol_map: symbol name map in form 'mangled name: demangled name'
+    :param symbol_map: symbol name map in form 'mangled name: demangled name'
 
-    :return dict: decomposed symbol map in form 'mangled name: prototype_parts tuple'
+    :return: decomposed symbol map in form 'mangled name: prototype_parts tuple'
     """
     specification_map = dict()
     for key in symbol_map.keys():
@@ -221,9 +221,9 @@ def _dismantle_symbols(symbol_map: dict[str, str]) -> dict[str, PrototypeParts]:
 def _process_symbol(function_prototype: str) -> PrototypeParts:
     """Decomposes the function prototype to the parts specified in _dismantle_symbols
 
-    :param str function_prototype: the full demangled function prototype name
+    :param function_prototype: the full demangled function prototype name
 
-    :return tuple: the prototype_parts named tuple with all the function parts
+    :return: the prototype_parts named tuple with all the function parts
     """
     # Unify the function prototype
     prototype_body, prototype_args = _unify_function_format(function_prototype)
@@ -246,9 +246,9 @@ def _unify_function_format(function_prototype: str) -> tuple[str, str]:
     Notably all redundant whitespaces are removed, return type is removed and function
     prototype is split into prototype body and argument list.
 
-    :param str function_prototype: the 'raw' function prototype
+    :param function_prototype: the 'raw' function prototype
 
-    :return tuple: the normalized function prototype body and argument list
+    :return: the normalized function prototype body and argument list
     """
     # Remove the redundant whitespaces
     function_prototype = function_prototype.replace(", ", ",")
@@ -265,9 +265,9 @@ def _unify_function_format(function_prototype: str) -> tuple[str, str]:
 def _find_argument_list_boundary(func: str) -> tuple[int, int]:
     """Finds the start and end position of function argument list specified by the parentheses
 
-    :param str func: the function to be processed
+    :param func: the function to be processed
 
-    :return tuple: start, end position as ints, -1 if no argument list was found
+    :return: start, end position as ints, -1 if no argument list was found
     """
     # Find the argument braces in the prototype
     arg_brace = _find_all_braces(func, "(", ")")
@@ -288,11 +288,11 @@ def _find_argument_list_boundary(func: str) -> tuple[int, int]:
 def _find_all_braces(target: str, opening: str, ending: str) -> list[int]:
     """Finds all indices of the given 'opening':'ending' brace pairs
 
-    :param str target: the string where to find the braces
-    :param char opening: the opening brace
-    :param char ending: the ending brace
+    :param target: the string where to find the braces
+    :param opening: the opening brace
+    :param ending: the ending brace
 
-    :return list: the list of brace indices
+    :return: the list of brace indices
     """
     return [i for i, char in enumerate(target) if char in (opening, ending)]
 
@@ -300,9 +300,9 @@ def _find_all_braces(target: str, opening: str, ending: str) -> list[int]:
 def _split_prototype(function_prototype: str) -> tuple[str, str]:
     """Splits the given function prototype to its body and argument list parts
 
-    :param str function_prototype: the function to be split
+    :param function_prototype: the function to be split
 
-    :return tuple: function body, function argument list
+    :return: function body, function argument list
     """
     arg_start, arg_end = _find_argument_list_boundary(function_prototype)
     # Split the prototype into body and argument part
@@ -317,9 +317,9 @@ def _split_prototype(function_prototype: str) -> tuple[str, str]:
 def _extract_function_identifier(function_prototype: str) -> str:
     """Extracts the function identifier from its prototype
 
-    :param str function_prototype: the function prototype
+    :param function_prototype: the function prototype
 
-    :return str: the extracted function identifier
+    :return: the extracted function identifier
     """
     # Slice the function identifier from the left side, only scope is possible delimiter
     scope = function_prototype.rfind("::")
@@ -331,9 +331,9 @@ def _extract_function_identifier(function_prototype: str) -> str:
 def _remove_templates(function_part: str) -> str:
     """Removes all template specifications from the function prototype or its part
 
-    :param str function_part: the function prototype part to be processed
+    :param function_part: the function prototype part to be processed
 
-    :return str: the function part without template specifications
+    :return: the function part without template specifications
     """
     # Find all template braces
     braces = _find_all_braces(function_part, "<", ">")
@@ -363,9 +363,9 @@ def _remove_return_type(function_body: str) -> str:
     """Removes the function return type (if present) from the function body,
         which should not contain the argument list!
 
-    :param str function_body: the body part of the function prototype
+    :param function_body: the body part of the function prototype
 
-    :return str: the function body without the return type specification
+    :return: the function body without the return type specification
     """
     # Check if function might contain return type specification
     return_type_delim = -1
@@ -389,9 +389,9 @@ def _remove_return_type(function_body: str) -> str:
 def _remove_argument_scopes(function_args: str) -> str:
     """Removes all type scope specification from the function argument list
 
-    :param str function_args: the function argument list in form '(...)'
+    :param function_args: the function argument list in form '(...)'
 
-    :return str: the argument list without scope specification
+    :return: the argument list without scope specification
     """
     # Empty operation on empty args
     if function_args == "":
@@ -414,9 +414,9 @@ def _prepare_profile_rules(profile_rules: list[str]) -> dict[str, list[str]]:
         Both body and argument part can be specified to certain level of detail, such as
         scoped identifier or fully specified identifier with template instantiation detail etc.
 
-    :param list profile_rules: the list of profiling rules specified by the user
+    :param profile_rules: the list of profiling rules specified by the user
 
-    :return dict: the rule details in the form 'rule: [body part, arg part (optional)]'
+    :return: the rule details in the form 'rule: [body part, arg part (optional)]'
     """
     details = dict()
     for rule in profile_rules:
@@ -439,11 +439,11 @@ def _prepare_profile_rules(profile_rules: list[str]) -> dict[str, list[str]]:
 def _specification_detail_to_parts(template: bool, scope: bool, section: str) -> str:
     """Transforms the specification detail to members of the PrototypeParts
 
-    :param bool template: true if template was part of the specification
-    :param bool scope: true if the rule was scoped
-    :param str section: the currently inspected rule section ('body' or 'args')
+    :param template: true if template was part of the specification
+    :param scope: true if the rule was scoped
+    :param section: the currently inspected rule section ('body' or 'args')
 
-    :return str: the resulting PrototypeParts value
+    :return: the resulting PrototypeParts value
     """
     if template:
         return f"full_{section}"
@@ -456,9 +456,9 @@ def _specification_detail_to_parts(template: bool, scope: bool, section: str) ->
 def _check_rule_specification_detail(rule_part: str) -> tuple[bool, bool]:
     """Checks if the rule contains scope or template specifications
 
-    :param str rule_part: the part of the rule (function body or argument lit)
+    :param rule_part: the part of the rule (function body or argument lit)
 
-    :return tuple: is scope used, is template used (True/False)
+    :return: is scope used, is template used (True/False)
     """
     template = False
     scope = False
@@ -477,11 +477,11 @@ def _check_rule_specification_detail(rule_part: str) -> tuple[bool, bool]:
 def _build_symbol_from_rules(symbol_parts: PrototypeParts, rule_details: list[str]) -> str:
     """Builds the symbol from its part, which are specified in the rule details
 
-    :param PrototypeParts symbol_parts: the symbol parts
-    :param list rule_details: list of prototype_parts attribute names which are used to build the
+    :param symbol_parts: the symbol parts
+    :param rule_details: list of prototype_parts attribute names which are used to build the
                               symbol
 
-    :return str: the built symbol
+    :return: the built symbol
     """
     symbol = ""
     # Build the symbol from the given parts
@@ -496,10 +496,10 @@ def _apply_profile_rules(
     """Applies the profiling rules given by the user to the extracted symbol table
         and thus creates the include and exclude list.
 
-    :param list profile_rules: the list of profiling rules
-    :param dict symbol_map: symbols name map in form 'mangled name: demangled name'
+    :param profile_rules: the list of profiling rules
+    :param symbol_map: symbols name map in form 'mangled name: demangled name'
 
-    :return tuple:  include dict in form 'rule_key tuple: prototype parts tuple'
+    :return:  include dict in form 'rule_key tuple: prototype parts tuple'
                     exclude dict as 'mangled name: prototype parts tuple'
     """
     # Decompose the symbols
@@ -530,10 +530,10 @@ def _find_exclude_collisions(
 ) -> tuple[dict[str, PrototypeParts], dict[str, PrototypeParts]]:
     """Finds the collisions in exclude and include list, which are solved by the runtime filter.
 
-    :param dict exclude_list: function exclude list as 'mangled name: prototype parts tuple'
-    :param dict include_list: function include list as 'rule_key tuple: prototype parts tuple'
+    :param exclude_list: function exclude list as 'mangled name: prototype parts tuple'
+    :param include_list: function include list as 'rule_key tuple: prototype parts tuple'
 
-    :return tuple:  exclude dict without the collisions as 'mangled name: prototype parts tuple'
+    :return:  exclude dict without the collisions as 'mangled name: prototype parts tuple'
                     runtime filter dict as 'mangled name: prototype parts tuple'
     """
     runtime_filter = dict()

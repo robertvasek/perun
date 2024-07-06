@@ -42,7 +42,7 @@ def prepare_workspace(source_path: str) -> None:
     utility have extension .gcov.
     Before meaningful testing, residual .gcda and .gcov files have to be removed.
 
-    :param str source_path: path to dir with source files, where coverage info files are stored
+    :param source_path: path to dir with source files, where coverage info files are stored
     """
     for file in os.listdir(source_path):
         if file.endswith(".gcda") or file.endswith(".gcov") or file.endswith(".gcov.json.gz"):
@@ -55,8 +55,8 @@ def get_src_files(source_path: str) -> list[str]:
     C/C++ files are identified with extensions: .c, .cc, .cpp. All these types of files located in
     source directory are collected together.
 
-    :param str source_path: path to directory with source files
-    :return list: list of source files (their absolute paths) located in `source_path`
+    :param source_path: path to directory with source files
+    :return: list of source files (their absolute paths) located in `source_path`
     """
     sources = []
 
@@ -78,10 +78,10 @@ def baseline_testing(
 ) -> int:
     """Coverage based testing initialization. Wrapper over function `get_initial_coverage`.
 
-    :param Executable executable: called command with arguments
-    :param list workloads: workloads for initial testing
-    :param FuzzingConfiguration config: configuration of the fuzzing
-    :return tuple: median of measured coverages
+    :param executable: called command with arguments
+    :param workloads: workloads for initial testing
+    :param config: configuration of the fuzzing
+    :return: median of measured coverages
     """
     # get source files (.c, .cc, .cpp, .h)
     config.coverage.source_files = get_src_files(config.coverage.source_path)
@@ -100,11 +100,11 @@ def get_initial_coverage(
 ) -> int:
     """Provides initial testing with initial samples given by user.
 
-    :param int timeout: specified timeout for run of target application
-    :param Executable executable: called command with arguments
-    :param list seeds: initial sample files
-    :param FuzzingConfiguration fuzzing_config: configuration of the fuzzing
-    :return int: median of measured coverages
+    :param timeout: specified timeout for run of target application
+    :param executable: called command with arguments
+    :param seeds: initial sample files
+    :param fuzzing_config: configuration of the fuzzing
+    :return: median of measured coverages
     """
     coverages = []
 
@@ -143,13 +143,13 @@ def target_testing(
     using `prepare_workspace` func, executes given command and `get_coverage_info` to
     obtain coverage information.
 
-    :param Executable executable: called command with arguments
-    :param Mutation workload: testing workload
-    :param Mutation parent: parent we are mutating
-    :param FuzzingConfiguration config: config of the fuzzing
-    :param FuzzingProgress fuzzing_progress: progress of the fuzzing process
-    :param dict __: additional information containing base result and path to .gcno files
-    :return bool: true if the base coverage has just increased
+    :param executable: called command with arguments
+    :param workload: testing workload
+    :param parent: parent we are mutating
+    :param config: config of the fuzzing
+    :param fuzzing_progress: progress of the fuzzing process
+    :param __: additional information containing base result and path to .gcno files
+    :return: true if the base coverage has just increased
     """
     prepare_workspace(config.coverage.gcno_path)
     command = " ".join([executable.cmd, workload.path])
@@ -168,8 +168,8 @@ def target_testing(
 
 def get_gcov_files(directory: str) -> list[str]:
     """Searches for gcov files in `directory`.
-    :param str directory: path of a directory, where searching will be provided
-    :return list: absolute paths of found gcov files
+    :param directory: path of a directory, where searching will be provided
+    :return: absolute paths of found gcov files
     """
     gcov_files = []
     for file in os.listdir(directory):
@@ -182,8 +182,8 @@ def get_gcov_files(directory: str) -> list[str]:
 def parse_coverage_from_line(line: str, coverage_config: CoverageConfiguration) -> int:
     """Parses coverage information out of the line according to the version of gcov
 
-    :param str line: one line in coverage info
-    :param CoverageConfiguration coverage_config: configuration of the coverage testing
+    :param line: one line in coverage info
+    :param coverage_config: configuration of the coverage testing
     :return: coverage info from one line
     """
     with SuppressedExceptions(ValueError):
@@ -205,9 +205,9 @@ def get_coverage_from_dir(cwd: str, config: CoverageConfiguration) -> int:
     Otherwise, standard gcov output file format  will be parsed.
     Current working directory is now changed back.
 
-    :param str cwd: current working directory for changing back
-    :param CoverageConfiguration config: configuration for coverage
-    :return list: absolute paths of generated .gcov files
+    :param cwd: current working directory for changing back
+    :param config: configuration for coverage
+    :return: absolute paths of generated .gcov files
     """
     os.chdir(config.gcno_path)
 
@@ -235,10 +235,10 @@ def check_if_coverage_increased(
 ) -> bool:
     """Condition for adding mutated input to set of candidates(parents).
 
-    :param int base_cov: base coverage
-    :param int cov: measured coverage of the current mutation
-    :param int parent_cov: coverage of mutation parent
-    :param int increase_ratio: desired coverage increase ration between `base_cov` and `cov`
-    :return bool: True if `cov` is greater than `base_cov` * `deg_ratio`, False otherwise
+    :param base_cov: base coverage
+    :param cov: measured coverage of the current mutation
+    :param parent_cov: coverage of mutation parent
+    :param increase_ratio: desired coverage increase ration between `base_cov` and `cov`
+    :return: True if `cov` is greater than `base_cov` * `deg_ratio`, False otherwise
     """
     return cov > int(base_cov * increase_ratio) and cov > parent_cov

@@ -52,8 +52,8 @@ def save_output_of_command(command: str, content: bytes, extension: str = "out")
 def get_stdout_from_external_command(command: list[str], stdin: Optional[IO[bytes]] = None) -> str:
     """Runs external command with parameters, checks its output and provides its output.
 
-    :param list command: list of arguments for command
-    :param handle stdin: the command input as a file handle
+    :param command: list of arguments for command
+    :param stdin: the command input as a file handle
     :return: string representation of output of command
     """
     output = subprocess.check_output(
@@ -74,11 +74,11 @@ def run_safely_external_command(
 
     Courtesy of: https://blog.avinetworks.com/tech/python-best-practices
 
-    :param str cmd: string with command that we are executing
-    :param bool check_results: check correct command exit code and raise exception in case of fail
-    :param bool quiet: if set to False, then it will print the output of the command
-    :param int timeout: timeout of the command
-    :param dict kwargs: additional args to subprocess call
+    :param cmd: string with command that we are executing
+    :param check_results: check correct command exit code and raise exception in case of fail
+    :param quiet: if set to False, then it will print the output of the command
+    :param timeout: timeout of the command
+    :param kwargs: additional args to subprocess call
     :return: returned standard output and error
     :raises subprocess.CalledProcessError: when any of the piped commands fails
     """
@@ -140,8 +140,8 @@ def run_safely_external_command(
 def run_safely_list_of_commands(cmd_list: list[str]) -> None:
     """Runs safely list of commands
 
-    :param list cmd_list: list of external commands
-    :raise subprocess.CalledProcessError: when there is an error in any of the commands
+    :param cmd_list: list of external commands
+    :raises subprocess.CalledProcessError: when there is an error in any of the commands
     """
     for cmd in cmd_list:
         log.write(">", cmd)
@@ -155,7 +155,7 @@ def run_safely_list_of_commands(cmd_list: list[str]) -> None:
 def run_external_command(cmd_args: list[str], **subprocess_kwargs: Any) -> int:
     """Runs external command with parameters.
 
-    :param list cmd_args: list of external command and its arguments to be run
+    :param cmd_args: list of external command and its arguments to be run
     :param subprocess_kwargs: additional parameters to the subprocess object
     :return: return value of the external command that was run
     """

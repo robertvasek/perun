@@ -228,8 +228,8 @@ def get_predefined_configuration(name: str, kwargs: dict[str, Any]) -> str:
     In case the specified configuration does not exist, then Master configuration is used as
     default.
 
-    :param str name: name of the predefined configuration
-    :param dict kwargs: additional keyword arguments
+    :param name: name of the predefined configuration
+    :param kwargs: additional keyword arguments
     :return: rendered template
     """
     # Lazy initialization of config template
@@ -332,7 +332,7 @@ class UserConfiguration(DeveloperConfiguration):
     def _all_candidate_files(include_list: set[str]) -> Iterable[str]:
         """Helper function that yield the stream of files contained in non-hidden directories
 
-        :param set include_list: set of directory names that can contain looked-up files
+        :param include_list: set of directory names that can contain looked-up files
         :return: iterable stream of files
         """
         for root, dirs, files in os.walk(os.getcwd(), topdown=True):

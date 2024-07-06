@@ -88,23 +88,23 @@ class TempFile:
     ensures that the temporary file is properly created (if it does not already exist) as well as
     deleted after the CM scope is left.
 
-    :ivar str filename: the name of the temporary file
-    :ivar str abspath: the absolute path to the temporary file
+    :ivar filename: the name of the temporary file
+    :ivar abspath: the absolute path to the temporary file
     """
 
     __slots__ = ["filename", "abspath"]
 
     def __init__(self, filename: str) -> None:
         """
-        :param str filename: the name of the temporary file
+        :param filename: the name of the temporary file
         """
-        self.filename = filename
-        self.abspath = temp_path(filename)
+        self.filename: str = filename
+        self.abspath: str = temp_path(filename)
 
     def __enter__(self) -> "TempFile":
         """Context manager entry sentinel, creates the temporary file
 
-        :return object: the context manager class instance
+        :return: the context manager class instance
         """
         touch_temp_file(self.filename)
         return self
@@ -112,9 +112,9 @@ class TempFile:
     def __exit__(self, exc_type: type, exc_val: Exception, exc_tb: BaseException) -> None:
         """Context manager exit sentinel, deletes the managed temporary file.
 
-        :param type exc_type: the type of the exception
-        :param exception exc_val: the value of the exception
-        :param traceback exc_tb: the traceback of the exception
+        :param exc_type: the type of the exception
+        :param exc_val: the value of the exception
+        :param exc_tb: the traceback of the exception
         """
         delete_temp_file(self.filename, force=True)
 
@@ -126,9 +126,9 @@ def temp_path(path: str) -> str:
                          root/working directory for the relative path
         - absolute or relative path out of the .perun/tmp/: an exception is raised
 
-    :param str path: the path that should be transformed
+    :param path: the path that should be transformed
 
-    :return str: the transformed path
+    :return: the transformed path
     """
     tmp_location = pcs.get_tmp_directory()
 
@@ -148,7 +148,7 @@ def touch_temp_dir(dir_path: str) -> None:
 
     For details regarding the path format, see the module docstring.
 
-    :param str dir_path: the directory path
+    :param dir_path: the directory path
     """
     # Append the path to the tmp/ directory
     dir_path = temp_path(dir_path)
@@ -162,8 +162,8 @@ def touch_temp_file(file_path: str, protect: bool = False) -> None:
 
     For details regarding the path format, see the module docstring.
 
-    :param str file_path: the temporary file path
-    :param bool protect: if True, the temporary file will be indexed as protected
+    :param file_path: the temporary file path
+    :param protect: if True, the temporary file will be indexed as protected
     """
     # Append the file path to the tmp/ directory
     file_path = temp_path(file_path.rstrip(os.sep))
@@ -181,9 +181,9 @@ def exists_temp_dir(dir_path: str) -> bool:
 
     For details regarding the path format, see the module docstring.
 
-    :param str dir_path: the temporary directory
+    :param dir_path: the temporary directory
 
-    :return bool: True if the directory exists
+    :return: True if the directory exists
     """
     dir_path = temp_path(dir_path)
     return os.path.exists(dir_path) and os.path.isdir(dir_path)
@@ -194,9 +194,9 @@ def exists_temp_file(file_path: str) -> bool:
 
     For details regarding the path format, see the module docstring.
 
-    :param str file_path: the temporary file
+    :param file_path: the temporary file
 
-    :return bool: True if the file exists
+    :return: True if the file exists
     """
     file_path = temp_path(file_path)
     return os.path.exists(file_path) and os.path.isfile(file_path)
@@ -214,11 +214,11 @@ def create_new_temp(
 
     For details regarding the path format, see the module docstring.
 
-    :param str file_path: the path to the file to create
+    :param file_path: the path to the file to create
     :param content: the content of the new temporary file
-    :param bool json_format: if True, the content will be formatted as json
-    :param bool protect: if True, the file will have the protected status
-    :param bool compress: if True, the content will be compressed
+    :param json_format: if True, the content will be formatted as json
+    :param protect: if True, the file will have the protected status
+    :param compress: if True, the content will be compressed
     """
     # Do not allow file overwrite
     file_path = temp_path(file_path)
@@ -243,11 +243,11 @@ def store_temp(
 
     For details regarding the path format, see the module docstring.
 
-    :param str file_path: the path to the temporary file
+    :param file_path: the path to the temporary file
     :param content: the new content of the temporary file
-    :param bool json_format: if True, the content will be formatted as json
-    :param bool protect: if True, the file will have the protected status
-    :param bool compress: if True, the content will be compressed
+    :param json_format: if True, the content will be formatted as json
+    :param protect: if True, the file will have the protected status
+    :param compress: if True, the content will be compressed
     """
     file_path = temp_path(file_path)
     # Make sure that the directory hierarchy for the file exists
@@ -262,9 +262,9 @@ def read_temp(file_path: str) -> Any:
 
     For details regarding the path format, see the module docstring.
 
-    :param str file_path: the path to the temporary file to read
+    :param file_path: the path to the temporary file to read
 
-    :return str or None: the file content or None if an error occurred
+    :return: the file content or None if an error occurred
     """
     # Check the existence of the file and obtain its properties
     file_path = temp_path(file_path)
@@ -292,7 +292,7 @@ def reset_temp(file_path: str) -> None:
 
     For details regarding the path format, see the module docstring.
 
-    :param str file_path: the path to the temporary file
+    :param file_path: the path to the temporary file
     """
     file_path = temp_path(file_path)
     _is_tmp_file(file_path)
@@ -308,9 +308,9 @@ def list_all_temps(root: Optional[str] = None) -> list[str]:
 
     If the 'root' is not provided or None, the whole tmp/ folder is considered as the root.
 
-    :param str root: the path to the root folder
+    :param root: the path to the root folder
 
-    :return list: paths to all the files in the 'root' folder hierarchy
+    :return: paths to all the files in the 'root' folder hierarchy
     """
     # Get the correct root
     root = pcs.get_tmp_directory() if root is None else temp_path(root)
@@ -334,9 +334,9 @@ def list_all_temps_with_details(
 
     If the 'root' is not provided or None, the whole tmp/ folder is considered as the root.
 
-    :param str root: the path to the root folder
+    :param root: the path to the root folder
 
-    :return list: tuples (name, protection level, size)
+    :return: tuples (name, protection level, size)
     """
     # Get the files, protection level and sizes
     tmp_files = list_all_temps(root)
@@ -364,9 +364,9 @@ def get_temp_properties(file_path: str) -> tuple[bool, bool, bool]:
 
     For details regarding the path format, see the module docstring.
 
-    :param str file_path: the path to the temporary file
+    :param file_path: the path to the temporary file
 
-    :return tuple: (json_formatted, protected, compressed)
+    :return: (json_formatted, protected, compressed)
     """
     return _get_index_entry(temp_path(file_path))
 
@@ -376,8 +376,8 @@ def set_protected_status(file_path: str, protected: bool) -> None:
 
     For details regarding the path format, see the module docstring.
 
-    :param str file_path: the path to the temporary file
-    :param bool protected: True for protected file, False for unprotected file
+    :param file_path: the path to the temporary file
+    :param protected: True for protected file, False for unprotected file
     """
     file_path = temp_path(file_path)
     _is_tmp_file(file_path)
@@ -397,10 +397,10 @@ def delete_temp_dir(root: str, ignore_protected: bool = False, force: bool = Fal
     If 'force' is True, all the files including the protected ones are deleted regardless of the
     'ignore_protected' value.
 
-    :param str root: path to the temporary directory to delete
-    :param bool ignore_protected: protected files in the directory will either abort the deletion
+    :param root: path to the temporary directory to delete
+    :param ignore_protected: protected files in the directory will either abort the deletion
                                   process or they will be ignored and not deleted
-    :param bool force: if True, the protected files will be also deleted
+    :param force: if True, the protected files will be also deleted
     """
     root = temp_path(root)
     # Check if the directory path is valid
@@ -422,10 +422,10 @@ def delete_temp_file(file_path: str, ignore_protected: bool = False, force: bool
 
     If 'force' is True, the protected file is deleted regardless of the 'ignore_protected' value.
 
-    :param str file_path: path to the temporary file to delete
-    :param bool ignore_protected: protected file will either abort the deletion process or
+    :param file_path: path to the temporary file to delete
+    :param ignore_protected: protected file will either abort the deletion process or
                                   the file will be ignored and not deleted
-    :param bool force: if True and the 'filepath' is protected, the file will be deleted anyway
+    :param force: if True and the 'filepath' is protected, the file will be deleted anyway
     """
     file_path = temp_path(file_path.rstrip(os.sep))
     # Check if tmp file exists
@@ -448,10 +448,10 @@ def delete_all_temps(
     If 'force' is True, all the files including the protected ones are deleted regardless of the
     'ignore_protected' value.
 
-    :param str root: the path to the root folder
-    :param bool ignore_protected: protected files in the directories will either abort the deletion
+    :param root: the path to the root folder
+    :param ignore_protected: protected files in the directories will either abort the deletion
                                   process or they will be ignored and not deleted
-    :param bool force: if True, the protected files will be also deleted
+    :param force: if True, the protected files will be also deleted
     """
     tmp_files = list_all_temps(root)
     _delete_files(tmp_files, ignore_protected, force)
@@ -478,7 +478,7 @@ def _is_tmp_path(path: str) -> None:
     """Checks if the provided path exists and is within the .perun/tmp/ directory. If not, an
     exception is raised.
 
-    :param str path: the path that should be checked
+    :param path: the path that should be checked
     """
     if not path.startswith(pcs.get_tmp_directory()) or not os.path.exists(path):
         raise exceptions.InvalidTempPathException(f"The 'tmp' path '{path}' does not exist.")
@@ -488,7 +488,7 @@ def _is_tmp_file(path: str) -> None:
     """Checks if the provided path is valid and existing temporary file. If not, an exception is
     raised.
 
-    :param str path: the path to the temporary file to check
+    :param path: the path to the temporary file to check
     """
     _is_tmp_path(path)
     if not os.path.isfile(path):
@@ -499,7 +499,7 @@ def _is_tmp_dir(path: str) -> None:
     """Checks if the provided path is valid and existing temporary directory. if not, an exception
     is raised.
 
-    :param str path: the path to the temporary directory to check
+    :param path: the path to the temporary directory to check
     """
     _is_tmp_path(path)
     if not os.path.isdir(path):
@@ -516,10 +516,10 @@ def _delete_files(tmp_files: list[str], ignore_protected: bool, force: bool) -> 
     If 'force' is True, all the files including the protected ones are deleted regardless of the
     'ignore_protected' value.
 
-    :param list tmp_files: a list of the temporary file paths to delete
-    :param bool ignore_protected: protected files in the directories will either abort the deletion
+    :param tmp_files: a list of the temporary file paths to delete
+    :param ignore_protected: protected files in the directories will either abort the deletion
                                   process or they will be ignored and not deleted
-    :param bool force: if True, the protected files will be also deleted
+    :param force: if True, the protected files will be also deleted
     """
     # Check for protected files
     if not force:
@@ -538,9 +538,9 @@ def _delete_files(tmp_files: list[str], ignore_protected: bool, force: bool) -> 
 def _filter_protected_files(tmp_files: list[str]) -> tuple[list[str], list[str]]:
     """Filters the protected files in the supplied temporary files.
 
-    :param list tmp_files: a list of the temporary files
+    :param tmp_files: a list of the temporary files
 
-    :return tuple: (list of unprotected files, list of protected files)
+    :return: (list of unprotected files, list of protected files)
     """
     index_entries = index.load_custom_index(pcs.get_tmp_index())
     unprotected, protected = [], []
@@ -558,7 +558,7 @@ def _delete_empty_directories(root: str) -> None:
 
     The .perun/tmp/ directory, however, will not be deleted this way.
 
-    :param str root: the path to the root directory
+    :param root: the path to the root directory
     """
     # Obtain all the subdirectories in the root in the reverse order, however make sure tmp/ stays
     tmp_root = pcs.get_tmp_directory()
@@ -576,11 +576,11 @@ def _write_to_temp(
     """Writes the 'content' into the temporary file and stores the properties into the index
     if needed.
 
-    :param str file_path: the path to the temporary file
+    :param file_path: the path to the temporary file
     :param content: the new content of the temporary file
-    :param bool json_format: if True, the content will be formatted as json
-    :param bool protect: if True, the file will have the protected status
-    :param bool compress: if True, the content will be compressed
+    :param json_format: if True, the content will be formatted as json
+    :param protect: if True, the file will have the protected status
+    :param compress: if True, the content will be compressed
     """
     # Optionally encode the content to json and compress it
     file_mode = "w+"
@@ -599,8 +599,8 @@ def _write_to_temp(
 def _get_temps_size(tmp_files: list[str]) -> list[int]:
     """Obtains the sizes (in bytes) of the temporary files.
 
-    :param list tmp_files: a list of temporary files
-    :return list: list with corresponding sizes (the pairs are defined by the same list index)
+    :param tmp_files: a list of temporary files
+    :return: list with corresponding sizes (the pairs are defined by the same list index)
     """
     sizes = []
     for tmp_file in tmp_files:
@@ -617,10 +617,10 @@ def _add_to_index(
     """Adds a new entry into the index. The entry tracks 'json_format, protected, compressed'
     properties for the given tmp_file. If all of those properties are False, no entry is created.
 
-    :param str tmp_file: the path of the temporary file
-    :param bool json_format: the property describing if json format was used
-    :param bool protected: the protection level property
-    :param bool compressed: the compression property
+    :param tmp_file: the path of the temporary file
+    :param json_format: the property describing if json format was used
+    :param protected: the protection level property
+    :param compressed: the compression property
     """
     # Do not index entries that have no True parameters
     if not json_format and not protected and not compressed:
@@ -642,8 +642,8 @@ def _get_index_entry(tmp_file: str) -> tuple[bool, bool, bool]:
     If no corresponding entry for the file exists, then all the properties are assumed
     to be False.
 
-    :param str tmp_file: the path of the temporary file
-    :return tuple: (json_format, protected, compressed)
+    :param tmp_file: the path of the temporary file
+    :return: (json_format, protected, compressed)
     """
     file_record = index.load_custom_index(pcs.get_tmp_index()).get(tmp_file)
     if file_record is None:
@@ -655,7 +655,7 @@ def _get_index_entry(tmp_file: str) -> tuple[bool, bool, bool]:
 def _delete_index_entries(tmp_files: list[str]) -> None:
     """Deletes the index entries (if they exist) of the supplied temporary files.
 
-    :param list tmp_files: the list of the temporary files for which to delete the entries
+    :param tmp_files: the list of the temporary files for which to delete the entries
     """
     index_records = index.load_custom_index(pcs.get_tmp_index())
     for tmp_file in tmp_files:

@@ -18,8 +18,8 @@ def lookup_minor_version(func: Callable[..., Any]) -> Callable[..., Any]:
     then this decorator performs a lookup of the minor_version corresponding
     to the head of the repository.
 
-    :param function func: decorated function for which we will look up the minor_version
-    :returns function: decorated function, with minor_version translated or obtained
+    :param func: decorated function for which we will look up the minor_version
+    :return: decorated function, with minor_version translated or obtained
     """
     f_args, _, _, _, *_ = inspect.getfullargspec(func)
     minor_version_position = f_args.index("minor_version")

@@ -20,14 +20,14 @@ class CollectEngine(ABC):
     """The base abstract class for all the collection engines. Stores some of the configuration
     parameters for easier access.
 
-    :ivar str binary: the path to the binary file to be probed
-    :ivar list libs: list of additional dynamic libraries to profile
-    :ivar list targets: list of binary and libraries to profile
-    :ivar Executable executable: the Executable object containing the profiled command, args, etc.
-    :ivar str timestamp: the time of the collection start
-    :ivar int pid: the PID of the Tracer process
-    :ivar str files_dir: the directory path of the temporary files
-    :ivar str locks_dir: the directory path of the lock files
+    :ivar binary: the path to the binary file to be probed
+    :ivar libs: list of additional dynamic libraries to profile
+    :ivar targets: list of binary and libraries to profile
+    :ivar executable: the Executable object containing the profiled command, args, etc.
+    :ivar timestamp: the time of the collection start
+    :ivar pid: the PID of the Tracer process
+    :ivar files_dir: the directory path of the temporary files
+    :ivar locks_dir: the directory path of the lock files
     """
 
     # Set the supported engines
@@ -36,7 +36,7 @@ class CollectEngine(ABC):
     def __init__(self, config):
         """Initializes the default engine parameters.
 
-        :param Configuration config: the configuration object
+        :param config: the configuration object
         """
         super().__init__()
         self.binary = config.binary
@@ -59,7 +59,7 @@ class CollectEngine(ABC):
 
         :param kwargs: the required parameters
 
-        :return dict: a list of the USDT probe names per binary file
+        :return: a list of the USDT probe names per binary file
         """
 
     @abstractmethod
@@ -83,7 +83,7 @@ class CollectEngine(ABC):
 
         :param kwargs: the required parameters
 
-        :return iterable: a generator object that produces the resources
+        :return: a generator object that produces the resources
         """
 
     @abstractmethod
@@ -97,7 +97,7 @@ class CollectEngine(ABC):
     def available():
         """Lists all the available and supported engines.
 
-        :return list: the names of the supported engines.
+        :return: the names of the supported engines.
         """
         return CollectEngine._supported
 
@@ -105,17 +105,17 @@ class CollectEngine(ABC):
     def default():
         """Provide the default collection engine.
 
-        :return str: the name of the default engine
+        :return: the name of the default engine
         """
         return CollectEngine._supported[0]
 
     def _assemble_file_name(self, name, suffix):
         """Builds a full path to a temporary file name using the tmp/ directory within perun.
 
-        :param str name: the name of the temporary file
-        :param str suffix: the suffix of the file
+        :param name: the name of the temporary file
+        :param suffix: the suffix of the file
 
-        :return str: the full path to the temporary file
+        :return: the full path to the temporary file
         """
         return os.path.join(
             self.files_dir,
@@ -126,7 +126,7 @@ class CollectEngine(ABC):
     def _create_collect_files(paths):
         """Creates the requested temporary files.
 
-        :param list paths: the list of file paths to create
+        :param paths: the list of file paths to create
         """
         for path in paths:
             temp.touch_temp_file(path, protect=True)
@@ -135,9 +135,9 @@ class CollectEngine(ABC):
     def _finalize_collect_files(self, files, keep_temps, zip_temps):
         """Zip and delete the temporary collect files.
 
-        :param list files: the name of the object attribute that contains the file path
-        :param bool keep_temps: specifies if the temporary files should be kept or deleted
-        :param bool zip_temps: specifies if the temporary files should be zipped or not
+        :param files: the name of the object attribute that contains the file path
+        :param keep_temps: specifies if the temporary files should be kept or deleted
+        :param zip_temps: specifies if the temporary files should be zipped or not
         """
         pack_name = os.path.join(
             get_log_directory(),
@@ -166,7 +166,7 @@ class CollectEngine(ABC):
         The subprocess.wait() is then needed to get rid of the resulting zombie process (since the
         perun process holds a reference to the subprocess until wait() or poll() is used).
 
-        :param str proc_name: the name of the process as used in the engine class
+        :param proc_name: the name of the process as used in the engine class
         """
         # Check if the process is registered
         proc = getattr(self, proc_name)

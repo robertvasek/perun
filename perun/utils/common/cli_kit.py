@@ -69,10 +69,10 @@ def process_bokeh_axis_title(
     create some optimal axis name. We do this according to the already processed parameters and
     we either use 'per_key' or 'of_key'.
 
-    :param click.Context ctx: called context of the process
-    :param click.Option param: called option (either x or y-axis)
-    :param object value: given value for the option param
-    :returns object: either value (if it is non-None) or default legend for given axis
+    :param ctx: called context of the process
+    :param param: called option (either x or y-axis)
+    :param value: given value for the option param
+    :return: either value (if it is non-None) or default legend for given axis
     """
     if not value and param.human_readable_name.startswith("x"):
         if "per_key" in ctx.params.keys():
@@ -93,10 +93,10 @@ def process_resource_key_param(
     as a validation list for the given values for the parameters. For X axis, snapshots are
     an additional valid parameter.
 
-    :param click.Context ctx: called context of the process
-    :param click.Option param: called option that takes a valid key from profile as a parameter
-    :param object value: given value for the option param
-    :returns object: value or raises bad parameter
+    :param ctx: called context of the process
+    :param param: called option that takes a valid key from profile as a parameter
+    :param value: given value for the option param
+    :return: value or raises bad parameter
     :raises click.BadParameter: if the value is invalid for the profile
     """
     if param.human_readable_name in ("per_key", "through_key") and value == "snapshots":
@@ -120,10 +120,10 @@ def process_continuous_key(
     Continuous keys are used in the continuous graphs (do'h!) on the x-axis, i.e. they have to be
     numeric. We check all keys in the resources.
 
-    :param click.Context ctx: called context of the process
-    :param click.Option _: called parameter
-    :param object value: given value for the option param
-    :returns object: value or raises bad parameter
+    :param ctx: called context of the process
+    :param _: called parameter
+    :param value: given value for the option param
+    :return: value or raises bad parameter
     :raises click.BadParameter: if the value is invalid for the profile
     """
     if value != "snapshots" and ctx.parent is not None:
@@ -149,18 +149,18 @@ def set_config_option_from_flag(
     given option value. This is e.g. used to use the CLI to set various configurations temporarily
     from the command line option.
 
-    :param function dst_config_getter: destination config, where the option will be set
-    :param str config_option: name of the option that will be set in the runtime config
-    :param function postprocess_function: function which will postprocess the value
+    :param dst_config_getter: destination config, where the option will be set
+    :param config_option: name of the option that will be set in the runtime config
+    :param postprocess_function: function which will postprocess the value
     :return: handler for the command line interface
     """
 
     def option_handler(_: click.Context, __: click.Option, value: Any) -> Any:
         """Wrapper handling function
 
-        :param click.Context _: called context of the process
-        :param click.Option __: called parameter
-        :param object value: given value of the option param
+        :param _: called context of the process
+        :param __: called parameter
+        :param value: given value of the option param
         :return:
         """
         if value:
@@ -175,10 +175,10 @@ def yaml_param_callback(
 ) -> dict[str, Any]:
     """Callback function for parsing the yaml files to dictionary object
 
-    :param Context _: context of the called command
-    :param click.Option __: parameter that is being parsed and read from commandline
-    :param str value: value that is being read from the commandline
-    :returns dict: parsed yaml file
+    :param _: context of the called command
+    :param __: parameter that is being parsed and read from commandline
+    :param value: value that is being read from the commandline
+    :return: parsed yaml file
     """
     unit_to_params: dict[str, dict[Any, Any]] = defaultdict(dict)
     for unit, yaml_file in value:
@@ -192,10 +192,10 @@ def single_yaml_param_callback(_: click.Context, __: click.Option, value: str) -
     This does not require specification of the collector to which the params correspond and is
     meant as massaging of parameters for 'perun -p file collect ...' command.
 
-    :param Context _: context of the called command
-    :param click.Option __: parameter that is being parsed and read from commandline
-    :param str value: value that is being read from the commandline
-    :returns dict: parsed yaml file
+    :param _: context of the called command
+    :param __: parameter that is being parsed and read from commandline
+    :param value: value that is being read from the commandline
+    :return: parsed yaml file
     """
     unit_to_params = {}
     for yaml_file in value:
@@ -209,10 +209,10 @@ def minor_version_list_callback(
 ) -> list[MinorVersion]:
     """Callback function for parsing the minor version list for running the automation
 
-    :param Context ctx: context of the called command
-    :param click.Option _: parameter that is being parsed and read from commandline
-    :param str value: value that is being read from the commandline
-    :returns list: list of MinorVersion objects
+    :param ctx: context of the called command
+    :param _: parameter that is being parsed and read from commandline
+    :param value: value that is being read from the commandline
+    :return: list of MinorVersion objects
     """
     minors: list[MinorVersion] = []
     for minor_version in value or []:
@@ -229,9 +229,9 @@ def minor_version_list_callback(
 def unsupported_option_callback(_: click.Option, param: click.Option, value: Any) -> None:
     """Processes the currently unsupported option or argument.
 
-    :param click.Context _: called context of the parameter
-    :param click.Option param: option or parameter we are processing
-    :param Object value: value of the parameter we are trying to set
+    :param _: called context of the parameter
+    :param param: option or parameter we are processing
+    :param value: value of the parameter we are trying to set
     """
     if value:
         err_msg = f"option '{param.human_readable_name}'"
@@ -243,10 +243,10 @@ def unsupported_option_callback(_: click.Option, param: click.Option, value: Any
 def config_key_validation_callback(_: click.Context, param: click.Option, value: str) -> str:
     """Validates whether the value of the key is in correct format---strings delimited by dot.
 
-    :param click.Context _: called context of the command line
-    :param click.Option param: called option (key in this case)
-    :param object value: assigned value to the <key> argument
-    :returns object: value for the <key> argument
+    :param _: called context of the command line
+    :param param: called option (key in this case)
+    :param value: assigned value to the <key> argument
+    :return: value for the <key> argument
     """
     if not config.is_valid_key(str(value)):
         err_msg = (
@@ -262,10 +262,10 @@ def config_key_validation_callback(_: click.Context, param: click.Option, value:
 def vcs_path_callback(_: click.Context, __: click.Option, value: Any) -> Any:
     """Parses the vcs path during the init
 
-    :param Context ctx: context of the called command
-    :param click.Option param: parameter that is being parsed
-    :param str value: value that is being read from the commandline
-    :returns tuple: tuple of flags or parameters
+    :param ctx: context of the called command
+    :param param: parameter that is being parsed
+    :param value: value that is being read from the commandline
+    :return: tuple of flags or parameters
     """
     return common_kit.locate_dir_on(".", ".git") if not value else value
 
@@ -276,10 +276,10 @@ def vcs_parameter_callback(ctx: click.Context, param: click.Option, value: Any) 
     Collects all flags (as flag: True) and parameters (as key value pairs) inside the
     ctx.params['vcs_params'] dictionary, which is then send to the initialization of vcs.
 
-    :param Context ctx: context of the called command
-    :param click.Option param: parameter that is being parsed
-    :param str value: value that is being read from the commandline
-    :returns tuple: tuple of flags or parameters
+    :param ctx: context of the called command
+    :param param: parameter that is being parsed
+    :param value: value that is being read from the commandline
+    :return: tuple of flags or parameters
     """
     if "vcs_params" not in ctx.params.keys():
         ctx.params["vcs_params"] = {}
@@ -294,8 +294,8 @@ def vcs_parameter_callback(ctx: click.Context, param: click.Option, value: Any) 
 def lookup_nth_pending_filename(position: int) -> str:
     """Looks up the nth pending file from the sorted list of pending files
 
-    :param int position: position of the pending we will look up
-    :returns str: pending profile at given position
+    :param position: position of the pending we will look up
+    :return: pending profile at given position
     """
     pending = commands.get_untracked_profiles()
     profile_helpers.sort_profiles(pending)
@@ -312,9 +312,9 @@ def apply_func_for_range(
 ) -> None:
     """Applies the function for tags either from index or pending according to the range i-j
 
-    :param match range_match: match of the range
-    :param func function_for_tag: function that removes tag from index or pending
-    :param str tag: tag that is removed (either p or i)
+    :param range_match: match of the range
+    :param function_for_tag: function that removes tag from index or pending
+    :param tag: tag that is removed (either p or i)
     """
     from_range, to_range = int(range_match.group(1)), int(range_match.group(2))
     for i in range(from_range, to_range + 1):
@@ -330,10 +330,10 @@ def lookup_added_profile_callback(_: click.Context, __: click.Option, value: str
     Profile can either be represented as a pending tag (e.g. 0@p), as a pending tag range
     (e.g. 0@p-5@p) or as a path to a file.
 
-    :param Context _: context of the called command
-    :param click.Option __: parameter that is being parsed and read from commandline
-    :param str value: value that is being read from the commandline
-    :returns str: filename of the profile
+    :param _: context of the called command
+    :param __: parameter that is being parsed and read from commandline
+    :param value: value that is being read from the commandline
+    :return: filename of the profile
     """
     massaged_values = set()
     for single_value in value:
@@ -358,16 +358,16 @@ def lookup_removed_profile_callback(ctx: click.Context, _: click.Option, value: 
     Profile can either be represented as an index tag (e.g. 0@i), as an index tag range (e.g.
     0@i-5@i) or as a path in the index
 
-    :param Context ctx: context of the called command
-    :param click.Option _: parameter that is being parsed and read from commandline
-    :param str value: value that is being read from the commandline
-    :returns str: filename of the profile to be removed
+    :param ctx: context of the called command
+    :param _: parameter that is being parsed and read from commandline
+    :param value: value that is being read from the commandline
+    :return: filename of the profile to be removed
     """
 
     def add_to_removed_from_index(index: int) -> None:
         """Helper function for adding stuff to massaged values
 
-        :param int index: index we are looking up and registering to massaged values
+        :param index: index we are looking up and registering to massaged values
         """
         try:
             index_filename = profile_helpers.get_nth_profile_of(index, ctx.params["minor"])
@@ -381,7 +381,7 @@ def lookup_removed_profile_callback(ctx: click.Context, _: click.Option, value: 
     def add_to_removed_from_pending(pending: int) -> None:
         """Helper function for adding pending to massaged values.
 
-        :param int pending: index of the pending profile
+        :param pending: index of the pending profile
         """
         pending_profile = lookup_nth_pending_filename(pending)
         ctx.params["from_jobs_generator"].add(pending_profile)
@@ -424,8 +424,8 @@ def lookup_profile_in_filesystem(profile_name: str) -> str:
     i.e. in the .perun/jobs directory. If we still have not found the profile, we then iteratively
     explore the subfolders starting from current directory and look for a potential match.
 
-    :param str profile_name: value that is being read from the commandline
-    :returns str: full path to profile
+    :param profile_name: value that is being read from the commandline
+    :return: full path to profile
     """
     # 1) if it exists return the value
     if os.path.exists(profile_name):
@@ -456,10 +456,10 @@ def lookup_profile_in_filesystem(profile_name: str) -> str:
 def lookup_minor_version_callback(_: click.Context, __: click.Option, value: str) -> str:
     """Callback for looking up the minor version, if it was not stated
 
-    :param Context _: context of the called command
-    :param click.Option __: parameter that is being parsed and read from commandline
-    :param str value: value that is being read from the commandline
-    :returns str: massaged minor version
+    :param _: context of the called command
+    :param __: parameter that is being parsed and read from commandline
+    :param value: value that is being read from the commandline
+    :return: massaged minor version
     """
     if value:
         try:
@@ -539,11 +539,11 @@ def check_stats_minor_callback(_: click.Context, param: click.Argument, value: s
     The only exception is a 'in_minor' parameter which can also refer to all the available
     minor versions by having a value of '.'.
 
-    :param click.core.Context _: context
-    :param click.core.Argument param: the parameter name
-    :param str value: the supplied minor version value
+    :param _: context
+    :param param: the parameter name
+    :param value: the supplied minor version value
 
-    :return str: the original value, which has been however checked
+    :return: the original value, which has been however checked
     """
     if param.name == "in_minor" and value == ".":
         return value
@@ -567,9 +567,9 @@ def lookup_stats_file_callback(ctx: click.Context, _: click.Argument, value: str
     for in the specific minor version - if provided in 'in_minor' parameter - otherwise no lookup
     is performed.
 
-    :param click.core.Context ctx: context
-    :param click.core.Argument _: param
-    :param str value: the file name
+    :param ctx: context
+    :param _: param
+    :param value: the file name
 
     :return: either the looked up path of the file or the original value if no lookup was performed
     """
@@ -595,7 +595,7 @@ def resources_key_options(
     postprocessor: `regressogram`, `moving average` and `kernel-regression`.
 
 
-    :param function func: the function in which the decorator of common options is currently applied
+    :param func: the function in which the decorator of common options is currently applied
     :return: returns sequence of the single options for the current function (f) as decorators
     """
     options = [
@@ -725,10 +725,10 @@ def generate_cli_dump(
         4. Traceback of the exception
         5. Whole profile (if used)
 
-    :param str reported_error: string representation of the catched exception / error
-    :param Exception catched_exception: exception that led to the dump
-    :param Logger stdout: logged stdout
-    :param Logger stderr: logged stderr
+    :param reported_error: string representation of the catched exception / error
+    :param catched_exception: exception that led to the dump
+    :param stdout: logged stdout
+    :param stderr: logged stderr
     """
     stdout.flush()
     stderr.flush()
@@ -824,10 +824,10 @@ def generate_cli_dump(
 def set_optimization(_: click.Context, param: click.Argument, value: str) -> str:
     """Callback for enabling or disabling optimization pipelines or methods.
 
-    :param click.core.Context _: click context
-    :param click.core.Argument param: the click parameter
-    :param str value: value of the parameter
-    :return str: the value
+    :param _: click context
+    :param param: the click parameter
+    :param value: value of the parameter
+    :return: the value
     """
     # Set the optimization pipeline
     if param.human_readable_name == "optimization_pipeline":
@@ -846,10 +846,10 @@ def set_optimization(_: click.Context, param: click.Argument, value: str) -> str
 def set_optimization_param(_: click.Context, __: click.Argument, value: str) -> str:
     """Set parameter value for optimizations
 
-    :param click.core.Context _: click context
-    :param click.core.Argument __: the click parameter
-    :param str value: value of the parameter
-    :return str: the value
+    :param _: click context
+    :param __: the click parameter
+    :param value: value of the parameter
+    :return: the value
     """
     for param in value:
         # Process all parameters as 'parameter: value' tuples
@@ -864,9 +864,9 @@ def set_optimization_param(_: click.Context, __: click.Argument, value: str) -> 
 def set_optimization_cache(_: click.Context, __: click.Option, value: str) -> None:
     """Enable or disable the usage of optimization and collection cache.
 
-    :param click.core.Context _: click context
-    :param click.core.Argument __: the click parameter
-    :param str value: value of the parameter
+    :param _: click context
+    :param __: the click parameter
+    :param value: value of the parameter
     """
     Optimization.resource_cache = not value
 
@@ -875,9 +875,9 @@ def reset_optimization_cache(_: click.Context, __: click.Option, value: str) -> 
     """Remove the cache entries for the optimization, thus forcing them to recompute the cached
     data.
 
-    :param click.core.Context _: click context
-    :param click.core.Argument __: the click parameter
-    :param str value: value of the parameter
+    :param _: click context
+    :param __: the click parameter
+    :param value: value of the parameter
     """
     Optimization.reset_cache = value
 
@@ -885,9 +885,9 @@ def reset_optimization_cache(_: click.Context, __: click.Option, value: str) -> 
 def set_call_graph_type(_: click.Context, __: click.Argument, value: str) -> None:
     """Set the selected Call Graph type to be used for optimizations.
 
-    :param click.core.Context _: click context
-    :param click.core.Argument __: the click parameter
-    :param str value: value of the parameter
+    :param _: click context
+    :param __: the click parameter
+    :param value: value of the parameter
     """
     Optimization.call_graph_type = CallGraphTypes(value)
 
@@ -895,9 +895,9 @@ def set_call_graph_type(_: click.Context, __: click.Argument, value: str) -> Non
 def configure_metrics(_: click.Context, __: click.Option, value: tuple[str, str]) -> None:
     """Set the temp file and ID for the collected metrics.
 
-    :param click.core.Context _: click context
-    :param click.core.Argument __: the click parameter
-    :param str value: value of the parameter
+    :param _: click context
+    :param __: the click parameter
+    :param value: value of the parameter
     """
     if value[0] and value[1]:
         metrics.Metrics.configure(value[0], value[1])
@@ -917,7 +917,7 @@ def get_supported_module_names(package: str) -> list[str]:
     replaced by (-). While this is useful in CLI, Perun needs the underscore,
     so use Unit.sanitize_module_name to replace the dash back.
 
-    :param str package: name of the package for which we want to obtain the supported modules
+    :param package: name of the package for which we want to obtain the supported modules
                         one of ('vcs', 'collect', 'postprocess')
     :return: list of names of supported modules for the given package
     """

@@ -40,19 +40,19 @@ from perun.utils.exceptions import (
 class SystemTapEngine(engine.CollectEngine):
     """The SystemTap engine class, derived from the base CollectEngine.
 
-    :ivar str script: a full path to the systemtap script file
-    :ivar str log: a full path to the systemtap log file
-    :ivar str data: a full path to the file containing the raw performance data
-    :ivar str capture: a full path to the file containing the captured stdout and stderr of the
+    :ivar script: a full path to the systemtap script file
+    :ivar log: a full path to the systemtap log file
+    :ivar data: a full path to the file containing the raw performance data
+    :ivar capture: a full path to the file containing the captured stdout and stderr of the
                        profiled command
-    :ivar ResourceLock lock_binary: the binary lock object
-    :ivar ResourceLock lock_stap: the SystemTap process lock object
-    :ivar ResourceLock lock_module: the SystemTap module lock object
-    :ivar Subprocess.Popen stap_compile: the script compilation subprocess object
-    :ivar Subprocess.Popen stap_collect: the SystemTap collection subprocess object
-    :ivar str stap_module: the name of the compiled SystemTap module
-    :ivar str stapio: the stapio process PID
-    :ivar Subprocess.Popen profiled_command: the profiled command subprocess object
+    :ivar lock_binary: the binary lock object
+    :ivar lock_stap: the SystemTap process lock object
+    :ivar lock_module: the SystemTap module lock object
+    :ivar stap_compile the script compilation subprocess object
+    :ivar stap_collect the SystemTap collection subprocess object
+    :ivar stap_module: the name of the compiled SystemTap module
+    :ivar stapio: the stapio process PID
+    :ivar profiled_command the profiled command subprocess object
     """
 
     name = "stap"
@@ -60,7 +60,7 @@ class SystemTapEngine(engine.CollectEngine):
     def __init__(self, config):
         """Creates the engine object according to the supplied configuration.
 
-        :param Configuration config: the configuration object
+        :param config: the configuration object
         """
         super().__init__(config)
         self.script = self._assemble_file_name("script", ".stp")
@@ -101,7 +101,7 @@ class SystemTapEngine(engine.CollectEngine):
     def available_usdt(self, **_):
         """Extract USDT probe locations from the supplied binary files and libraries.
 
-        :return dict: the names of the available USDT locations per binary file
+        :return: the names of the available USDT locations per binary file
         """
         # Extract the USDT probe locations from the binary
         # note: stap -l returns code '1' if there are no USDT probes
@@ -120,7 +120,7 @@ class SystemTapEngine(engine.CollectEngine):
         """Collects performance data using the SystemTap wrapper, assembled script and the
         executable.
 
-        :param Configuration config: the configuration object
+        :param config: the configuration object
         """
         # Check that the lock for binary is still valid and log resources with corresponding locks
         self.lock_binary.check_validity()
@@ -146,7 +146,7 @@ class SystemTapEngine(engine.CollectEngine):
 
         :param kwargs: the configuration parameters
 
-        :return iterable: a generator object that produces the resources
+        :return: a generator object that produces the resources
         """
         return parse_compact.trace_to_profile(self.data, **kwargs)
 
@@ -179,8 +179,8 @@ class SystemTapEngine(engine.CollectEngine):
         This step allows the trace collector to identify the resulting kernel module, check if
         the module is not already being used and to lock it.
 
-        :param str command: the 'stap' compilation command to run
-        :param TextIO logfile: the handle of the opened SystemTap log file
+        :param command: the 'stap' compilation command to run
+        :param logfile: the handle of the opened SystemTap log file
         """
         WATCH_DOG.info(
             "Attempting to compile the SystemTap script into a kernel module. "
@@ -216,7 +216,7 @@ class SystemTapEngine(engine.CollectEngine):
         The module name has either been obtained from the output of the SystemTap compilation
         process or it has to be extracted from the SystemTap log file.
 
-        :param str logfile: the SystemTap log file name
+        :param logfile: the SystemTap log file name
         """
         try:
             # The module name might have been extracted from the compilation process output
@@ -246,9 +246,9 @@ class SystemTapEngine(engine.CollectEngine):
 
         That means starting up the SystemTap collection process and running the profiled command.
 
-        :param str command: the 'stap' collection command
-        :param TextIO logfile: the handle of the opened SystemTap log file
-        :param Configuration config: the configuration object
+        :param command: the 'stap' collection command
+        :param logfile: the handle of the opened SystemTap log file
+        :param config: the configuration object
         """
         WATCH_DOG.info("Starting up the SystemTap collection process.")
         with processes.nonblocking_subprocess(
@@ -284,14 +284,14 @@ class SystemTapEngine(engine.CollectEngine):
 
     def _run_profiled_command(self, config):
         """Runs the profiled external command with arguments.
-        :param Configuration config: the configuration object
+        :param config: the configuration object
         """
 
         def _heartbeat_command(data_file):
             """The profiled command heartbeat function that updates the user on the collection
             progress, which is measured by the size of the output data file.
 
-            :param str data_file: the name of the output data file
+            :param data_file: the name of the output data file
             """
             data_size = perun_log.format_file_size(os.stat(data_file).st_size)
             WATCH_DOG.info(
@@ -397,9 +397,9 @@ class SystemTapEngine(engine.CollectEngine):
 def _extract_usdt_probes(binary):
     """Load USDT probes from the binary file using the SystemTap.
 
-    :param str binary: path to the binary file
+    :param binary: path to the binary file
 
-    :return str: the decoded standard output
+    :return: the decoded standard output
     """
     out, _ = commands.run_safely_external_command(
         f'sudo stap -l \'process("{binary}").mark("*")\'', False
@@ -410,9 +410,9 @@ def _extract_usdt_probes(binary):
 def _parse_usdt_name(usdt_list):
     """Cut the USDT probe location name from the extract output.
 
-    :param str usdt_list: the extraction output
+    :param usdt_list: the extraction output
 
-    :return object: generator object that provides the usdt probe locations
+    :return: generator object that provides the usdt probe locations
     """
     for probe in usdt_list.splitlines():
         # The location is present between the '.mark("' and '")' substrings
@@ -428,9 +428,9 @@ def _get_last_line_of(file, length):
      - Long file: open the file in binary mode, seek to the end of the file and backtrack
                   byte by byte until a newline character is found
 
-    :param str file: the file name (path)
-    :param FileSize length: the expected length of the file
-    :return tuple: (line number, line content)
+    :param file: the file name (path)
+    :param length: the expected length of the file
+    :return: (line number, line content)
                    note: the line number is not available for long files
     """
     # In order to use the optimized version for long files, the file has to be opened in binary mode
@@ -470,8 +470,8 @@ def _wait_for_script_compilation(logfile, stap_process):
 
     An exception is raised in case of failed compilation.
 
-    :param str logfile: the name (path) of the SystemTap log file
-    :param Subprocess stap_process: the subprocess object representing the compilation process
+    :param logfile: the name (path) of the SystemTap log file
+    :param stap_process: the subprocess object representing the compilation process
     """
     # Start a HeartbeatThread that periodically informs the user of the compilation progress
     with PeriodicThread(HEARTBEAT_INTERVAL, _heartbeat_stap, [logfile, "Compilation"]):
@@ -496,8 +496,8 @@ def _wait_for_systemtap_startup(logfile, stap_process):
     The SystemTap startup may take some time and it is necessary to wait until the process is ready
     before launching the profiled command so that the command output is being collected.
 
-    :param str logfile: the name (path) of the SystemTap log file
-    :param Subprocess stap_process: the subprocess object representing the collection process
+    :param logfile: the name (path) of the SystemTap log file
+    :param stap_process: the subprocess object representing the collection process
     """
     while True:
         # Check the status of the process
@@ -523,7 +523,7 @@ def _wait_for_systemtap_data(datafile):
     data file. This can be checked by observing the last line of the data file where the
     ending sentinel should be present.
 
-    :param str datafile: the name (path) of the data file
+    :param datafile: the name (path) of the data file
     """
     # Start the TimeoutThread so that the waiting is not indefinite
     WATCH_DOG.info(
@@ -550,8 +550,8 @@ def _wait_for_systemtap_data(datafile):
 def _heartbeat_stap(logfile, phase):
     """The SystemTap heartbeat function that scans the log file and reports the last record.
 
-    :param str logfile: the SystemTap log file name (path)
-    :param str phase: the SystemTap phase (compilation or collection)
+    :param logfile: the SystemTap log file name (path)
+    :param phase: the SystemTap phase (compilation or collection)
     """
     # Report log line count and the last record
     WATCH_DOG.info(f"{phase} status update: 'log lines count' ; 'last log line'")
@@ -562,9 +562,9 @@ def _heartbeat_stap(logfile, phase):
 def _extract_processes(extract_command):
     """Extracts and sorts the running processes according to the extraction command.
 
-    :param str extract_command: the processes extraction command
+    :param extract_command: the processes extraction command
 
-    :return list: a list of (PID, PPID, PGID, CMD) records representing the corresponding
+    :return: a list of (PID, PPID, PGID, CMD) records representing the corresponding
                   attributes of the extracted processes
     """
     procs = []
@@ -595,9 +595,9 @@ def _loaded_stap_kernel_modules(module=None):
     """Extracts the names of all the SystemTap kernel modules - or a specific one - that
     are currently loaded.
 
-    :param str module: the name of the specific module to lookup or None for all of them
+    :param module: the name of the specific module to lookup or None for all of them
 
-    :return list: the list of names of loaded systemtap kernel modules
+    :return: the list of names of loaded systemtap kernel modules
     """
     # Build the extraction command
     module_filter = "stap_" if module is None else module
@@ -616,10 +616,10 @@ def _wait_for_resource_release(check_function, function_args):
     """Waits for a resource to be released. The state of the resource is tested by the
     check function invoked with the function args.
 
-    :param function check_function: the function for checking the resource
+    :param check_function: the function for checking the resource
     :param function_args: the arguments for the check function
 
-    :return bool: True if the resource has been released, False otherwise
+    :return: True if the resource has been released, False otherwise
     """
     # Check the state of the resource once before starting the timeout thread
     time.sleep(CLEANUP_REFRESH)
@@ -641,18 +641,18 @@ def _check_used_resources(locks_dir):
     and which aren't, i.e. if there is a possibility of corrupted output data despite using the
     locks.
 
-    :param str locks_dir: the directory of the lock files
-    :return tuple: (locked processes, processes without locks),
+    :param locks_dir: the directory of the lock files
+    :return: (locked processes, processes without locks),
                    (locked kernel modules, kernel modules without locks)
     """
 
     def _match(resources, resource_locks, condition):
         """Match the resources with the active resource locks based on the condition.
 
-        :param list resources: the list of resource names
-        :param list resource_locks: the list of lock objects
-        :param function condition: the condition that determines if a resource is tied to a lock
-        :return tuple: (list of locked resources, list of resources not tied to a lock)
+        :param resources: the list of resource names
+        :param resource_locks: the list of lock objects
+        :param condition: the condition that determines if a resource is tied to a lock
+        :return: (list of locked resources, list of resources not tied to a lock)
         """
         locked, lockless = [], []
         for resource in resources:

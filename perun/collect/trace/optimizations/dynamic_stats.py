@@ -34,10 +34,10 @@ class _Thread:
 class DynamicStats:
     """The Dynamic Statistics class that computes and stores the statistics
 
-    :ivar dict global_stats: the global statistics for each function: uid -> stats
-    :ivar dict per_thread: per-thread statistics for each function: tid -> uid -> stats
-    :ivar dict process_hierarchy: traced process details: pid -> details
-    :ivar dict threads: spawned threads details: tid -> _Thread (pid, duration)
+    :ivar global_stats: the global statistics for each function: uid -> stats
+    :ivar per_thread: per-thread statistics for each function: tid -> uid -> stats
+    :ivar process_hierarchy: traced process details: pid -> details
+    :ivar threads: spawned threads details: tid -> _Thread (pid, duration)
     """
 
     def __init__(self):
@@ -60,10 +60,10 @@ class DynamicStats:
     def from_profile(cls, stats_data, probed_functions):
         """Create Dynamic Stats from profile object.
 
-        :param dict stats_data: compact summary of collected data
-        :param dict probed_functions: profiled functions and their profiling configuration
+        :param stats_data: compact summary of collected data
+        :param probed_functions: profiled functions and their profiling configuration
 
-        :return DynamicStats: the dynamic statistics object
+        :return: the dynamic statistics object
         """
         stats = cls()
         func_values, process_records = stats_data["f"], stats_data["p"]
@@ -80,9 +80,9 @@ class DynamicStats:
         """Create Dynamic Stats from dictionary -
         preferably obtained from dynamic stats json cache file.
 
-        :param dict stats_dict: dictionary containing global, per-thread, process and thread stats
+        :param stats_dict: dictionary containing global, per-thread, process and thread stats
 
-        :return DynamicStats: the dynamic statistics object
+        :return: the dynamic statistics object
         """
         stats = cls()
         stats.global_stats = stats_dict["global_stats"]
@@ -94,7 +94,7 @@ class DynamicStats:
     def to_dict(self):
         """Serialize the DynamicStats object to a simple dictionary that can be stored in a file.
 
-        :return dict: serialized DynamicStats object
+        :return: serialized DynamicStats object
         """
         # First convert the defaultdict to plain dict
         if not isinstance(self.process_hierarchy, dict):
@@ -111,9 +111,9 @@ class DynamicStats:
     def _process_resources_of(self, profile):
         """Iterate profile resources and classify them to function, process and thread resources.
 
-        :param Profile profile: performance profile with collected resources
+        :param profile: performance profile with collected resources
 
-        :return tuple: function resources (tid -> uid -> [amounts]), processes (pid -> [processes])
+        :return: function resources (tid -> uid -> [amounts]), processes (pid -> [processes])
         """
         # tid -> uid -> [amounts]
         funcs = collections.defaultdict(lambda: collections.defaultdict(list))
@@ -139,7 +139,7 @@ class DynamicStats:
     def compute_process_hierarchy(self, processes):
         """Build the process hierarchy structure based on the process resources.
 
-        :param dict processes: processes dictionary with PID as keys
+        :param processes: processes dictionary with PID as keys
         """
         # Create the parent-child connection in the hierarchy
         for pid, procs in processes.items():
@@ -198,8 +198,8 @@ class DynamicStats:
         to bottom processes only since we do not have access to exclusive time of functions
         that would be needed otherwise.
 
-        :param dict func_values: function amount values on a per-thread basis
-        :param dict probed_funcs: profiled functions and their profiling configuration
+        :param func_values: function amount values on a per-thread basis
+        :param probed_funcs: profiled functions and their profiling configuration
         """
         # TODO: Currently only bottom-level records are used in global dynamic stats
         # TODO: Seems like the only proper solution would be to use exclusive times instead
@@ -221,8 +221,8 @@ class DynamicStats:
     def compute_per_thread(self, func_values, probed_funcs):
         """Compute per-thread statistics across all threads
 
-        :param dict func_values: function amount values on a per-thread basis
-        :param dict probed_funcs: profiled functions and their profiling configuration
+        :param func_values: function amount values on a per-thread basis
+        :param probed_funcs: profiled functions and their profiling configuration
         """
         self.per_thread = {
             tid: _compute_funcs_stats(uids, probed_funcs)
@@ -234,10 +234,10 @@ class DynamicStats:
 def _compute_funcs_stats(source, probed_funcs):
     """Compute the dynamic statistics for a whole collection of functions.
 
-    :param dict source: dictionary of collected data per function
-    :param dict probed_funcs: profiled functions and their profiling configuration
+    :param source: dictionary of collected data per function
+    :param probed_funcs: profiled functions and their profiling configuration
 
-    :return dict: computed statistics per each function
+    :return: computed statistics per each function
     """
     return {
         uid: _compute_func_stats(amounts, probed_funcs[uid]["sample"])
@@ -248,10 +248,10 @@ def _compute_funcs_stats(source, probed_funcs):
 def _compute_func_stats(values, func_sample):
     """Compute the dynamic statistics for the given values and sample.
 
-    :param dict values: the measured function call durations
-    :param int func_sample: the sampling configuration of the given function
+    :param values: the measured function call durations
+    :param func_sample: the sampling configuration of the given function
 
-    :return dict: the computed statistics
+    :return: the computed statistics
     """
     # Sort the 'amount' values in order to compute various statistics
     # inclusive, exclusive = map(list, zip(*values))

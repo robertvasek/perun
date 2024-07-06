@@ -15,10 +15,10 @@ from perun.collect.trace.optimizations.structs import Complexity
 def complexity_filter(call_graph, sources, complexity, keep_top):
     """The Static Baseline method.
 
-    :param CallGraphResource call_graph: the CGR optimization resource
-    :param list sources: the source files of the project
-    :param Complexity complexity: complexity threshold for functions to be excluded from profiling
-    :param int keep_top: protected top CG levels
+    :param call_graph: the CGR optimization resource
+    :param sources: the source files of the project
+    :param complexity: complexity threshold for functions to be excluded from profiling
+    :param keep_top: protected top CG levels
     """
     bounds_map = _get_complexity_classes(sources)
     if bounds_map:
@@ -28,9 +28,9 @@ def complexity_filter(call_graph, sources, complexity, keep_top):
 def _get_complexity_classes(sources):
     """Run the Perun bounds collector to gather information about inferred bounds and complexity.
 
-    :param list sources: the collection of source files that should be compiled by the LLVM
+    :param sources: the collection of source files that should be compiled by the LLVM
 
-    :return dict: a dictionary containing the parsed results of bounds collector
+    :return: a dictionary containing the parsed results of bounds collector
     """
     # Simulate the runner context by manually configured parameters and run the bounds collector
     collection_report, prof = runner.run_all_phases_for(
@@ -63,10 +63,10 @@ def _call_graph_filter(call_graph, bounds_map, complexity, keep_top):
     """Compare the inferred complexities with the threshold and remove functions that match the
     specified complexity degree.
 
-    :param CallGraphResource call_graph: the CGR optimization resource
-    :param dict bounds_map: a dictionary containing the parsed results of bounds collector
-    :param Complexity complexity: complexity threshold for functions to be excluded from profiling
-    :param int keep_top: protected top CG levels
+    :param call_graph: the CGR optimization resource
+    :param bounds_map: a dictionary containing the parsed results of bounds collector
+    :param complexity: complexity threshold for functions to be excluded from profiling
+    :param keep_top: protected top CG levels
     """
     filter_list = []
     # Assign complexity to all CG functions, if we failed to infer one, use the default

@@ -29,8 +29,8 @@ UID_RESOURCE_MAP: dict[str, int] = collections.defaultdict(int)
 def parse_stack(stack: list[str]) -> list[dict[str, Any]]:
     """Parse stack information of one allocation
 
-    :param list stack: list of raw stack data
-    :returns list: list of formatted structures representing stack trace of one allocation
+    :param stack: list of raw stack data
+    :return: list of formatted structures representing stack trace of one allocation
     """
     data = []
     for call in stack:
@@ -68,8 +68,8 @@ def parse_stack(stack: list[str]) -> list[dict[str, Any]]:
 def parse_allocation_location(trace: list[dict[str, Any]]) -> dict[str, Any]:
     """Parse the location of user's allocation from stack trace
 
-    :param list trace: list representing stack call trace
-    :returns dict: first user's call to allocation
+    :param trace: list representing stack call trace
+    :return: first user's call to allocation
     """
     result = {}
     for call in trace or []:
@@ -83,8 +83,8 @@ def parse_allocation_location(trace: list[dict[str, Any]]) -> dict[str, Any]:
 def parse_resources(allocation: list[str]) -> dict[str, Any]:
     """Parse resources of one allocation
 
-    :param list allocation: list of raw allocation data
-    :returns structure: formatted structure representing resources of one allocation
+    :param allocation: list of raw allocation data
+    :return: formatted structure representing resources of one allocation
     """
     data: dict[str, Any] = {}
 
@@ -126,10 +126,10 @@ def parse_resources(allocation: list[str]) -> dict[str, Any]:
 def parse_log(filename: str, executable: Executable, snapshots_interval: float) -> dict[str, Any]:
     """Parse raw data in the log file
 
-    :param string filename: name of the log file
-    :param Executable executable: profiled binary
-    :param float snapshots_interval: interval of snapshots [s]
-    :returns structure: formatted structure representing section "snapshots" and "global"
+    :param filename: name of the log file
+    :param executable: profiled binary
+    :param snapshots_interval: interval of snapshots [s]
+    :return: formatted structure representing section "snapshots" and "global"
         in memory profile
     """
     interval = snapshots_interval

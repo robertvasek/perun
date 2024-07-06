@@ -18,7 +18,7 @@ TABLE_TEST_DIR = os.path.join(os.path.split(__file__)[0], "references", "table_f
 
 def output_to_list(output):
     """
-    :param list output: list of lines
+    :param output: list of lines
     :return: sorted list of lines without newlines and filtered out empty lines
     """
     return sorted([l.rstrip() for l in output if l.rstrip()])
@@ -27,8 +27,8 @@ def output_to_list(output):
 def assert_files_match(lhs, rhs):
     """Asserts that two files handles match
 
-    :param handle lhs: left file handle
-    :param handle rhs: right file handle
+    :param lhs: left file handle
+    :param rhs: right file handle
     """
     assert output_to_list(lhs.readlines()) == output_to_list(rhs.readlines())
 
@@ -36,8 +36,8 @@ def assert_files_match(lhs, rhs):
 def assert_files_match_output(result, rhs):
     """Asserts that file and stdout output match
 
-    :param list result: left stdout
-    :param handle rhs: right file handle
+    :param result: left stdout
+    :param rhs: right file handle
     """
     assert output_to_list(result.output.split("\n")) == output_to_list(rhs.readlines())
 

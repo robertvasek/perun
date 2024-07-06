@@ -24,8 +24,8 @@ def custom_rules(
         ([0-9]{6}),([0-9]{2}): \\1.\\2
         (\\w+)=(\\w+): \\2=\\1
 
-    :param dict regex_rules: dict of custom regular expression rules
-    :param list fuzzing_methods: list of functions, fuzzing (mutation) strategies
+    :param regex_rules: dict of custom regular expression rules
+    :param fuzzing_methods: list of functions, fuzzing (mutation) strategies
     """
     for key, value in regex_rules.items():
 
@@ -42,8 +42,8 @@ def get_filetype(file: str) -> tuple[bool, Optional[str]]:
 
     Fixme: this might need refactoring to handle some edge cases
 
-    :param str file: file name
-    :return tuple: is_file_binary, file_type
+    :param file: file name
+    :return: is_file_binary, file_type
     """
     try:
         guessed_type = (mimetypes.guess_type(file))[0]
@@ -60,9 +60,9 @@ def get_filetype(file: str) -> tuple[bool, Optional[str]]:
 def choose_ruleset(file: str, regex_rules: dict[str, str]) -> RuleSet:
     """Automatically collects appropriate fuzz methods according to file type.
 
-    :param str file: path to file
-    :param dict regex_rules: dict of custom regex rules
-    :return list: list of tuples fuzz_method_function, description
+    :param file: path to file
+    :param regex_rules: dict of custom regex rules
+    :return: list of tuples fuzz_method_function, description
     """
     fuzzing_methods: list[tuple[Callable[[list[str] | list[bytes]], None], str]] = []
     if regex_rules:

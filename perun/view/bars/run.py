@@ -24,10 +24,10 @@ def process_title(ctx: click.Context, _: click.Option, value: str) -> str:
 
       Func of 'of-key' per 'per-key' 'grouped' by 'by-key'
 
-    :param click.Context ctx: called context of the process
-    :param object _: unused parameter
-    :param object value: value that is being processed ad add to parameter
-    :returns object: either value (if it is non-None) or default title of the graph
+    :param ctx: called context of the process
+    :param _: unused parameter
+    :param value: value that is being processed ad add to parameter
+    :return: either value (if it is non-None) or default title of the graph
     """
     return value or (
         f"{ctx.params['func'].capitalize()} "

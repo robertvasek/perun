@@ -65,7 +65,7 @@ def postprocess(
     """
     Invoked from perun core, handles the postprocess actions
 
-    :param dict profile: the profile to analyze
+    :param profile: the profile to analyze
     :param configuration: the perun and options context
     """
     # Perform the non-parametric analysis using the kernel regression

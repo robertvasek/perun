@@ -58,11 +58,11 @@ def get_current_interpreter(
      - minimum (inclusive):  '3.6+', '3.7.2+', etc.
      - maximum (inclusive):  '3.5-', '3-', etc.
 
-    :param str required_version: the found interpreter must satisfy the supplied version
-    :param str fallback: the fallback python interpreter version to use if no interpreter is found
+    :param required_version: the found interpreter must satisfy the supplied version
+    :param fallback: the fallback python interpreter version to use if no interpreter is found
                          or its version is not matching the required version
 
-    :return str: the absolute path to the currently running python3 interpreter,
+    :return: the absolute path to the currently running python3 interpreter,
                  if not found, returns fallback interpreter instead
     """
 
@@ -72,8 +72,8 @@ def get_current_interpreter(
         """Parse the python version represented as a string into the 3 digit version number and
         additional postfixes, such as characters or '+' and '-'.
 
-        :param str python_version: the version as a string (e.g., '3.6.5+')
-        :return tuple (list, func): list of version digits and function used to compare two
+        :param python_version: the version as a string (e.g., '3.6.5+')
+        :return: list of version digits and function used to compare two
                                     versions based on the +- specifier
         """
         if version_match := PYTHON_VERSION.match(python_version):
