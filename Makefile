@@ -29,6 +29,7 @@ dev:
 	$(info [INFO] Make sure you're using a virtual environment for development)
 	python3 -m pip install meson-python meson ninja
 	python3 -m pip install --no-build-isolation --config-settings=editable-verbose=true --config-settings=setup-args=-Dbuildtype=debug --editable .[test,typing,lint,docs]
+	pre-commit install
 
 install:
 	pip3 install .
