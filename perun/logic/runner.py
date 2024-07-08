@@ -256,7 +256,7 @@ def runner_teardown_handler(status_report: RunnerReport, **kwargs: Any) -> None:
     run_phase_function(status_report, "teardown")
 
 
-def runner_signal_handler(signum: int, frame: Any) -> None:
+def runner_signal_handler(signum: int, frame: types.FrameType | None) -> None:
     """Custom signal handler that blocks all the handled signals until the __exit__ sentinel of
     the CM is reached.
 

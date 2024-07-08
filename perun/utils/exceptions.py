@@ -10,6 +10,7 @@ from typing import Any, TYPE_CHECKING
 # Perun Imports
 
 if TYPE_CHECKING:
+    import types
     import traceback
 
 
@@ -470,7 +471,7 @@ class SignalReceivedException(BaseException):
 
     __slots__ = ["signum", "frame"]
 
-    def __init__(self, signum: int, frame: traceback.StackSummary) -> None:
+    def __init__(self, signum: int, frame: types.FrameType | None) -> None:
         """
         :param signum: a representation of the encountered signal
         :param frame: a frame / stack trace object

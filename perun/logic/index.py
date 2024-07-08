@@ -169,7 +169,7 @@ class ExtendedIndexEntry(BasicIndexEntry):
         self.cmd: str = profile["header"]["cmd"]
         self.workload: str = profile["header"].get("workload", "")
         self.collector: str = profile["collector_info"]["name"]
-        self.postprocessors: list[dict[str, Any]] = [
+        self.postprocessors: list[str] = [
             postprocessor["name"] for postprocessor in profile["postprocessors"]
         ]
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 # Standard Imports
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Any, TYPE_CHECKING, cast, Callable
+from typing import Optional, Any, TYPE_CHECKING, cast, Callable, Protocol
 import enum
 import shlex
 import signal
@@ -23,6 +23,10 @@ if TYPE_CHECKING:
 
     import numpy.typing as npt
     import numpy
+
+
+class SignalCallback(Protocol):
+    def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
 
 
 @dataclass
@@ -620,7 +624,6 @@ class HandledSignals:
     :ivar callback: the function that is always invoked during the CM exit
     :ivar callback_args: arguments for the callback function
     :ivar old_handlers: the list of previous signal handlers
-
     """
 
     __slots__ = ["signals", "handler", "handler_exc", "callback", "callback_args", "old_handlers"]
@@ -631,13 +634,15 @@ class HandledSignals:
         :param kwargs: additional properties of the context manager
         """
         self.signals: tuple[int, ...] = signals
-        self.handler: Callable = kwargs.get("handler", common_kit.default_signal_handler)
+        self.handler: Callable[[int, types.FrameType | None], None] = kwargs.get(
+            "handler", common_kit.default_signal_handler
+        )
         self.handler_exc: type[Exception | BaseException] = kwargs.get(
             "handler_exception", SignalReceivedException
         )
-        self.callback: Callable = kwargs.get("callback")
+        self.callback: SignalCallback | None = kwargs.get("callback")
         self.callback_args: list[Any] = kwargs.get("callback_args", [])
-        self.old_handlers: list[int | None | Callable[[int, Optional[types.FrameType]], Any]] = []
+        self.old_handlers: list[Callable[[int, types.FrameType | None], Any] | int | None] = []
 
     def __enter__(self) -> HandledSignals:
         """The CM entry sentinel, register the new signal handlers and store the previous ones.

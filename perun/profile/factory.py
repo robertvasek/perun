@@ -76,7 +76,7 @@ class Profile(MutableMapping[str, Any]):
         super().__init__()
         initialization_data = dict(*args, **kwargs)
         global_data = initialization_data.get("global", {"models": []})
-        self._storage: dict[str, dict | list | str] = {
+        self._storage = {
             "resources": {},
             "resource_type_map": {},
             "models": global_data.get("models", []) if isinstance(global_data, dict) else [],

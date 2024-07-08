@@ -34,7 +34,6 @@ from perun.utils.exceptions import (
 )
 
 if TYPE_CHECKING:
-    import traceback
     import types
 
 T = TypeVar("T")
@@ -211,7 +210,7 @@ def format_counter_number(count: int, max_number: int) -> str:
     return f"{count:{len(str(max_number))}d}"
 
 
-def default_signal_handler(signum: int, frame: traceback.StackSummary) -> None:
+def default_signal_handler(signum: int, frame: types.FrameType) -> None:
     """Default signal handler used by the HandledSignals CM.
 
     The function attempts to block any subsequent handler invocation of the same signal by ignoring
