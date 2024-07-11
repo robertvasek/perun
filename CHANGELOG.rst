@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.23 (2024-07-11)
+
+  - Add SVS (single version system) as default VCS system (this enables gitless integration)
+  - Update readme.
+
 0.22.5 (2024-06-29)
 
   - Add logging of subprocessor commands through (`--log` and `--log-dir`)
