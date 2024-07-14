@@ -288,8 +288,8 @@ def kernel_smoothing(
     :return dict: the output dictionary with result of kernel regression
     """
     # Retype the coordinated list for requirements of computational class
-    x_pts = np.asanyarray(in_x_pts, dtype=np.float_)
-    y_pts = np.asanyarray(in_y_pts, dtype=np.float_)
+    x_pts = np.asanyarray(in_x_pts, dtype=np.float64)
+    y_pts = np.asanyarray(in_y_pts, dtype=np.float64)
 
     # Obtaining the kernel instance from supported types according to the given name
     kernel = _KERNEL_TYPES_MAPS[config["kernel_type"]]
@@ -354,8 +354,8 @@ def kernel_ridge(
     :return dict: the output dictionary with result of kernel regression
     """
     # Retype the coordinated list for requirements of computational class
-    x_pts = np.asanyarray(in_x_pts, dtype=np.float_).reshape(-1, 1)
-    y_pts = np.asanyarray(in_y_pts, dtype=np.float_)
+    x_pts = np.asanyarray(in_x_pts, dtype=np.float64).reshape(-1, 1)
+    y_pts = np.asanyarray(in_y_pts, dtype=np.float64)
 
     # Obtaining the edges of the given range
     low_boundary = config["gamma_range"][0]

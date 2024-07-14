@@ -367,7 +367,7 @@ class Kernel1D:
 
             K_0(z) = \int_{-\infty}^z K(t) dt
         """
-        z = np.asfarray(z)
+        z = np.asarray(z, dtype=float)
         try:
             comp_pdf = self.__comp_pdf
         except AttributeError:
@@ -399,7 +399,7 @@ class Kernel1D:
 
             K_1(z) = \int_{-\infty}^z z K(t) dt
         """
-        z = np.asfarray(z)
+        z = np.asarray(z, dtype=float)
         try:
             comp_pm1 = self.__comp_pm1
         except AttributeError:
@@ -430,7 +430,7 @@ class Kernel1D:
 
             K_2(z) = \int_{-\infty}^z z^2 K(t) dt
         """
-        z = np.asfarray(z)
+        z = np.asarray(z, dtype=float)
         try:
             comp_pm2 = self.__comp_pm2
         except AttributeError:
@@ -460,7 +460,7 @@ class Kernel1D:
         whole frequency range to be explored. For convenience, the second half of the points will
         be provided as negative values.
         """
-        z = np.asfarray(z)
+        z = np.asarray(z, dtype=float)
         t_star = 2 * np.pi / (z[1] - z[0]) ** 2 / len(z)
         dz = t_star * (z[1] - z[0])
         return fftpack.fft(self(z * t_star) * dz).real
@@ -471,7 +471,7 @@ class Kernel1D:
         The points will always be provided as a grid with :math:`2^n` points, representing the
         whole frequency range to be explored.
         """
-        z = np.asfarray(z)
+        z = np.asarray(z, dtype=float)
         a1 = z[1] - z[0]
         gp = (z / a1 + 0.5) * np.pi / (len(z) * a1)
         return fftpack.dct(self(gp) * (gp[1] - gp[0])).real
@@ -512,7 +512,7 @@ class NormalKernel1d(Kernel1D):
         """
         Returns the FFT of the normal distribution
         """
-        z = np.asfarray(z)
+        z = np.asarray(z, dtype=float)
         out = np.multiply(z, z, out)
         out *= -0.5
         np.exp(out, out)
@@ -522,7 +522,7 @@ class NormalKernel1d(Kernel1D):
         """
         Returns the DCT of the normal distribution
         """
-        z = np.asfarray(z)
+        z = np.asarray(z, dtype=float)
         out = np.multiply(z, z, out)
         out *= -0.5
         np.exp(out, out)

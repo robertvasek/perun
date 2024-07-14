@@ -221,13 +221,6 @@ _LREG_EXPECTED_RESULTS = [
 
 INTEGRAL_COMPARISON_RESULTS = [
     DegradationInfo(res=pc.MaybeOptimization, loc="alloc", fb="constant", tt="constant", rd=-0.18),
-    DegradationInfo(
-        res=pc.MaybeDegradation,
-        loc="alloc",
-        fb="regressogram",
-        tt="regressogram",
-        rd=0.16,
-    ),
     DegradationInfo(res=pc.Degradation, loc="ga_grow", fb="constant", tt="constant", rd=1210.03),
     DegradationInfo(res=pc.Degradation, loc="ga_init2", fb="quadratic", tt="quadratic", rd=2.33),
     DegradationInfo(res=pc.Degradation, loc="skipwhite", fb="constant", tt="constant", rd=0.30),
@@ -243,14 +236,14 @@ INTEGRAL_COMPARISON_RESULTS = [
         loc="test_for_static",
         fb="moving_average",
         tt="moving_average",
-        rd=0.91,
+        rd=1.22,
     ),
     DegradationInfo(
         res=pc.MaybeDegradation,
         loc="test_for_static",
         fb="regressogram",
         tt="regressogram",
-        rd=0.16,
+        rd=0.11,
     ),
     DegradationInfo(
         res=pc.MaybeDegradation,
@@ -264,7 +257,7 @@ INTEGRAL_COMPARISON_RESULTS = [
         loc="vim_regexec",
         fb="regressogram",
         tt="regressogram",
-        rd=0.42,
+        rd=0.27,
     ),
 ]
 
@@ -276,14 +269,6 @@ LOCAL_STATISTICS_RESULTS = [
         tt="constant",
         rd=-0.16,
         pi=[(pc.MaybeOptimization, -0.16, 5.45, 5.45)],
-    ),
-    DegradationInfo(
-        res=pc.MaybeDegradation,
-        loc="alloc",
-        fb="regressogram",
-        tt="regressogram",
-        rd=0.11,
-        pi=[(pc.MaybeDegradation, 0.11, 0.0, 275.0)],
     ),
     DegradationInfo(
         res=pc.Degradation,
