@@ -3,6 +3,7 @@
 Tests whether the log is correctly outputting the information about currently wrapped repository,
 and profiles assigned to minor versions.
 """
+
 from __future__ import annotations
 
 # Standard Imports

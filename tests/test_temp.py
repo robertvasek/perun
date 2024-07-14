@@ -1,4 +1,5 @@
 """Basic tests for testing temporary storage of Perun"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -358,7 +359,7 @@ def test_temp_sync(pcs_with_empty_git):
 def _check_index(expected_content):
     """Check if the index file contains exactly the entries in expected_content.
 
-    :param list expected_content: the list of expected entries in the index
+    :param expected_content: the list of expected entries in the index
     """
     index_content = index.load_custom_index(pcs.get_tmp_index())
     index_keys = list(index_content.keys())
@@ -370,10 +371,10 @@ def _check_index(expected_content):
 def _check_dirs_and_files(dirs, dirs_del, files, files_del):
     """Check the existence and nonexistence of files and directories.
 
-    :param list dirs: the list of directories that should exist
-    :param list dirs_del: the list of directories that should not exist
-    :param list files: the list of files that should exist
-    :param list files_del: the list of files that should not exist
+    :param dirs: the list of directories that should exist
+    :param dirs_del: the list of directories that should not exist
+    :param files: the list of files that should exist
+    :param files_del: the list of files that should not exist
     :return:
     """
     for d in dirs:

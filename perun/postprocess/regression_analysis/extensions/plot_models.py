@@ -1,6 +1,7 @@
 """ Extension for regression model coefficients transformation into array of points. The points
     array can be then used for model plotting as a series of lines forming a (curved) line.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -37,11 +38,11 @@ def model_plot_computation(
     Creates data dictionary with 'plot_x' and 'plot_y' lists containing the model points
     for plotting.
 
-    :param function model_x: function for computation of x plot points
-    :param function model_y: function for computation of y plot points
-    :param dict data: data dictionary with computed regression model
+    :param model_x: function for computation of x plot points
+    :param model_y: function for computation of y plot points
+    :param data: data dictionary with computed regression model
     :raises TypeError: if the required function arguments are not in the unpacked dictionary input
-    :returns dict: data dictionary with 'plot_x' and 'plot_y' points
+    :return: data dictionary with 'plot_x' and 'plot_y' points
     """
     # Build the x points from the x interval values, stored as 'plot_x'
     plot_data = model_x(**data)
@@ -64,12 +65,12 @@ def generic_plot_x_pts(
 
     Splits the x interval of model into number of points.
 
-    :param int or float x_start: the left bound of the x interval
-    :param int or float x_end: the right bound of the x interval
-    :param int smoothness: number of points to produce from the interval
-    :param function transform_by: function for additional transformation of the resulting data
+    :param x_start: the left bound of the x interval
+    :param x_end: the right bound of the x interval
+    :param smoothness: number of points to produce from the interval
+    :param transform_by: function for additional transformation of the resulting data
     :raises TypeError: if the required function arguments are not in the unpacked dictionary input
-    :returns dict: data dictionary with 'plot_x' array
+    :return: data dictionary with 'plot_x' array
     """
     # Produce number of points from the interval
     return transform_by(tools.split_model_interval(x_start, x_end, smoothness))
@@ -93,14 +94,14 @@ def generic_plot_y_pts(
 
     Creates data dictionary with 'plot_y' containing the y values for plotting.
 
-    :param numpy array plot_x: array of x points
-    :param float b0: the b0 model coefficient
-    :param float b1: the b1 model coefficient
-    :param function formula: function object containing the computation formula
-    :param function m_fx: function object with x values modification
-    :param function transform_by: function for additional transformation of the resulting data
+    :param plot_x: array of x points
+    :param b0: the b0 model coefficient
+    :param b1: the b1 model coefficient
+    :param formula: function object containing the computation formula
+    :param m_fx: function object with x values modification
+    :param transform_by: function for additional transformation of the resulting data
     :raises TypeError: if the required function arguments are not in the unpacked dictionary input
-    :returns dict: data dictionary with 'plot_y' array
+    :return: data dictionary with 'plot_y' array
     """
     # Modify the x points if needed
     if m_fx:
@@ -128,14 +129,14 @@ def quad_plot_y_pts(
 
     Creates data dictionary with 'plot_y' containing the y values for plotting.
 
-    :param numpy array plot_x: array of x points
-    :param float b0: the b0 model coefficient
-    :param float b1: the b1 model coefficient
-    :param float b2: the b2 model coefficient
-    :param function formula: function object containing the computation formula
-    :param function transform_by: function for additional transformation of the resulting data
+    :param plot_x: array of x points
+    :param b0: the b0 model coefficient
+    :param b1: the b1 model coefficient
+    :param b2: the b2 model coefficient
+    :param formula: function object containing the computation formula
+    :param transform_by: function for additional transformation of the resulting data
     :raises TypeError: if the required function arguments are not in the unpacked dictionary input
-    :returns dict: data dictionary with 'plot_y' array
+    :return: data dictionary with 'plot_y' array
     """
     # Apply the computation formula
     return transform_by(np.array(formula(plot_x, b0, b1, b2)))

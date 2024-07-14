@@ -1,4 +1,5 @@
 """Abstraction of version control systems"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -37,7 +38,7 @@ class AbstractRepository(ABC):
         version control system instances and newly created instances. Init is
         called during the ``perun init`` command from command line interface.
 
-        :param dict vcs_init_params: dictionary of keyword arguments passed to
+        :param vcs_init_params: dictionary of keyword arguments passed to
             initialization method of the underlying vcs module
         :return: true if the underlying vcs was successfully initialized
         """
@@ -53,7 +54,7 @@ class AbstractRepository(ABC):
         Minor versions are walked through this function during the ``perun log``
         command.
 
-        :param str head_minor_version: the root minor versions which is the root
+        :param head_minor_version: the root minor versions which is the root
             of the walk.
         :returns: iterable stream of minor version representation
         """
@@ -79,7 +80,7 @@ class AbstractRepository(ABC):
         :func:`perun.vcs.walk_minor_versions` and is used during the ``perun
         status`` output to display the specifics of minor version.
 
-        :param str minor_version: the specification of minor version (in form of
+        :param minor_version: the specification of minor version (in form of
             sha e.g.) for which we are retrieving the details
         :returns: minor version named tuple
         """
@@ -90,8 +91,8 @@ class AbstractRepository(ABC):
 
         Each minor version is in form of SHA
 
-        :param str baseline_minor_version: the specification of the first minor version
-        :param str target_minor_version: the specification of the second minor version
+        :param baseline_minor_version: the specification of the first minor version
+        :param target_minor_version: the specification of the second minor version
         """
 
     @abstractmethod
@@ -113,7 +114,7 @@ class AbstractRepository(ABC):
         Minor version validity is mostly checked during the lookup of the minor
         versions from the command line interface.
 
-        :param str minor_version: the specification of minor version (in form of
+        :param minor_version: the specification of minor version (in form of
             sha e.g.) for which we are checking the validity
         :raises VersionControlSystemException: when the given minor version is
             invalid in the context of the wrapped version control system.
@@ -129,9 +130,9 @@ class AbstractRepository(ABC):
         versions. Massing then unifies e.g. the references or proper hash
         representations, to just one representation for internal processing.
 
-        :param str parameter: vcs parameter (e.g. revision, minor or major version)
+        :param parameter: vcs parameter (e.g. revision, minor or major version)
             which will be massaged, i.e. transformed to unified representation
-        :param str parameter_type: more detailed type of the parameter
+        :param parameter_type: more detailed type of the parameter
         :returns: string representation of parameter
         """
 
@@ -170,8 +171,8 @@ class AbstractRepository(ABC):
         and reapply them on the current directory. This will make sure, that after the performance
         testing, the project is in the previous state and developer can continue with his work.
 
-        :param bool saved: whether the stashed was something
-        :param str state: the previous state of the repository
+        :param saved: whether the stashed was something
+        :param state: the previous state of the repository
         """
 
     @abstractmethod
@@ -181,5 +182,5 @@ class AbstractRepository(ABC):
         According to the supplied minor version, this command should remake the working directory,
         so it corresponds to the state defined by the minor version.
 
-        :param str minor_version: minor version that will be checked out
+        :param minor_version: minor version that will be checked out
         """

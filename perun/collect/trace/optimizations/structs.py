@@ -2,7 +2,6 @@
 by numerous other modules.
 """
 
-
 import os
 import math
 from functools import partial
@@ -28,7 +27,7 @@ class Optimizations(Enum):
     def supported():
         """List the currently supported optimization methods.
 
-        :return list: CLI names of the supported optimizations
+        :return: CLI names of the supported optimizations
         """
         return [optimization.value for optimization in Optimizations]
 
@@ -47,7 +46,7 @@ class Pipeline(Enum):
     def supported():
         """List the currently supported optimization pipelines.
 
-        :return list: CLI names of the supported pipelines
+        :return: CLI names of the supported pipelines
         """
         return [pipeline.value for pipeline in Pipeline]
 
@@ -55,14 +54,14 @@ class Pipeline(Enum):
     def default():
         """Name of the default pipeline.
 
-        :return str: the CLI name of the default pipeline
+        :return: the CLI name of the default pipeline
         """
         return Pipeline.CUSTOM.value
 
     def map_to_optimizations(self):
         """Map the selected optimization pipeline to the set of employed optimization methods.
 
-        :return list: list of the Optimizations enumeration objects
+        :return: list of the Optimizations enumeration objects
         """
         if self == Pipeline.BASIC:
             return [Optimizations.CALL_GRAPH_SHAPING, Optimizations.BASELINE_DYNAMIC]
@@ -96,7 +95,7 @@ class CallGraphTypes(Enum):
     def supported():
         """List the currently supported call graph types.
 
-        :return list: CLI names of the supported cg types
+        :return: CLI names of the supported cg types
         """
         return [cg.value for cg in CallGraphTypes]
 
@@ -104,7 +103,7 @@ class CallGraphTypes(Enum):
     def default():
         """Name of the default cg type.
 
-        :return str: the CLI name of the default cg type
+        :return: the CLI name of the default cg type
         """
         return CallGraphTypes.STATIC.value
 
@@ -136,7 +135,7 @@ class Parameters(Enum):
     def supported():
         """List the currently supported optimization parameters.
 
-        :return list: CLI names of the supported parameters
+        :return: CLI names of the supported parameters
         """
         return [parameter.value for parameter in Parameters]
 
@@ -153,7 +152,7 @@ class DiffCfgMode(Enum):
     def supported():
         """List the currently supported CFG comparison modes.
 
-        :return list: CLI names of the supported modes
+        :return: CLI names of the supported modes
         """
         return [mode.value for mode in DiffCfgMode]
 
@@ -169,7 +168,7 @@ class CGShapingMode(Enum):
     def supported():
         """List the currently supported Call Graph Shaping modes.
 
-        :return list: CLI names of the supported modes
+        :return: CLI names of the supported modes
         """
         return [mode.value for mode in CGShapingMode]
 
@@ -184,7 +183,7 @@ class ThresholdMode(Enum):
     def supported():
         """List the currently supported Threshold modes.
 
-        :return list: CLI names of the supported modes
+        :return: CLI names of the supported modes
         """
         return [mode.value for mode in ThresholdMode]
 
@@ -208,7 +207,7 @@ class Complexity(OrderedEnum):
     def supported():
         """List the currently supported Complexity degrees.
 
-        :return list: CLI names of the supported complexities
+        :return: CLI names of the supported complexities
         """
         return [complexity.value for complexity in Complexity]
 
@@ -216,9 +215,9 @@ class Complexity(OrderedEnum):
     def max(values):
         """Compare a collection of Complexity values and select the one with maximum degree.
 
-        :param collection values: the set of Complexity values
+        :param values: the set of Complexity values
 
-        :return Complexity: the Complexity object with the highest degree of polynomial
+        :return: the Complexity object with the highest degree of polynomial
         """
         return sorted(values, key=lambda complexity: complexity.order, reverse=True)[0]
 
@@ -226,9 +225,9 @@ class Complexity(OrderedEnum):
     def from_poly(cls, polynomial):
         """Create a Complexity object from string representing a polynomial.
 
-        :param str polynomial: a string representation of a supported polynomial
+        :param polynomial: a string representation of a supported polynomial
 
-        :return Complexity: the corresponding Complexity object
+        :return: the corresponding Complexity object
         """
         return Complexity.map.get(polynomial, cls.GENERIC)
 
@@ -246,8 +245,8 @@ class ParametersManager:
     """Class that parses and stores the user-supplied optimization parameters, as well as predicts
     suitable values for the optimization parameters that were not supplied.
 
-    :ivar list cli_params: contains the list of user-supplied parameters before they are applied
-    :ivar dict param_map: stores the default values for all parameters and provides a function
+    :ivar cli_params: contains the list of user-supplied parameters before they are applied
+    :ivar param_map: stores the default values for all parameters and provides a function
                           to validate the user-supplied values.
 
     """
@@ -348,27 +347,27 @@ class ParametersManager:
     def __getitem__(self, item):
         """Allows quick access to parameter values in the param_map
 
-        :param Parameters item: the parameter we want value for
+        :param item: the parameter we want value for
 
-        :return object: the corresponding value
+        :return: the corresponding value
         """
         return self.param_map[item]["value"]
 
     def __setitem__(self, key, value):
         """Allows to directly set param_map values
 
-        :param Parameters key: the parameter to change
-        :param object value: the new value
+        :param key: the parameter to change
+        :param value: the new value
         """
         self.param_map[key]["value"] = value
 
     def add_cli_parameter(self, name, value):
         """Add new CLI parameter to the list of user-supplied arguments.
 
-        :param str name: the string representation of a Parameter
-        :param object value: the Parameter value
+        :param name: the string representation of a Parameter
+        :param value: the Parameter value
 
-        :return object or None: the parameter value if the validation is successful, else None
+        :return: the parameter value if the validation is successful, else None
         """
         param = Parameters(name)
         validated = self.param_map[param]["validate"](value)
@@ -382,9 +381,9 @@ class ParametersManager:
         by the user. The prediction is done safely in several steps since various modes and
         parameters can affect other parameters as well.
 
-        :param CallGraphResource call_graph: the CGR instance
-        :param Pipeline pipeline: the currently selected pipeline
-        :param str binary: path to the executable binary
+        :param call_graph: the CGR instance
+        :param pipeline: the currently selected pipeline
+        :param binary: path to the executable binary
         """
         metrics.start_timer("optimization_parameters")
         func_count, level_count = 0, 0
@@ -427,8 +426,8 @@ class ParametersManager:
     def _infer_general_parameters(self, func_count, level_count):
         """Predicts parameters that are applied across multiple optimization methods.
 
-        :param int func_count: the number of extracted functions
-        :param int level_count: the amount of call graph levels
+        :param func_count: the number of extracted functions
+        :param level_count: the amount of call graph levels
         """
         if func_count == 0 and level_count == 0:
             return
@@ -443,8 +442,8 @@ class ParametersManager:
     def _infer_modes(self, selected_pipeline, user_modes):
         """Predicts the mode parameters based on the used pipeline.
 
-        :param Pipeline selected_pipeline: the currently selected pipeline
-        :param list user_modes: list of pairs with user-specified modes
+        :param selected_pipeline: the currently selected pipeline
+        :param user_modes: list of pairs with user-specified modes
         """
         self[Parameters.DIFF_CG_MODE] = DiffCfgMode.COLORING
         self[Parameters.CG_SHAPING_MODE] = CGShapingMode.TOP_DOWN
@@ -460,8 +459,8 @@ class ParametersManager:
     def _infer_cg_shaping_parameters(self, func_count, level_count):
         """Predicts the Call Graph Shaping parameters based on the number of functions and levels.
 
-        :param int func_count: the number of extracted functions
-        :param int level_count: the amount of call graph levels
+        :param func_count: the number of extracted functions
+        :param level_count: the amount of call graph levels
         """
         if func_count == 0 and level_count == 0:
             return
@@ -484,7 +483,7 @@ class ParametersManager:
     def _infer_dynamic_probing(self, cli_params):
         """Predict parameters and threshold values for Dynamic Probing .
 
-        :param list cli_params: a collection of user-supplied parameters
+        :param cli_params: a collection of user-supplied parameters
         """
         # Update the probing threshold if reattach is enabled and probing threshold is not set
         probing_threshold_set = Parameters.PROBING_THRESHOLD in [param for param, _ in cli_params]
@@ -495,7 +494,7 @@ class ParametersManager:
     def _extract_sources(self, binary):
         """Search for source files of the project in the binary directory, if none are given.
 
-        :param str binary: path to the binary executable
+        :param binary: path to the binary executable
         """
         files, dirs = self[Parameters.SOURCE_FILES], self[Parameters.SOURCE_DIRS]
         # No need to extract if only source files are supplied
@@ -512,8 +511,8 @@ class ParametersManager:
     def _validate_bool(value):
         """Bool validation function that accepts boolean values as 1 or 0.
 
-        :param str value: the boolean value to validate
-        :return bool or None: the boolean value if the validation is successful
+        :param value: the boolean value to validate
+        :return: the boolean value if the validation is successful
         """
         if value in ["0", "1"]:
             return bool(int(value))
@@ -523,8 +522,8 @@ class ParametersManager:
     def _validate_uint(value):
         """Uint validation function.
 
-        :param str value: the uint value to validate
-        :return int or None: the uint value if the validation is successful
+        :param value: the uint value to validate
+        :return: the uint value if the validation is successful
         """
         try:
             value = int(value)
@@ -538,8 +537,8 @@ class ParametersManager:
     def _validate_ufloat(value):
         """unsigned float validation function.
 
-        :param str value: the ufloat value to validate
-        :return float or None: the ufloat value if the validation is successful
+        :param value: the ufloat value to validate
+        :return: the ufloat value if the validation is successful
         """
         try:
             value = float(value)
@@ -553,8 +552,8 @@ class ParametersManager:
     def _validate_path(path):
         """Path validation function that takes string and resolves the path.
 
-        :param str path: the path to validate
-        :return str or None: fully resolved path if the validation is successful
+        :param path: the path to validate
+        :return: fully resolved path if the validation is successful
         """
         if not os.path.exists(os.path.realpath(path)):
             return None
@@ -564,10 +563,10 @@ class ParametersManager:
     def _validate_enum(enumclass, value):
         """Validate if value is supported in the given enum class
 
-        :param Enum enumclass: Enum class
-        :param str value: value to check
+        :param enumclass: Enum class
+        :param value: value to check
 
-        :return object or None: Enum item corresponding to the given string value
+        :return: Enum item corresponding to the given string value
         """
         return enumclass(value) if value in enumclass.supported() else None
 
@@ -575,10 +574,10 @@ class ParametersManager:
 def _get_source_files(dirs, files):
     """Get all source files in the supplied dirs and files
 
-    :param list dirs: list of directories
-    :param list files: list of files
+    :param dirs: list of directories
+    :param files: list of files
 
-    :return list: list of file paths
+    :return: list of file paths
     """
     candidate_files = []
     for src in dirs + files:

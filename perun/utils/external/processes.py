@@ -2,6 +2,7 @@
 
 Currently, this contains working with nonblocking subprocesses
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -28,10 +29,10 @@ def nonblocking_subprocess(
     supply custom process termination function (and its arguments) that will be used instead of
     the subprocess.terminate().
 
-    :param str command: the command to run in the background
-    :param dict subprocess_kwargs: additional arguments for the subprocess Popen
-    :param function termination: the custom termination function or None
-    :param dict termination_kwargs: the arguments for the termination function
+    :param command: the command to run in the background
+    :param subprocess_kwargs: additional arguments for the subprocess Popen
+    :param termination: the custom termination function or None
+    :param termination_kwargs: the arguments for the termination function
     """
     # Split process and arguments
     parsed_cmd = shlex.split(command)

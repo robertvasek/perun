@@ -2518,7 +2518,7 @@ def test_stats(pcs_full_no_prof):
 def _get_vcs_versions():
     """Obtains the VCS minor versions.
 
-    :return list: list of minor version checksums sorted as in the VCS.
+    :return: list of minor version checksums sorted as in the VCS.
     """
     return [v.checksum for v in pcs.vcs().walk_minor_versions(pcs.vcs().get_minor_head())]
 
@@ -2529,9 +2529,9 @@ def _normalize_stats_output(output, version_replacements):
     That includes changing the minor version values to the reference ones and setting all the
     size values to 0 since they can differ on different machines or lib versions etc.
 
-    :param str output: the command output
-    :param list version_replacements: list of mapping tuples (actual version, reference version)
-    :return str: the normalized output
+    :param output: the command output
+    :param version_replacements: list of mapping tuples (actual version, reference version)
+    :return: the normalized output
     """
     # Normalize the minor versions to some comparable values
     for minor_actual, minor_reference in version_replacements:
@@ -2547,8 +2547,8 @@ def _normalize_stats_output(output, version_replacements):
 def _compare_file_outputs(runner_result, reference_file):
     """Compares runner output with a file output
 
-    :param str runner_result: the output of the CLI runner
-    :param str reference_file: path to the reference file
+    :param runner_result: the output of the CLI runner
+    :param reference_file: path to the reference file
     """
     with open(reference_file, "r") as f_handle:
         expected_output = f_handle.readlines()

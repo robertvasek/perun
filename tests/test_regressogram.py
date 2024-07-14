@@ -8,6 +8,7 @@ always.
 
 The postprocessby CLI is tested in test_cli module.
 """
+
 from __future__ import annotations
 
 # Standard Imports

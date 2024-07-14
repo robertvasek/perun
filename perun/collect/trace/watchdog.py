@@ -21,15 +21,15 @@ class Watchdog:
     """Logger class for the trace collector. Allows to log various events, warnings, milestones,
     variables etc. Useful especially for diagnostic purposes.
 
-    :ivar bool __enabled: enables or disables the watchdog logging (not the console outputs tho)
-    :ivar Logger __logger: the internal handle to the Logger object
-    :ivar str logfile: path to (name of) the logging file
-    :ivar int pid: the PID of the process that is using the watchdog
-    :ivar str timestamp: the startup timestamp of the process using the watchdog
-    :ivar bool quiet: suppress the info console outputs
-    :ivar str debug_format: the format of the debug messages
-    :ivar int __debug_format_len: the approximate length of the resulting format
-    :ivar str info_format: the format of the info messages
+    :ivar __enabled: enables or disables the watchdog logging (not the console outputs tho)
+    :ivar __logger: the internal handle to the Logger object
+    :ivar logfile: path to (name of) the logging file
+    :ivar pid: the PID of the process that is using the watchdog
+    :ivar timestamp: the startup timestamp of the process using the watchdog
+    :ivar quiet: suppress the info console outputs
+    :ivar debug_format: the format of the debug messages
+    :ivar __debug_format_len: the approximate length of the resulting format
+    :ivar info_format: the format of the info messages
     """
 
     def __init__(self):
@@ -48,7 +48,7 @@ class Watchdog:
         """Initializes new watchdog session, i.e. creates the logger object and configures it.
 
         :param enabled: determines if the watchdog should be logging to a log file
-        :param int pid: the PID of the process that is using the watchdog
+        :param pid: the PID of the process that is using the watchdog
         :param timestamp: the startup timestamp of the process using the watchdog
         :param quiet: suppress the info console outputs
         """
@@ -89,7 +89,7 @@ class Watchdog:
     def end_session(self, zipper=None):
         """End the current watchdog session and optionally zip the log file.
 
-        :param Zipper zipper: the zipper object
+        :param zipper: the zipper object
         """
         # Terminate the session only if it's running
         if self.__enabled:
@@ -106,7 +106,7 @@ class Watchdog:
 
         The message is printed out to the log file as well as to the terminal.
 
-        :param str msg: the header message
+        :param msg: the header message
         """
         if self.__enabled:
             # Create a debug message
@@ -118,8 +118,8 @@ class Watchdog:
         """Prints the message as a warning. The warning is displayed to the user even if the
         watchdog is not enabled - as long as the always parameter is set to True.
 
-        :param str msg: the warning message
-        :param bool always: show the warning regardless of enabled / disabled watchdog
+        :param msg: the warning message
+        :param always: show the warning regardless of enabled / disabled watchdog
         """
         if not self.__enabled:
             if always:
@@ -131,8 +131,8 @@ class Watchdog:
         """Prints the info message. The message is displayed on the terminal as well as stored in
         the log file. If the 'quiet' flag is set, the message will not be displayed on the terminal.
 
-        :param str msg: the info message
-        :param bool always: show the message on terminal even if watchdog is disabled, however,
+        :param msg: the info message
+        :param always: show the message on terminal even if watchdog is disabled, however,
                             the quiet flag can override this parameter
         :return:
         """
@@ -150,7 +150,7 @@ class Watchdog:
         """Prints the debug message. The message is only stored in the log file if the watchdog is
         enabled.
 
-        :param str msg: the debug message
+        :param msg: the debug message
         """
         if self.__enabled:
             self.__logger.debug(msg)
@@ -158,7 +158,7 @@ class Watchdog:
     def log_variable(self, name, data):
         """Logs the given variable name and content into the log file.
 
-        :param str name: the name of the variable that will be displayed in the log
+        :param name: the name of the variable that will be displayed in the log
         :param data: the variable value
         """
         if self.__enabled:
@@ -170,9 +170,9 @@ class Watchdog:
         """Logs the SystemTap probe records and metrics, such as size of the script, # of probe
         locations etc.
 
-        :param int func_count: number of function probes
-        :param int usdt_count: number of USDT probes
-        :param str script: path to the SystemTap script
+        :param func_count: number of function probes
+        :param usdt_count: number of USDT probes
+        :param script: path to the SystemTap script
         """
         if not self.__enabled:
             return
@@ -187,9 +187,9 @@ class Watchdog:
         """Logs the SystemTap and perun related resources that are being used on the system,
         such as the SystemTap processes and SystemTap kernel modules.
 
-        :param tuple (list, list) processes: list of locked and lockless running processes, i.e.
+        :param processes: list of locked and lockless running processes, i.e.
                                              processes with or without existing lock file
-        :param tuple (list, list) modules: list of locked and lockless kernel modules, i.e.
+        :param modules: list of locked and lockless kernel modules, i.e.
                                              SystemTap modules with or without existing lock file
         """
         locked_stap, lockless_stap = processes
@@ -228,8 +228,8 @@ WATCH_DOG = Watchdog()
 def _count_script_probes(script_path):
     """Counts the number of probe locations in the given SystemTap script.
 
-    :param str script_path: path to the script file
-    :return int: the number of probe locations in the script
+    :param script_path: path to the script file
+    :return: the number of probe locations in the script
     """
     with open(script_path, "r") as script:
         script_content = script.read()

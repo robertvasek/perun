@@ -20,10 +20,10 @@ _LINEAR_RATIO = 1.5  # The ratio applied to linear functions in the initial phas
 def set_sampling(call_graph, stats, step, threshold):
     """The Dynamic Sampling method.
 
-    :param CallGraphResource call_graph: the CGR optimization resource
-    :param dict stats: the Dynamic Stats dictionary
-    :param float step: the base for the exponential function that estimates sampling
-    :param int threshold: the desired number of records for each profiled function
+    :param call_graph: the CGR optimization resource
+    :param stats: the Dynamic Stats dictionary
+    :param step: the base for the exponential function that estimates sampling
+    :param threshold: the desired number of records for each profiled function
     """
     stats = {} if stats is None else stats
     # 20% of the threshold is an expected deviation (+- 10%)

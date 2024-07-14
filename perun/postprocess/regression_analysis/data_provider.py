@@ -1,4 +1,5 @@
 """Module for various means of regression data acquisition. """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
 def resource_sort_key(resource: dict[str, Any]) -> str:
     """Extracts the key from resource used for sorting
 
-    :param dict resource: profiling resource
+    :param resource: profiling resource
     :return: key used for sorting
     """
     return convert.flatten(resource["uid"])
@@ -28,11 +29,11 @@ def generic_profile_provider(
 ) -> Iterator[tuple[list[float], list[float], str]]:
     """Data provider for trace collector profiling output.
 
-    :param Profile profile: the trace profile dictionary
-    :param str of_key: key for which we are finding the model
-    :param str per_key: key of the independent variable
-    :param dict _: rest of the key arguments
-    :returns generator: each subsequent call returns tuple: x points list, y points list, function
+    :param profile: the trace profile dictionary
+    :param of_key: key for which we are finding the model
+    :param per_key: key of the independent variable
+    :param _: rest of the key arguments
+    :return: each subsequent call returns tuple: x points list, y points list, function
         name
     """
     # Get the file resources contents

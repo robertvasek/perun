@@ -1,6 +1,7 @@
 """ The values module contains various utility classes, enums and constants that are used in
 multiple other modules across the whole trace collector.
 """
+
 import dataclasses
 import re
 import collections
@@ -25,7 +26,7 @@ class Strategy(Enum):
     def supported():
         """Convert the strategy options to a list of strings.
 
-        :return list: the strategies represented as strings
+        :return: the strategies represented as strings
         """
         return [strategy.value for strategy in Strategy]
 
@@ -33,7 +34,7 @@ class Strategy(Enum):
     def default():
         """Provide the default extraction strategy as a string value.
 
-        :return str: the default strategy name
+        :return: the default strategy name
         """
         return Strategy.CUSTOM.value
 
@@ -42,16 +43,16 @@ class Zipper:
     """Wrapper class for the ZipFile object that can ignore the 'write' command if zipping is
     not enabled by the user. The Zipper can be used as a context manager.
 
-    :ivar bool __enabled: determines if the files will be actually packed or ignored
-    :ivar ZipFile pack: the ZipFile handler
-    :ivar str pack_name: the name of the resulting zip archive
+    :ivar __enabled: determines if the files will be actually packed or ignored
+    :ivar pack: the ZipFile handler
+    :ivar pack_name: the name of the resulting zip archive
     """
 
     def __init__(self, enabled, pack_name):
         """Constructs the Zipper object
 
-        :param bool enabled: determines if the archive will be created or not
-        :param str pack_name: the name of the resulting archive
+        :param enabled: determines if the archive will be created or not
+        :param pack_name: the name of the resulting archive
         """
         self.__enabled = enabled
         self.pack = None
@@ -60,7 +61,7 @@ class Zipper:
     def __enter__(self):
         """The context manager entry guard, creates the ZipFile object if zipping is enabled
 
-        :return Zipper: the Zipper object
+        :return: the Zipper object
         """
         if self.__enabled:
             self.pack = ZipFile(self.pack_name, "w", compression=ZIP_LZMA).__enter__()
@@ -70,9 +71,9 @@ class Zipper:
     def __exit__(self, exc_type, exc_val, exc_tb):
         """The context manager exit guard, the ZipFile object is properly terminated
 
-        :param type exc_type: the type of the exception
-        :param exception exc_val: the value of the exception
-        :param traceback exc_tb: the exception traceback
+        :param exc_type: the type of the exception
+        :param exc_val: the value of the exception
+        :param exc_tb: the exception traceback
         """
         if self.pack is not None:
             self.pack.__exit__(exc_type, exc_val, exc_tb)
@@ -81,8 +82,8 @@ class Zipper:
         """Packs the given file as 'arcname' into the archive - or ignores the operation if the
         Zipper is not enabled.
 
-        :param str file: the file path to archive
-        :param str arcname: the name of the file in the archive
+        :param file: the file path to archive
+        :param arcname: the name of the file in the archive
         """
         if self.__enabled and file is not None:
             self.pack.write(file, arcname=arcname)
@@ -129,7 +130,7 @@ class OutputHandling(Enum):
     def to_list():
         """Convert the handling options to a list of strings.
 
-        :return list: the options represented as strings
+        :return: the options represented as strings
         """
         return [handling.value for handling in OutputHandling]
 

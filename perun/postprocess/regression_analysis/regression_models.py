@@ -26,8 +26,8 @@ def get_formula_of(model: str) -> Callable[..., float]:
     Method returns the formula for y coordinates computation according
     to the given model type (e.g. linear, constant, etc.).
 
-    :param str model: the type of model which formula is required
-    :return lambda: formula for y coordinates computation
+    :param model: the type of model which formula is required
+    :return: formula for y coordinates computation
     """
     return MODEL_MAP[model]["transformations"]["plot_model"]["formula"]
 
@@ -37,7 +37,7 @@ def get_supported_models() -> list[str]:
 
     The 'all' specifier is used in reverse mapping as it enables to easily specify all models
 
-    :returns list of str: the names of all supported models and 'all' specifier
+    :return: the names of all supported models and 'all' specifier
     """
     # Disable quadratic model, but allow to process already existing profiles with quad model
     return [key for key in sorted(MODEL_MAP.keys())]
@@ -46,8 +46,8 @@ def get_supported_models() -> list[str]:
 def get_supported_transformations(model_key: str) -> list[str]:
     """Provides all currently supported transformations for given model as a list of their names.
 
-    :param str model_key: model key (e.g. 'log') for which the transformations are gathered
-    :returns list of str: the names of all supported transformations for given model
+    :param model_key: model key (e.g. 'log') for which the transformations are gathered
+    :return: the names of all supported transformations for given model
     """
     return [t for t in MODEL_MAP.get(model_key, {}).get("transformations", {}).keys()]
 
@@ -55,10 +55,10 @@ def get_supported_transformations(model_key: str) -> list[str]:
 def get_transformation_data_for(regression_model: str, transformation: str) -> dict[str, Any]:
     """Provides transformation dictionary from _MODELS for specific transformation and model.
 
-    :param str regression_model: the regression model in which to search for transformation function
-    :param str transformation: transformation name (key in _MODELS transformation, e.g. plot_model)
+    :param regression_model: the regression model in which to search for transformation function
+    :param transformation: transformation name (key in _MODELS transformation, e.g. plot_model)
         that identify the desired transformation dictionary
-    :returns dict: the transformation dictionary
+    :return: the transformation dictionary
     """
     # Get the model key first
     key = map_model_to_key(regression_model)
@@ -77,10 +77,10 @@ def map_keys_to_models(regression_models_keys: tuple[str]) -> Iterable[dict[str,
     """The mapping generator which provides the sections of _MODELS dictionary according to
     specified model keys list.
 
-    :param tuple regression_models_keys: the list of Models values
+    :param regression_models_keys: the list of Models values
     :raises InvalidModelException: if specified model does not have a properties record in _MODELS
         dictionary
-    :returns iterable: the generator object which yields models records one by one as a dictionary
+    :return: the generator object which yields models records one by one as a dictionary
     """
     # Convert single value to list
     regression_models_keys = common_kit.ensure_type(regression_models_keys, tuple)
@@ -103,8 +103,8 @@ def map_model_to_key(model: str) -> str:
     """The mapping function which takes model name and provides the _MODELS key containing
         the model dictionary.
 
-    :param str model: the model name to map
-    :returns str:  the _MODELS key containing the model data
+    :param model: the model name to map
+    :return:  the _MODELS key containing the model data
     """
     # Collect all models in _MODELS as a dict of model: key
     elements = {MODEL_MAP[m].get("model"): m for m in MODEL_MAP}
@@ -117,8 +117,8 @@ def map_model_to_key(model: str) -> str:
 def filter_derived(regression_models_keys: tuple[str]) -> tuple[tuple[str], tuple[str]]:
     """Filtering of the selected models to standard and derived models.
 
-    :param tuple of str regression_models_keys: the models to be computed
-    :returns tuple, tuple: the derived models and standard models in separated tuples
+    :param regression_models_keys: the models to be computed
+    :return: the derived models and standard models in separated tuples
     """
     # Get all models
     if not regression_models_keys or "all" in regression_models_keys:

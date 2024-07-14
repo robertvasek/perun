@@ -200,7 +200,7 @@ def test_nonblocking_subprocess():
         """The wrapper function for process termination that can - but doesn't have to -
         accept one argument
 
-        :param int pid: the pid of the process to terminate
+        :param pid: the pid of the process to terminate
         """
         if pid is None:
             pid = proc_dict["pid"]

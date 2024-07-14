@@ -3,6 +3,7 @@
 Contains decorators for enforcing certain conditions, like e.g. singleton-like return value of
 the functions. Or various checker function, that checks given parameters of the functions.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -56,10 +57,10 @@ def arguments_to_key(func: Callable[..., Any], *args: Any, **kwargs: Any) -> tup
     of args and kwargs into unique key. Note that this has to be generic and
     accept various types of function combinations
 
-    :param function func: function we are extracting parameters for
-    :param list args: list of non keyword arguments
-    :param dict kwargs: dictionary of keyword arguments
-    :returns tuple: key usable for identification of called parameters
+    :param func: function we are extracting parameters for
+    :param args: list of non keyword arguments
+    :param kwargs: dictionary of keyword arguments
+    :return: key usable for identification of called parameters
     """
     # positional, *, **, default for positional, keywords after *, keywords defaults
     f_args, _, _, f_defaults, _, f_kwonlydefaults, _ = inspect.getfullargspec(func)
@@ -91,8 +92,8 @@ def singleton_with_args(func: Callable[..., Any]) -> Callable[..., Any]:
     Wraps the function @p func, so it will always return the same result,
     as given by the first call with given positional and keyword arguments.
 
-    :param function func: any function that takes parameters and returns value
-    :returns func: decorated function that will be run only once for give parameters
+    :param func: any function that takes parameters and returns value
+    :return: decorated function that will be run only once for give parameters
     """
     func_args_cache[func.__name__] = {}
 
@@ -112,7 +113,7 @@ func_args_cache: dict[str, dict[tuple[Any, ...], Any]] = {}
 def remove_from_function_args_cache(funcname: str) -> None:
     """Helper function for clearing the key from func args cache
 
-    :param str funcname: function name that we are removing from the cache
+    :param funcname: function name that we are removing from the cache
     """
     if funcname in func_args_cache.keys():
         func_args_cache[funcname].clear()
@@ -125,11 +126,11 @@ def validate_arguments(
     Validates the arguments stated by validated_args with validate function.
     Note that positional and kwarguments are not supported by this decorator
 
-    :param list[str] validated_args: list of validated arguments
-    :param function validate: function used for validation
-    :param list args: list of additional positional arguments to validate function
-    :param dict kwargs: dictionary of additional keyword arguments to validate function
-    :returns func: decorated function for which given parameters will be validated
+    :param validated_args: list of validated arguments
+    :param validate: function used for validation
+    :param args: list of additional positional arguments to validate function
+    :param kwargs: dictionary of additional keyword arguments to validate function
+    :return: decorated function for which given parameters will be validated
     """
 
     def inner_decorator(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -155,8 +156,8 @@ def validate_arguments(
 
 def static_variables(**kwargs: Any) -> Callable[..., Any]:
     """
-    :param dict kwargs: keyword with static variables and their values
-    :returns func: decorated function for which static variables are set
+    :param kwargs: keyword with static variables and their values
+    :return: decorated function for which static variables are set
     """
 
     def inner_wrapper(func: Callable[..., Any]) -> Callable[..., Any]:

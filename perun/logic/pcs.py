@@ -28,7 +28,7 @@ def get_safe_path(default: str) -> str:
     """Locates the instance of the perun starting from the current directory. In case the
     directory is not Perun repository, returns the safe default.
 
-    :param str default: default path that is returned in case there is no perun
+    :param default: default path that is returned in case there is no perun
     :return: string path where the perun instance is located or default
     """
     try:
@@ -88,7 +88,7 @@ def get_vcs_path() -> str:
 def local_config() -> config.Config:
     """Get local config for the current Perun context
 
-    :returns Config: local config object, that can be passed to functions of config module
+    :return: local config object, that can be passed to functions of config module
     """
     return config.local(get_path())
 
@@ -97,7 +97,7 @@ def local_config() -> config.Config:
 def global_config() -> config.Config:
     """Get global config for the current Perun context
 
-    :returns Config: global config object, that can be passed to function of config module
+    :return: global config object, that can be passed to function of config module
     """
     return config.shared()
 
@@ -106,7 +106,7 @@ def global_config() -> config.Config:
 def get_object_directory() -> str:
     """Returns the name of the directory, where objects are stored
 
-    :returns str: directory, where the objects are stored
+    :return: directory, where the objects are stored
     """
     object_directory = os.path.join(get_path(), "objects")
     common_kit.touch_dir(object_directory)
@@ -117,7 +117,7 @@ def get_object_directory() -> str:
 def get_log_directory() -> str:
     """Returns the name of the directory, where logs are stored
 
-    :return str: directory, where logs are stored
+    :return: directory, where logs are stored
     """
     logs_directory = os.path.join(get_path(), "logs")
     common_kit.touch_dir(logs_directory)
@@ -128,7 +128,7 @@ def get_log_directory() -> str:
 def get_job_directory() -> str:
     """Returns the name of the directory, where pending profiles are stored
 
-    :returns str: directory, where job outputs are stored
+    :return: directory, where job outputs are stored
     """
     jobs_directory = os.path.join(get_path(), "jobs")
     common_kit.touch_dir(jobs_directory)
@@ -139,7 +139,7 @@ def get_job_directory() -> str:
 def get_job_index() -> str:
     """Returns the name of the index, where pending profiles are registered
 
-    :returns str: filename, where job outputs are registered
+    :return: filename, where job outputs are registered
     """
     jobs_directory = get_job_directory()
     return os.path.join(jobs_directory, ".index")
@@ -149,7 +149,7 @@ def get_job_index() -> str:
 def get_stats_directory() -> str:
     """Returns the name of the directory where statistics are stored
 
-    :return str: path to the statistics directory
+    :return: path to the statistics directory
     """
     stats_directory = os.path.join(get_path(), "stats")
     common_kit.touch_dir(stats_directory)
@@ -161,7 +161,7 @@ def get_stats_index() -> str:
     """Returns the path to the index file in stats directory where records about minor versions
     with stats files are stored
 
-    :return str: path to the index file of the statistics directory
+    :return: path to the index file of the statistics directory
     """
     return os.path.join(get_stats_directory(), ".index")
 
@@ -170,7 +170,7 @@ def get_stats_index() -> str:
 def get_tmp_directory() -> str:
     """Returns the name of the directory, where various or temporary files are stored
 
-    :return str: path to the tmp directory
+    :return: path to the tmp directory
     """
     tmp_directory = os.path.join(get_path(), "tmp")
     common_kit.touch_dir(tmp_directory)
@@ -182,7 +182,7 @@ def get_tmp_index() -> str:
     """Returns the path to the index file in tmp directory, where details about some tmp files
     are stored
 
-    :return str: path to the tmp index file
+    :return: path to the tmp index file
     """
     tmp_directory = get_tmp_directory()
     return os.path.join(tmp_directory, ".index")
@@ -192,7 +192,7 @@ def get_tmp_index() -> str:
 def get_config_file(config_type: str) -> str:
     """Returns the config file for the given config type
 
-    :returns str: path of the config of the given type
+    :return: path of the config of the given type
     """
     if config_type in ("shared", "global"):
         return os.path.join(config.lookup_shared_config_dir(), "shared.yml")

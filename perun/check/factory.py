@@ -1,6 +1,7 @@
 """
 Collection of global methods for detection of performance changes
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -75,7 +76,7 @@ def get_supported_detection_models_strategies() -> list[str]:
         - all-models: all models pair from both profiles
         - best-both: best parametric and non-parametric models from both profiles
 
-    :returns list of str: the names of all supported degradation models strategies
+    :return: the names of all supported degradation models strategies
     """
     return [
         "best-model",
@@ -111,7 +112,7 @@ def pre_collect_profiles(minor_version: MinorVersion) -> None:
 
     TODO: What if error happens during run matrix? This should be caught and solved
 
-    :param MinorVersion minor_version: minor version for which we are collecting the data
+    :param minor_version: minor version for which we are collecting the data
     """
     should_precollect = common_kit.strtobool(
         str(config.lookup_key_recursively("degradation.collect_before_check", "false"))
@@ -141,8 +142,8 @@ def degradation_in_minor(
 ) -> list[tuple[DegradationInfo, str, str]]:
     """Checks for degradation according to the profiles stored for the given minor version.
 
-    :param str minor_version: representation of head point of degradation checking
-    :param bool quiet: if set to true then nothing will be printed
+    :param minor_version: representation of head point of degradation checking
+    :param quiet: if set to true then nothing will be printed
     :returns: list of found changes
     """
     log.major_info(f"Checking Version {minor_version}")
@@ -183,7 +184,7 @@ def degradation_in_minor(
 def degradation_in_history(head: str) -> list[tuple[DegradationInfo, str, str]]:
     """Walks through the minor version starting from the given head, checking for degradation.
 
-    :param str head: starting point of the checked history for degradation.
+    :param head: starting point of the checked history for degradation.
     :returns: tuple (degradation result, degradation location, degradation rate)
     """
     log.major_info("Checking Whole History")
@@ -218,9 +219,9 @@ def degradation_between_profiles(
     We first find the suitable strategy for the profile configuration and then call the appropriate
     wrapper function.
 
-    :param ProfileInfo baseline_profile: baseline against which we are checking the degradation
-    :param ProfileInfo target_profile: profile corresponding to the checked minor version
-    :param str models_strategy: name of detection models strategy to obtains relevant model kinds
+    :param baseline_profile: baseline against which we are checking the degradation
+    :param target_profile: profile corresponding to the checked minor version
+    :param models_strategy: name of detection models strategy to obtains relevant model kinds
     :returns: tuple (degradation result, degradation location, degradation rate)
     """
     # We run all degradation methods suitable for the given configuration of profile
@@ -281,12 +282,11 @@ def degradation_between_files(
 ) -> None:
     """Checks between a pair of files (baseline, target) whether there are any changes in performance.
 
-    :param dict baseline_file: baseline profile we are checking against
-    :param dict target_file: target profile we are testing
-    :param str minor_version: targ minor_version
-    :param str models_strategy: name of detection models strategy to obtains relevant model kinds
-    :param bool force: force profiles check despite different configurations
-    :returns None: no return value
+    :param baseline_file: baseline profile we are checking against
+    :param target_file: target profile we are testing
+    :param minor_version: targ minor_version
+    :param models_strategy: name of detection models strategy to obtains relevant model kinds
+    :param force: force profiles check despite different configurations
     """
     log.major_info("Checking two compatible profiles")
     # First check if the configurations are compatible
@@ -329,9 +329,9 @@ def is_rule_applicable_for(rule: dict[str, Any], configuration: Profile) -> bool
             'collector': 'cachegrind'
         }
 
-    :param dict rule: dictionary with rule containing keys and values for which the rule is
+    :param rule: dictionary with rule containing keys and values for which the rule is
         applicable
-    :param dict configuration: dictionary with profile
+    :param configuration: dictionary with profile
     :return: true if the rule is applicable for given profile
     """
     for key, value in rule.items():
@@ -354,7 +354,7 @@ def parse_strategy(strategy: str) -> str:
 
     This handles short names for the degradation strategies.
 
-    :param str strategy: name of the strategy
+    :param strategy: name of the strategy
     :return:
     """
     short_strings = {
@@ -373,7 +373,7 @@ def parse_strategy(strategy: str) -> str:
 def get_strategies_for(profile: Profile) -> Iterable[str]:
     """Retrieves the best strategy for the given profile configuration
 
-    :param Profile profile: Profile information with configuration tuple
+    :param profile: Profile information with configuration tuple
     :return: method to be used for checking degradation between profiles of
         the same configuration type
     """
@@ -411,10 +411,10 @@ def run_detection_with_strategy(
     ensure the executing of detection between them. In the end, this function
     returns the structure `DegradationInfo` with the detected information.
 
-    :param callable detection_method: method to execute the detection logic with the call template
-    :param Profile baseline_profile: baseline profile against which we are checking the degradation
-    :param Profile target_profile: target profile corresponding to the checked minor version
-    :param str models_strategy: name of detection models strategy to obtains relevant model kinds
+    :param detection_method: method to execute the detection logic with the call template
+    :param baseline_profile: baseline profile against which we are checking the degradation
+    :param target_profile: target profile corresponding to the checked minor version
+    :param models_strategy: name of detection models strategy to obtains relevant model kinds
     :returns: tuple - degradation result (structure DegradationInfo)
     """
     if models_strategy in ("all-models", "best-both"):
@@ -459,11 +459,11 @@ def _run_detection_for_models(
     from the comparison of these models. This method subsequently return the structure
     DegradationInfo with relevant items about detected changes between compared models.
 
-    :param callable detection_method: method to execute the detection logic with the call template
-    :param Profile baseline_profile: base profile against which we are checking the degradation
-    :param dict baseline_models: set of models to comparison from base profile
-    :param Profile target_profile: targ profile corresponding to the checked minor version
-    :param dict target_models: set of models to comparison from targ profile
+    :param detection_method: method to execute the detection logic with the call template
+    :param baseline_profile: base profile against which we are checking the degradation
+    :param baseline_models: set of models to comparison from base profile
+    :param target_profile: targ profile corresponding to the checked minor version
+    :param target_models: set of models to comparison from targ profile
     :param kwargs: contains name of detection models strategy to obtains relevant model kinds
     :return: tuple - degradation result (structure DegradationInfo)
     """

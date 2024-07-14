@@ -23,7 +23,7 @@ def get_headers(ctx: click.Context) -> list[str]:
     """According to the loaded profile, checks the list of possible keys that can be used for
     filtering, sorting, etc.
 
-    :param click Context ctx: context of the called click
+    :param ctx: context of the called click
     :return: candidate headers for resources or models
     """
     headers = []
@@ -40,9 +40,9 @@ def get_headers(ctx: click.Context) -> list[str]:
 def output_table_to(table: str, target: str, target_file: str) -> None:
     """Outputs the table either to stdout or file
 
-    :param str table: outputted table
-    :param str target: either file or stdout
-    :param str target_file: name of the output file
+    :param table: outputted table
+    :param target: either file or stdout
+    :param target_file: name of the output file
     """
     if target == "file":
         with open(target_file, "w") as wtf:
@@ -63,13 +63,13 @@ def create_table_from(
 
     Currently, the representation contains all possible keys.
 
-    :param dict profile: profile transformed into the table
-    :param function conversion_function: function that converts profile to table
-    :param list headers: list of headers of the table
-    :param str sort_by: key for which we will sort
-    :param filter_by list of keys that will be potentially filtered
-    :param str tablefmt: format of the table
-    :param str filter_by: key by which we filter
+    :param profile: profile transformed into the table
+    :param conversion_function: function that converts profile to table
+    :param headers: list of headers of the table
+    :param sort_by: key for which we will sort
+    :param filter_by: list of keys that will be potentially filtered
+    :param tablefmt: format of the table
+    :param filter_by: key by which we filter
     :return: tabular representation of the profile in string
     """
     dataframe = conversion_function(profile)
@@ -96,9 +96,9 @@ def create_table_from(
 def process_filter(ctx: click.Context, option: click.Option, value: list[str]) -> list[str]:
     """Processes option for filtering of the table, according to the profile keys
 
-    :param click.Context ctx: context of the called command
-    :param click.Option option: called option
-    :param list value: list of (key, value) tuples
+    :param ctx: context of the called command
+    :param option: called option
+    :param value: list of (key, value) tuples
     :return: valid filtering keys
     """
     headers = get_headers(ctx)
@@ -120,9 +120,9 @@ def process_filter(ctx: click.Context, option: click.Option, value: list[str]) -
 def process_sort_key(ctx: click.Context, option: click.Option, value: str) -> str:
     """Processes the key for sorting the table
 
-    :param click.Context ctx: context of the called command
-    :param click.Option option: called option
-    :param str value: key used for sorting
+    :param ctx: context of the called command
+    :param option: called option
+    :param value: key used for sorting
     :return: valid key for sorting
     """
     headers = get_headers(ctx)
@@ -138,9 +138,9 @@ def process_sort_key(ctx: click.Context, option: click.Option, value: str) -> st
 def process_headers(ctx: click.Context, option: click.Option, value: list[str]) -> list[str]:
     """Processes list of headers of the outputted table
 
-    :param click.Context ctx: context of the called command
-    :param click.Option option: called option
-    :param tuple value: tuple of stated header keys
+    :param ctx: context of the called command
+    :param option: called option
+    :param value: tuple of stated header keys
     :return: list of headers of the table
     """
     headers = get_headers(ctx)
@@ -165,9 +165,9 @@ def process_output_file(ctx: click.Context, _: click.Option, value: str) -> str:
     If no output file is set, then we generate the profile name according to the profile
     and append the "resources_of" or "models_of" prefix to the file.
 
-    :param click.Context ctx: context of the called command
-    :param click.Option _: called option
-    :param str value: output file of the show
+    :param ctx: context of the called command
+    :param _: called option
+    :param value: output file of the show
     :return: output file of the show
     """
     assert ctx.parent is not None and f"impossible happened: {ctx} has no parent"

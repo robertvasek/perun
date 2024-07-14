@@ -7,6 +7,7 @@
     This module handles all the necessary operations to create correct circ.conf file.
 
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -36,10 +37,10 @@ def create_runtime_config(
 ) -> None:
     """Creates the config.conf configuration
 
-    :param str executable_path: path to the executable which will use the configuration
-    :param list runtime_filter: function mangled names, which should be filtered at runtime
-    :param list include_list: list of function symbols(rule_key tuple) to be profiled
-    :param dict configuration: dictionary with configuration data
+    :param executable_path: path to the executable which will use the configuration
+    :param runtime_filter: function mangled names, which should be filtered at runtime
+    :param include_list: list of function symbols(rule_key tuple) to be profiled
+    :param configuration: dictionary with configuration data
     """
     # Open the file
     config_path = os.path.join(os.path.dirname(executable_path), "circ.conf")
@@ -56,11 +57,11 @@ def _convert_symbols_to_addresses(
     """Translates the identifiers in filter and sample configuration to their
         symbol table addresses
 
-    :param str executable_path: path to the executable which will use the configuration
-    :param list runtime_filter: function mangled names, which should be filtered at runtime
-    :param dict sample_map: dict of sample configuration as 'mangled name: sample ratio'
+    :param executable_path: path to the executable which will use the configuration
+    :param runtime_filter: function mangled names, which should be filtered at runtime
+    :param sample_map: dict of sample configuration as 'mangled name: sample ratio'
 
-    :return tuple:  list of function addresses to be filtered at runtime
+    :return:  list of function addresses to be filtered at runtime
                     dict of function addresses and sampling values
     """
     # Get the symbol:address
@@ -87,11 +88,11 @@ def _write_config_to(
 ) -> None:
     """Writes the configuration stored in the config dictionary into the file
 
-    :param file config_handle: file handle to the opened config file
-    :param str executable_path: path to the executable which will use the configuration
-    :param list runtime_filter: addresses of functions to filter at runtime
-    :param list include_list: list of function symbols(rule_key tuple) to be profiled
-    :param dict job_settings: dictionary with collect job configuration data
+    :param config_handle: file handle to the opened config file
+    :param executable_path: path to the executable which will use the configuration
+    :param runtime_filter: addresses of functions to filter at runtime
+    :param include_list: list of function symbols(rule_key tuple) to be profiled
+    :param job_settings: dictionary with collect job configuration data
     """
     sample_map = dict()
     # Create the translation table for identifiers
@@ -127,10 +128,10 @@ def _create_sample_from(
     """Creates the sample map as 'sample func mangled name: sample ratio' from the
         include list and sample list
 
-    :param list include_list: list of rule_keys tuples
-    :param list sample_list: list of sampling rules (dictionaries)
+    :param include_list: list of rule_keys tuples
+    :param sample_list: list of sampling rules (dictionaries)
 
-    :return dict: the created sample map
+    :return: the created sample map
     """
     sample_map = dict()
     # Try to pair the sample configuration and include list to create sample map

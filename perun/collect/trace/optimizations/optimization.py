@@ -32,16 +32,16 @@ class CollectOptimization:
     """A class that stores the optimization context and implements the core of the
     optimization architecture.
 
-    :ivar Pipeline selected_pipeline: the active pipeline selected by the user
-    :ivar list pipeline: the resulting set of optimization methods created from combining the
+    :ivar selected_pipeline: the active pipeline selected by the user
+    :ivar pipeline: the resulting set of optimization methods created from combining the
                          specified pipeline, enabled and disabled methods
-    :ivar ParametersManager params: the collection of optimization parameters
-    :ivar bool resource_cache: specifies whether the optimization should use cache or not
-    :ivar bool reset_cache: specifies whether new resources should be extracted and computed for
+    :ivar params: the collection of optimization parameters
+    :ivar resource_cache: specifies whether the optimization should use cache or not
+    :ivar reset_cache: specifies whether new resources should be extracted and computed for
                             the current project version
-    :ivar CallGraphResource call_graph: and CFG structures of the current project version
-    :ivar CallGraphResource call_graph_old: CG and CFG structures of the previously profiled version
-    :ivar DynamicStats dynamic_stats: the Dynamic Stats resource, if available
+    :ivar call_graph: and CFG structures of the current project version
+    :ivar call_graph_old: CG and CFG structures of the previously profiled version
+    :ivar dynamic_stats: the Dynamic Stats resource, if available
     """
 
     # The classification of methods to their respective optimization phases
@@ -77,42 +77,42 @@ class CollectOptimization:
     def set_pipeline(self, pipeline_name):
         """Set the used Pipeline.
 
-        :param str pipeline_name: name of the user-specified pipeline
+        :param pipeline_name: name of the user-specified pipeline
         """
         self.selected_pipeline = Pipeline(pipeline_name)
 
     def enable_optimization(self, optimization_name):
         """Enable certain optimization technique.
 
-        :param str optimization_name: name of the optimization method
+        :param optimization_name: name of the optimization method
         """
         self._optimizations_on.append(Optimizations(optimization_name))
 
     def disable_optimization(self, optimization_name):
         """Disable certain optimization technique.
 
-        :param str optimization_name: name of the optimization method
+        :param optimization_name: name of the optimization method
         """
         self._optimizations_off.append(Optimizations(optimization_name))
 
     def get_pre_optimizations(self):
         """Create the set intersection of created pipeline and pre-optimize methods
 
-        :return set: the resulting set of optimization methods to run
+        :return: the resulting set of optimization methods to run
         """
         return set(self.pipeline) & self.__pre
 
     def get_run_optimizations(self):
         """Create the set intersection of created pipeline and run-optimize methods
 
-        :return set: the resulting set of optimization methods to run
+        :return: the resulting set of optimization methods to run
         """
         return set(self.pipeline) & self.__run
 
     def get_post_optimizations(self):
         """Create the set intersection of created pipeline and post-optimize methods
 
-        :return set: the resulting set of optimization methods to run
+        :return: the resulting set of optimization methods to run
         """
         return set(self.pipeline) & self.__post
 
@@ -120,7 +120,7 @@ class CollectOptimization:
         """Build the pipeline of actually enabled optimization methods from combining the
         selected pipeline, enabled and disabled optimizations.
 
-        :param Configuration config: the collection configuration object
+        :param config: the collection configuration object
         """
         if self.pipeline and config.executable.workload == self.current_workload:
             return
@@ -162,7 +162,7 @@ class CollectOptimization:
     def load_resources(self, config):
         """Extract, load and store resources necessary for the given pipeline.
 
-        :param Configuration config: the collection configuration object
+        :param config: the collection configuration object
         """
         # TODO: temporary hack
         old_cg_version = None
@@ -227,7 +227,7 @@ class CollectOptimization:
     def pre_optimize_pipeline(self, config, **_):
         """Run the pre-optimize methods in the defined order.
 
-        :param Configuration config: the collection configuration object
+        :param config: the collection configuration object
         """
         optimizations = self.get_pre_optimizations()
         # No optimizations enabled
@@ -297,7 +297,7 @@ class CollectOptimization:
         implementation details are up to each specific engine. Instead, we set the
         requested optimizations and their parameters in the Configuration object.
 
-        :param Configuration config: the collection configuration object
+        :param config: the collection configuration object
         """
         # Create a dictionary of parameters and values, they need to be serializable
         run_optimization_parameters = {
@@ -314,7 +314,7 @@ class CollectOptimization:
     def post_optimize_pipeline(self, config, **_):
         """Run the post-optimize methods in the defined order.
 
-        :param Configuration config: the collection configuration object
+        :param config: the collection configuration object
         """
         # Get the set of post-optimize methods
         optimizations = self.get_post_optimizations()
@@ -357,11 +357,11 @@ class CollectOptimization:
     def _caller_callee_exc(self, level_funcs, funcs, target):
         """Compute exclusive time for immediate callers or callees.
 
-        :param list level_funcs: list of functions in the given call graph level
-        :param dict funcs: function statistics
-        :param str target: identifies the target of the exclusive time computation.
+        :param level_funcs: list of functions in the given call graph level
+        :param funcs: function statistics
+        :param target: identifies the target of the exclusive time computation.
 
-        :return int: the total exclusive time of immediate callers or callees
+        :return: the total exclusive time of immediate callers or callees
         """
         immediate_targets = {c for func in level_funcs for c in self.call_graph[func][target]}
         return sum(
@@ -528,10 +528,10 @@ class CollectOptimization:
     def _check_assumption(self, violations_stats, parent, callees):
         """Check that the assumption holds for specific function and its callees.
 
-        :param dict violations_stats: the statistics about assumption violations
-        :param str parent: name of the tested function
-        :param list callees: the function callees
-        :return tuple (int, int): the number of assumption violations and confirmations
+        :param violations_stats: the statistics about assumption violations
+        :param parent: name of the tested function
+        :param callees: the function callees
+        :return: the number of assumption violations and confirmations
         """
         dyn_stats = self.dynamic_stats.global_stats
         func_violations, func_confirmations = 0, 0
@@ -549,9 +549,9 @@ class CollectOptimization:
     def _assumption_violated(violations_stats, parent_count, callee_count):
         """Update the violation statistics when assumption violation happens.
 
-        :param dict violations_stats: the statistics about assumption violations
-        :param int parent_count: the number of parent function calls
-        :param int callee_count: the number of callee function calls
+        :param violations_stats: the statistics about assumption violations
+        :param parent_count: the number of parent function calls
+        :param callee_count: the number of callee function calls
         """
         call_count_diff = (1 - (callee_count / parent_count)) * 100
         if callee_count == 1:
@@ -570,8 +570,8 @@ def optimize(runner_type, runner_phase, **collect_params):
     """Define new runner step that is being run in between the typical collector steps:
     before, collect, after, teardown.
 
-    :param str runner_type: string name of the runner (the run function is derived from this)
-    :param str runner_phase: name of the phase/function that is run
+    :param runner_type: string name of the runner (the run function is derived from this)
+    :param runner_phase: name of the phase/function that is run
     :param collect_params: the data collection parameters that should contain the Configuration
     """
     if runner_type == "postprocessor" or "config" not in collect_params:
@@ -597,10 +597,10 @@ def build_stats_names(config, cg_type=CallGraphTypes.STATIC):
     Dynamic Stats name is built using both binaries and arguments, since stats can differ based
     on the supplied parameters.
 
-    :param Configuration config: the Configuration object
-    :param CallGraphTypes cg_type: Call Graph type
+    :param config: the Configuration object
+    :param cg_type: Call Graph type
 
-    :return tuple (str, str): CG stats name, Dynamic Stats name
+    :return: CG stats name, Dynamic Stats name
     """
     binaries = sanitize_filepart("--".join([config.binary] + sorted(config.libs))).replace(".", "_")
     binaries_param = sanitize_filepart(

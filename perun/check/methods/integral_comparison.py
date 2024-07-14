@@ -2,6 +2,7 @@
 The module contains the methods, that executes the computational logic of
 `integral_comparison` detection method.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -38,8 +39,8 @@ def compute_param_integral(model: ModelRecord) -> float:
     According to the value of coefficients from these formulae is computed the
     integral using the general integration method from `scipy` package.
 
-    :param ModelRecord model: model with its required metrics (coefficients,type, etc.)
-    :return float: the value of integral of `formula` from `x_start` to `x_end`
+    :param model: model with its required metrics (coefficients,type, etc.)
+    :return: the value of integral of `formula` from `x_start` to `x_end`
     """
     formula = regression_models.get_formula_of(model.type)
     coeffs = (
@@ -63,9 +64,9 @@ def compute_nparam_integral(x_pts: list[float], y_pts: list[float]) -> float:
     length of `y`-interval and then execute the computation with using `scipy`
     package.
 
-    :param list x_pts: list of x-coordinates from non-parametric model
-    :param list y_pts: list of y-coordinates from non-parametric model
-    :return float: the value of integral computed using samples
+    :param x_pts: list of x-coordinates from non-parametric model
+    :param y_pts: list of y-coordinates from non-parametric model
+    :return: the value of integral computed using samples
     """
     return integrate.simpson(y_pts, x=x_pts)
 
@@ -86,12 +87,12 @@ def execute_analysis(
     models with using of the threshold value. At the end is returned the dictionary
     with relevant information about the detected change.
 
-    :param str uid: unique identification of given models (not used in this detection method)
-    :param ModelRecord baseline_model: dictionary of baseline model with its required properties
-    :param ModelRecord target_model: dictionary of target_model with its required properties
-    :param Profile target_profile: target profile for the analysis
-    :param dict _: unification with remaining detection methods (i.e. Integral Comparison)
-    :return DegradationInfo: tuple with degradation info between a pair of models:
+    :param uid: unique identification of given models (not used in this detection method)
+    :param baseline_model: dictionary of baseline model with its required properties
+    :param target_model: dictionary of target_model with its required properties
+    :param target_profile: target profile for the analysis
+    :param _: unification with remaining detection methods (i.e. Integral Comparison)
+    :return: tuple with degradation info between a pair of models:
         (deg. result, deg. location, deg. rate, confidence type and rate, etc.)
     """
     x_pts, baseline_y_pts, target_y_pts = nparam_helpers.preprocess_nonparam_models(
@@ -135,9 +136,9 @@ class IntegralComparison(AbstractBaseChecker):
         for running the detection between pairs of profile (baseline and target) and subsequently
         returns the information about detected changes.
 
-        :param Profile baseline_profile: baseline profile against which we are checking the degradation
-        :param Profile target_profile: target profile corresponding to the checked minor version
-        :param str models_strategy: detection model strategy for obtains the relevant kind of models
+        :param baseline_profile: baseline profile against which we are checking the degradation
+        :param target_profile: target profile corresponding to the checked minor version
+        :param models_strategy: detection model strategy for obtains the relevant kind of models
         :param _: other kwgargs
         :returns: tuple - degradation result (structure DegradationInfo)
         """

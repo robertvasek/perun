@@ -10,6 +10,7 @@ The Singleton Generator can be configured by following options:
   * ``value``: singleton value that is passed as workload.
 
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -25,7 +26,7 @@ from perun.workload.generator import WorkloadGenerator
 class SingletonGenerator(WorkloadGenerator):
     """Generator of singleton values
 
-    :ivar object value: singleton value used as workload
+    :ivar value: singleton value used as workload
     """
 
     __slots__ = ["value"]
@@ -33,12 +34,12 @@ class SingletonGenerator(WorkloadGenerator):
     def __init__(self, job: Job, value: Any, **kwargs: Any) -> None:
         """Initializes the generator of singleton workload
 
-        :param Job job: job for which we are generating the workloads
-        :param object value: singleton value that is used as workload
+        :param job: job for which we are generating the workloads
+        :param value: singleton value that is used as workload
         """
         super().__init__(job, **kwargs)
 
-        self.value = value
+        self.value: Any = value
 
     def _generate_next_workload(self) -> Iterable[tuple[Any, dict[str, Any]]]:
         """Generates the next integer as the workload

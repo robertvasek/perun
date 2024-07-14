@@ -15,15 +15,15 @@ class NonBlockingTee(Thread):
     updates are real-time) depends heavily on the use of buffers in the application that is
     generating the output.
 
-    :ivar Stream _stream: stream object that is being read
-    :ivar str file: the name of the file to store the stream output to
+    :ivar _stream: stream object that is being read
+    :ivar file: the name of the file to store the stream output to
     """
 
     def __init__(self, stream, file):
         """Construct the NonBlockingTee object
 
-        :param Stream stream: stream object that can be read
-        :param str file: the name of the file to store the stream output to
+        :param stream: stream object that can be read
+        :param file: the name of the file to store the stream output to
         """
         super().__init__()
         self._stream = stream
@@ -61,18 +61,18 @@ class PeriodicThread(Thread):
 
     The thread is intended to be used as a context manager.
 
-    :ivar Event _stop_event: the threading.Event object used to interrupt the sleeping thread
-    :ivar float _timer: the interval of the periodical action
-    :ivar function _callback: the action to perform periodically
-    :ivar list callback_args: the arguments of the action function
+    :ivar _stop_event: the threading.Event object used to interrupt the sleeping thread
+    :ivar _timer: the interval of the periodical action
+    :ivar _callback: the action to perform periodically
+    :ivar callback_args: the arguments of the action function
     """
 
     def __init__(self, timer, callback, callback_args):
         """Creates the PeriodicThread object
 
-        :param float timer: the interval of the periodical action
-        :param function callback: the action to perform periodically
-        :param list callback_args: the arguments of the action function
+        :param timer: the interval of the periodical action
+        :param callback: the action to perform periodically
+        :param callback_args: the arguments of the action function
         """
         super().__init__()
         self._stop_event = Event()
@@ -98,7 +98,7 @@ class PeriodicThread(Thread):
     def __enter__(self):
         """The context manager entry sentinel, starts the thread loop.
 
-        :return PeriodicThread: the thread object
+        :return: the thread object
         """
         self.start()
         return self
@@ -107,9 +107,9 @@ class PeriodicThread(Thread):
         """The context manager exit sentinel, sets the stop_event flag so that the thread loop
         terminates.
 
-        :param type exc_type: the type of the exception
-        :param exception exc_val: the value of the exception
-        :param traceback exc_tb: the exception traceback
+        :param exc_type: the type of the exception
+        :param exc_val: the value of the exception
+        :param exc_tb: the exception traceback
         """
         self._stop_event.set()
 
@@ -120,14 +120,14 @@ class TimeoutThread(Thread):
 
     The thread is intended to be used as a context manager.
 
-    :ivar Event timeout_event: the threading.Event that represents the timer
-    :ivar float _timer: the time to wait until a timeout is reached
+    :ivar timeout_event: the threading.Event that represents the timer
+    :ivar _timer: the time to wait until a timeout is reached
     """
 
     def __init__(self, timer):
         """Creates the TimeoutThread object
 
-        :param float timer: the time to wait until a timeout is reached
+        :param timer: the time to wait until a timeout is reached
         """
         super().__init__()
         self.timeout_event = Event()
@@ -146,14 +146,14 @@ class TimeoutThread(Thread):
     def reached(self):
         """Checks if the timeout has already been reached.
 
-        :return bool: true if the timeout has been reached
+        :return: true if the timeout has been reached
         """
         return self.timeout_event.is_set()
 
     def __enter__(self):
         """The context manager entry sentinel, starts the thread loop.
 
-        :return TimeoutThread: the thread object
+        :return: the thread object
         """
         self.start()
         return self
@@ -161,9 +161,9 @@ class TimeoutThread(Thread):
     def __exit__(self, exc_type, exc_val, exc_tb):
         """The context manager exit sentinel, stops the timer if it is still running.
 
-        :param type exc_type: the type of the exception
-        :param exception exc_val: the value of the exception
-        :param traceback exc_tb: the exception traceback
+        :param exc_type: the type of the exception
+        :param exc_val: the value of the exception
+        :param exc_tb: the exception traceback
         """
         # The event might be already set, if the timer went off
         # Or it might not, if the main thread has been interrupted by a signal etc.

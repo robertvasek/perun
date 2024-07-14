@@ -91,7 +91,7 @@ class SvsRepository(AbstractRepository):
           4. The single tag and simple description
 
         :param minor_version: minor version we are analysing
-        :return information about single version.
+        :return: information about single version.
         """
         assert minor_version == SINGLE_VERSION_TAG, f"unknown version `{minor_version}`"
         return MinorVersion(

@@ -17,35 +17,35 @@ from perun.logic import temp
 class Configuration:
     """A class that stores the Tracer configuration provided by the CLI.
 
-    :ivar Probes probes: the collection probes configuration
-    :ivar bool keep_temps: keep the temporary files after the collection is finished
-    :ivar bool zip_temps: zip and store the temporary files before they are deleted
-    :ivar bool verbose_trace: the raw performance data collected will be more verbose
-    :ivar bool quiet: the collection progress output will be less verbose
-    :ivar bool watchdog: enables detailed logging during the collection
-    :ivar bool diagnostics: enables detailed surveillance mode of the collector
-    :ivar OutputHandling output_handling: store or discard the profiling command stdout and stderr
-    :ivar CollectEngine engine: the collection engine to be used, e.g. SystemTap or eBPF
-    :ivar bool stap_cache_off: specifies if systemtap cache should be enabled or disabled
-    :ivar bool generate_dynamic_cg: specifies whether dynamic CG should be reconstructed from trace
-    :ivar bool no_profile: disables profile generation
-    :ivar list run_optimizations: list of run-phase optimizations that are enabled
-    :ivar dict run_optimization_parameters: optimization parameter name -> value mapping
-    :ivar float or None timeout: the timeout for the profiled command or None if indefinite
-    :ivar str binary: the path to the binary file to be probed
-    :ivar Executable executable: the Executable object containing the profiled command, args, etc.
-    :ivar list libs: additional libraries that are profiled with the given binary
-    :ivar str timestamp: the time of the collection start
-    :ivar int pid: the PID of the Tracer process
-    :ivar str files_dir: the directory path of the temporary files
-    :ivar str locks_dir: the directory path of the lock files
-    :ivar dict stats_data: compactly stores data necessary for building dynamic stats
+    :ivar probes: the collection probes configuration
+    :ivar keep_temps: keep the temporary files after the collection is finished
+    :ivar zip_temps: zip and store the temporary files before they are deleted
+    :ivar verbose_trace: the raw performance data collected will be more verbose
+    :ivar quiet: the collection progress output will be less verbose
+    :ivar watchdog: enables detailed logging during the collection
+    :ivar diagnostics: enables detailed surveillance mode of the collector
+    :ivar output_handling: store or discard the profiling command stdout and stderr
+    :ivar engine: the collection engine to be used, e.g. SystemTap or eBPF
+    :ivar stap_cache_off: specifies if systemtap cache should be enabled or disabled
+    :ivar generate_dynamic_cg: specifies whether dynamic CG should be reconstructed from trace
+    :ivar no_profile: disables profile generation
+    :ivar run_optimizations: list of run-phase optimizations that are enabled
+    :ivar run_optimization_parameters: optimization parameter name -> value mapping
+    :ivar timeout: the timeout for the profiled command or None if indefinite
+    :ivar binary: the path to the binary file to be probed
+    :ivar executable: the Executable object containing the profiled command, args, etc.
+    :ivar libs: additional libraries that are profiled with the given binary
+    :ivar timestamp: the time of the collection start
+    :ivar pid: the PID of the Tracer process
+    :ivar files_dir: the directory path of the temporary files
+    :ivar locks_dir: the directory path of the lock files
+    :ivar stats_data: compactly stores data necessary for building dynamic stats
     """
 
     def __init__(self, executable, **cli_config):
         """Constructs the Configuration object from the supplied CLI configuration
 
-        :param Executable executable: an object containing the profiled command, args, etc.
+        :param executable: an object containing the profiled command, args, etc.
         :param cli_config: the CLI configuration
         """
         # Set the some default values if not provided
@@ -119,14 +119,14 @@ class Configuration:
     def get_functions(self):
         """Access the configuration of the function probes
 
-        :return dict: the function probes dictionary
+        :return: the function probes dictionary
         """
         return self.probes.func
 
     def prune_functions(self, remaining):
         """Remove function probes not present in the 'remaining' set from the instrumentation
 
-        :param dict remaining: the set of remaining functions and their sampling configuration
+        :param remaining: the set of remaining functions and their sampling configuration
         """
         for func_name in list(self.probes.func.keys()):
             if func_name not in remaining:
@@ -138,8 +138,8 @@ class Configuration:
         """Allows the Optimization module to set run optimizations and their parameters
         directly in the Configuration object.
 
-        :param list optimizations: list of optimization names
-        :param dict parameters: optimization parameter name -> parameter value
+        :param optimizations: list of optimization names
+        :param parameters: optimization parameter name -> parameter value
         """
         self.run_optimizations = optimizations
         self.run_optimization_parameters = parameters
@@ -147,7 +147,7 @@ class Configuration:
     def get_target(self):
         """Obtain the target executable file.
 
-        :return str: a path to the binary executable file
+        :return: a path to the binary executable file
         """
         return self.binary
 

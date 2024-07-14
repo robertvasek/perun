@@ -1,4 +1,5 @@
 """This module contains the Flow usage graph creating functions"""
+
 from __future__ import annotations
 
 # Standard Imports

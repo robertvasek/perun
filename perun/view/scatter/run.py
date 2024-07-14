@@ -1,4 +1,5 @@
 """Scatter plot interpretation of the profile"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -25,10 +26,10 @@ def process_title(ctx: click.Context, _: click.Option, value: str) -> str:
     The title will be further expanded by relevant data to allow for easier identification of the
     result, as the scatter plot might produce more than one graph.
 
-    :param click.Context ctx: called context of the process
-    :param object _: unused parameter
-    :param object value: value that is being processed ad add to parameter
-    :returns object: either value (if it is non-None) or default title of the graph
+    :param ctx: called context of the process
+    :param _: unused parameter
+    :param value: value that is being processed ad add to parameter
+    :return: either value (if it is non-None) or default title of the graph
     """
     return value or f"Plot of '{ctx.params['of_key']}' per '{ctx.params['per_key']}'"
 

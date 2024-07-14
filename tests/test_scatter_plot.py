@@ -1,4 +1,5 @@
 """ Basic tests for scatter plot visualization """
+
 from __future__ import annotations
 
 # Standard Imports

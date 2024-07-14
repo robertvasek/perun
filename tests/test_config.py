@@ -2,6 +2,7 @@
 
 Tests adding and getting keys from local and global configurations.
 """
+
 from __future__ import annotations
 
 # Standard Imports

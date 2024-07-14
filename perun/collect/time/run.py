@@ -3,6 +3,7 @@
 Time collects the runtime of given commands with repetition of the measurements. First we do a
 several warm-up executions, followed by the actual timing.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -29,11 +30,11 @@ def collect(
 ) -> tuple[CollectStatus, str, dict[str, Any]]:
     """Times the runtime of the given command, with stated repeats.
 
-    :param Executable executable: executed command, with arguments and workloads
-    :param int warmup: number of warm-up phases, i.e. number of times the binary will be run, but
+    :param executable: executed command, with arguments and workloads
+    :param warmup: number of warm-up phases, i.e. number of times the binary will be run, but
         the resulting collection will not be stored
-    :param int repeat: number of repeats of the timing, by default 10
-    :param dict _: dictionary with key, value options
+    :param repeat: number of repeats of the timing, by default 10
+    :param _: dictionary with key, value options
     :return:
     """
     log.major_info("Running time collector")

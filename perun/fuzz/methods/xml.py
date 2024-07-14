@@ -8,6 +8,7 @@ which will increase the nesting. Then a recursively implemented parser
 will fail to find one or more of closing brackets (representing recursion
 stop condition) and may hit a stack overflow error.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -24,9 +25,9 @@ RULE_ITERATIONS = 10
 def random_regex_replace(lines: list[str], pattern: str, repl: str) -> None:
     """Helper function for replacing the string in lines given a pattern
 
-    :param list lines: list of lines
-    :param str pattern: pattern which will be replaced
-    :param str repl: string which will replace the pattern
+    :param lines: list of lines
+    :param pattern: pattern which will be replaced
+    :param repl: string which will replace the pattern
     """
     rand = randomizer.rand_index(len(lines))
     regex_pattern = re.compile(pattern)

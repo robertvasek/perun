@@ -73,7 +73,7 @@ def decrease_indent() -> None:
 def is_verbose_enough(verbosity_peak: int) -> bool:
     """Tests if the current verbosity of the log is enough
 
-    :param int verbosity_peak: peak of the verbosity we are testing
+    :param verbosity_peak: peak of the verbosity we are testing
     :return: true if the verbosity is enough
     """
     return VERBOSITY >= verbosity_peak
@@ -90,16 +90,16 @@ def page_function_if(func: Callable[..., Any], paging_switch: bool) -> Callable[
 
     Note that this should be used by itself but by @paged_function() decorator
 
-    :param function func: original wrapped function that will be paged
-    :param bool paging_switch: external paging condition, if set to tru the function will not be
+    :param func: original wrapped function that will be paged
+    :param paging_switch: external paging condition, if set to tru the function will not be
         paged
     """
 
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         """Wrapper for the original function whose output will be paged
 
-        :param list args: list of positional arguments for original function
-        :param dict kwargs: dictionary of key:value arguments for original function
+        :param args: list of positional arguments for original function
+        :param kwargs: dictionary of key:value arguments for original function
         """
         if SUPPRESS_PAGING or not paging_switch:
             return func(*args, **kwargs)
@@ -126,7 +126,7 @@ def paged_function(paging_switch: bool) -> Callable[..., Any]:
     paging_switch. This way the function will accept only the function as parameter and can serve as
     decorator.
 
-    :param bool paging_switch: external paging condition, if set to tru the function will not be
+    :param paging_switch: external paging condition, if set to tru the function will not be
     :return: wrapped paged function
     """
     return functools.partial(page_function_if, paging_switch=paging_switch)
@@ -139,10 +139,10 @@ def _log_msg(
     If the @p msg_verbosity is smaller than the set verbosity of the logging
     module, the @p msg is printed to the log with the given @p log_level
 
-    :param function stream: streaming function of the type void f(log_level, msg)
-    :param str msg: message to be logged if certain verbosity is set
-    :param int msg_verbosity: level of the verbosity of the message
-    :param int log_level: log level of the message
+    :param stream: streaming function of the type void f(log_level, msg)
+    :param msg: message to be logged if certain verbosity is set
+    :param msg_verbosity: level of the verbosity of the message
+    :param log_level: log level of the message
     """
     if msg_verbosity <= VERBOSITY:
         stream(log_level, msg)
@@ -169,7 +169,7 @@ def extract_stack_frame_info(frame: traceback.FrameSummary) -> tuple[str, str]:
 
     Note that this is needed because of fecking differences between Python 3.4 and 3.5
 
-    :param object frame: some fecking frame object
+    :param frame: some fecking frame object
     :return: tuple of filename and function name
     """
     return (frame[0], frame[1]) if isinstance(frame, tuple) else (frame.filename, frame.name)
@@ -184,8 +184,8 @@ def print_current_stack(
     Moreover, we filter out some of the events (in particular those outside of perun, or
     those that takes care of the actual trace).
 
-    :param str colour: colour of the printed stack trace
-    :param Exception raised_exception: exception that was raised before the error
+    :param colour: colour of the printed stack trace
+    :param raised_exception: exception that was raised before the error
     """
     reduced_trace = []
     trace = (
@@ -210,8 +210,8 @@ def print_current_stack(
 
 def write(msg: str, end: str = "\n") -> None:
     """
-    :param str msg: info message that will be printed only when there is at least lvl1 verbosity
-    :param str end:
+    :param msg: info message that will be printed only when there is at least lvl1 verbosity
+    :param end:
     """
     print(f"{msg}", end=end)
 
@@ -221,8 +221,8 @@ def error_msg(
     raised_exception: Optional[BaseException] = None,
 ) -> None:
     """Prints error message
-    :param str msg: error message printed to standard output
-    :param Exception raised_exception: exception that was raised before the error
+    :param msg: error message printed to standard output
+    :param raised_exception: exception that was raised before the error
     """
     print(f"{tag('error', 'red')} {in_color(msg, 'red')}", file=sys.stderr)
     if is_verbose_enough(VERBOSE_DEBUG):
@@ -235,8 +235,8 @@ def error(
 ) -> NoReturn:
     """Prints error and exits
 
-    :param str msg: error message printed to standard output
-    :param Exception raised_exception: exception that was raised before the error
+    :param msg: error message printed to standard output
+    :param raised_exception: exception that was raised before the error
     """
     error_msg(msg, raised_exception)
     sys.exit(1)
@@ -244,8 +244,8 @@ def error(
 
 def warn(msg: str, end: str = "\n") -> None:
     """
-    :param str msg: warn message printed to standard output
-    :param str end:
+    :param msg: warn message printed to standard output
+    :param end:
     """
     if not SUPPRESS_WARNINGS:
         print(f"{tag('warning', 'yellow')} {msg}", end=end)
@@ -255,7 +255,7 @@ def warn(msg: str, end: str = "\n") -> None:
 def print_job_progress(overall_jobs: int) -> None:
     """Print the tag with the percent of the jobs currently done
 
-    :param int overall_jobs: overall number of jobs to be done
+    :param overall_jobs: overall number of jobs to be done
     """
     percentage_done = round((print_job_progress.current_job / overall_jobs) * 100)
     minor_status("Progress of the job", status=f"{str(percentage_done).rjust(3, ' ')}%")
@@ -267,10 +267,10 @@ def cprint(
 ) -> None:
     """Wrapper over coloured print without adding new line
 
-    :param str string: a printed coloured string
-    :param str colour: colour that will be used to colour the string
-    :param str attrs: name of additional attributes for the colouring
-    :param bool flush: set True to immediately perform print operation
+    :param string: a printed coloured string
+    :param colour: colour that will be used to colour the string
+    :param attrs: name of additional attributes for the colouring
+    :param flush: set True to immediately perform print operation
     """
     print(in_color(string, colour, attrs), end="", flush=flush)
 
@@ -278,9 +278,9 @@ def cprint(
 def cprintln(string: str, colour: ColorChoiceType, attrs: Optional[AttrChoiceType] = None) -> None:
     """Wrapper over coloured print with added new line or other ending
 
-    :param str string: string that is printed with colours and newline
-    :param str colour: colour that will be used to colour the string
-    :param str attrs: name of additional attributes for the colouring
+    :param string: string that is printed with colours and newline
+    :param colour: colour that will be used to colour the string
+    :param attrs: name of additional attributes for the colouring
     """
     print(in_color(string, colour, attrs))
 
@@ -295,7 +295,7 @@ def tick(tick_symbol: str = ".") -> None:
 
 def skipped(ending: str = "\n") -> None:
     """
-    :param str ending: end of the string, by default new line
+    :param ending: end of the string, by default new line
     """
     write(in_color("skipped", color="light_grey", attribute_style=["bold"]), end=ending)
 
@@ -355,7 +355,7 @@ def tag(tag_str: str, colour: ColorChoiceType) -> str:
     """
     :param tag_str: printed tag
     :param colour: colour of the tag
-    :param str ending: end of the string, by default new line
+    :param ending: end of the string, by default new line
     :return: formatted tag
     """
     return "[" + in_color(tag_str.upper(), colour, attribute_style=["bold"]) + "]"
@@ -418,11 +418,11 @@ def in_color(
 ) -> str:
     """Transforms the output to colored version.
 
-    :param str output: the output text that should be colored
-    :param str color: the color
-    :param str attribute_style: name of the additional style, i.e. bold, italic, etc.
+    :param output: the output text that should be colored
+    :param color: the color
+    :param attribute_style: name of the additional style, i.e. bold, italic, etc.
 
-    :return str: the new colored output (if enabled)
+    :return: the new colored output (if enabled)
     """
     if COLOR_OUTPUT:
         return termcolor.colored(output, color, attrs=attribute_style, force_color=True)
@@ -435,7 +435,7 @@ def count_degradations_per_group(
 ) -> dict[str, int]:
     """Counts the number of optimizations and degradations
 
-    :param list degradation_list: list of tuples of (degradation info, cmdstr, minor version)
+    :param degradation_list: list of tuples of (degradation info, cmdstr, minor version)
     :return: dictionary mapping change strings to its counts
     """
     # Get only degradation results
@@ -457,7 +457,7 @@ def get_degradation_change_colours(
     (is now worse). Otherwise, (for Unknown and no change) we keep the stuff yellow, though this
     is not used at all
 
-    :param PerformanceChange degradation_result: change of the performance
+    :param degradation_result: change of the performance
     :returns: tuple of (from model string colour, to model string colour)
     """
     colour: tuple[ColorChoiceType, ColorChoiceType] = "yellow", "yellow"
@@ -485,7 +485,7 @@ def print_short_summary_of_degradations(
 
     This prints a short statistic of found degradations and short summary string.
 
-    :param list degradation_list:
+    :param degradation_list:
         list of tuples (degradation info, command string, source minor version)
     """
     counts = count_degradations_per_group(degradation_list)
@@ -504,8 +504,8 @@ def print_short_summary_of_degradations(
 def change_counts_to_string(counts: dict[str, int], width: int = 0) -> str:
     """Transforms the counts to a single coloured string
 
-    :param dict counts: dictionary with counts of degradations
-    :param int width: width of the string justified to left
+    :param counts: dictionary with counts of degradations
+    :param width: width of the string justified to left
     :return: string representing the counts of found changes
     """
     width = max(width - counts.get("Optimization", 0) - counts.get("Degradation", 0), 0)
@@ -531,7 +531,7 @@ def print_short_change_string(counts: dict[str, int]) -> None:
 
     ++++-----
 
-    :param dict counts: dictionary mapping found string changes into their counts
+    :param counts: dictionary mapping found string changes into their counts
     """
     overall_changes = sum(counts.values())
     print(common_kit.str_to_plural(overall_changes, "change"), end="")
@@ -553,8 +553,8 @@ def _print_models_info(deg_info: DegradationInfo) -> None:
     prints information about confidence at detection, i.e. confidence
     rate and confidence type.
 
-    :param DegradationInfo deg_info: structures of found degradations with required information
-    :param str model_strategy: detection model strategy for obtains the relevant kind of models
+    :param deg_info: structures of found degradations with required information
+    :param model_strategy: detection model strategy for obtains the relevant kind of models
     """
 
     def print_models_kinds(
@@ -567,11 +567,11 @@ def _print_models_info(deg_info: DegradationInfo) -> None:
         """
         The function format the given parameters to required format at output.
 
-        :param str baseline_str: baseline kind of model (e.g. regressogram, constant, etc.)
-        :param str baseline_colour: baseline colour to print baseline string
-        :param str target_str: target kind of model (e.g. moving_average, linear, etc.)
-        :param str target_colour: target colour to print target string
-        :param str attrs: name of type attributes for the colouring
+        :param baseline_str: baseline kind of model (e.g. regressogram, constant, etc.)
+        :param baseline_colour: baseline colour to print baseline string
+        :param target_str: target kind of model (e.g. moving_average, linear, etc.)
+        :param target_colour: target colour to print target string
+        :param attrs: name of type attributes for the colouring
         """
         write(baseline_str, end="")
         cprint(f"{deg_info.from_baseline}", colour=baseline_colour, attrs=attrs)
@@ -599,8 +599,7 @@ def _print_partial_intervals(
     function prints the range of the sub-interval and the error rate on this
     sub-interval.
 
-    :param np.ndarray partial_intervals: array with partial intervals and all required items
-    :return None: function has no return value
+    :param partial_intervals: array with partial intervals and all required items
     """
     print("  \u2514 ", end="")
     for change_info, rel_error, x_start, x_end in aggregate_intervals(partial_intervals):
@@ -622,7 +621,7 @@ def print_list_of_degradations(
     at {loc}:
       {result} from {from} -> to {to}
 
-    :param list degradation_list: list of found degradations
+    :param degradation_list: list of found degradations
     """
     if not degradation_list:
         write("no changes found")
@@ -631,7 +630,7 @@ def print_list_of_degradations(
     def keygetter(item: tuple[DegradationInfo, str, str]) -> str:
         """Returns the location of the degradation from the tuple
 
-        :param tuple item: tuple of (degradation result, cmd string, source minor version)
+        :param item: tuple of (degradation result, cmd string, source minor version)
         :return: location of the degradation used for grouping
         """
         return item[0].location
@@ -696,8 +695,8 @@ def aggregate_intervals(
 
         - <0, 2>: Degradation; <2, 3>: Optimization; <3, 5>: MaybeOptimization
 
-    :param np.ndarray input_intervals: the array of partial intervals with tuples of required information
-    :return list: list of the aggregated partial intervals to print
+    :param input_intervals: the array of partial intervals with tuples of required information
+    :return: list of the aggregated partial intervals to print
     """
     # Fixme: This is baaaad. But the partial intervals are somewhat broken (sometimes list, sometimes narray)
     intervals = np.array(input_intervals) if isinstance(input_intervals, list) else input_intervals
@@ -711,7 +710,7 @@ def aggregate_intervals(
         interval has the different type of change, then the relevant indices of
         aggregated intervals are returned and proceeds to the next iteration.
 
-        :return tuple: function returns the indices of aggregate intervals.
+        :return: function returns the indices of aggregate intervals.
         """
         if intervals.any():
             start_idx, end_idx = 0, 0
@@ -750,15 +749,15 @@ def print_elapsed_time(func: Callable[..., Any]) -> Callable[..., Any]:
     Takes the timestamp before the execution of the function and after the execution and prints
     the elapsed time to the standard output.
 
-    :param function func: function accepting any parameters and returning anything
+    :param func: function accepting any parameters and returning anything
     :return: function for which we will print the elapsed time
     """
 
     def inner_wrapper(*args: Any, **kwargs: Any) -> Any:
         """Inner wrapper of the decorated function
 
-        :param list args: original arguments of the function
-        :param dict kwargs: original keyword arguments of the function
+        :param args: original arguments of the function
+        :param kwargs: original keyword arguments of the function
         :return: results of the decorated function
         """
         before = time.time()
@@ -779,10 +778,10 @@ def scan_formatting_string(
 ) -> list[tuple[str, str]]:
     """Scans the string, parses delimited formatting tokens and transforms them w.r.t callbacks
 
-    :param string fmt: formatting string
-    :param func callback: callback function for non formatting string tokens
-    :param func default_fmt_callback: default callback called for tokens not found in the callbacks
-    :param char sep: delimiter for the tokens
+    :param fmt: formatting string
+    :param callback: callback function for non formatting string tokens
+    :param default_fmt_callback: default callback called for tokens not found in the callbacks
+    :param sep: delimiter for the tokens
     :return: list of transformed tokens
     """
     i = 0
@@ -819,9 +818,9 @@ def format_file_size(size: Optional[float]) -> str:
     Courtesy of 'https://stackoverflow.com/questions/1094841/reusable-library-to-get-human-
     readable-version-of-file-size'
 
-    :param int size: the size in Bytes
+    :param size: the size in Bytes
 
-    :return str: the formatted size for output
+    :return: the formatted size for output
     """
     if size is None:
         return " " * 10
@@ -852,12 +851,12 @@ class History:
     """Helper with wrapper, which is used when one wants to visualize the version control history
     of the project, printing specific stuff corresponding to a git history
 
-    :ivar list unresolved_edges: list of parents that needs to be resolved in the vcs graph,
+    :ivar unresolved_edges: list of parents that needs to be resolved in the vcs graph,
         for each such parent, we keep one column.
-    :ivar bool auto_flush_with_border: specifies whether in auto-flushing the border should be
+    :ivar auto_flush_with_border: specifies whether in auto-flushing the border should be
         included in the output
-    :ivar object _original_stdout: original standard output that is saved and restored when leaving
-    :ivar function _saved_print: original print function which is replaced with flushed function
+    :ivar _original_stdout: original standard output that is saved and restored when leaving
+    :ivar _saved_print: original print function which is replaced with flushed function
         and is restored when leaving the history
     """
 
@@ -866,9 +865,9 @@ class History:
     class Edge:
         """Represents one edge of the history
 
-        :ivar str next: the parent of the edge, i.e. the previously processed sha
-        :ivar str colour: colour of the edge (red for deg, yellow for deg+opt, green for opt)
-        :ivar str prev: the child of the edge, i.e. the not yet processed sha
+        :ivar next: the parent of the edge, i.e. the previously processed sha
+        :ivar colour: colour of the edge (red for deg, yellow for deg+opt, green for opt)
+        :ivar prev: the child of the edge, i.e. the not yet processed sha
         """
 
         __slots__ = ["next", "colour", "prev"]
@@ -878,18 +877,18 @@ class History:
         ) -> None:
             """Initiates one edge of the history
 
-            :param str n: the next sha that will be processed
-            :param str colour: colour of the edge
-            :param str prev: the "parent" of the n
+            :param n: the next sha that will be processed
+            :param colour: colour of the edge
+            :param prev: the "parent" of the n
             """
-            self.next = n
-            self.colour = colour
-            self.prev = prev
+            self.next: str = n
+            self.colour: ColorChoiceType = colour
+            self.prev: Optional[str] = prev
 
         def to_ascii(self, char: str) -> str:
             """Converts the edge to ascii representation
 
-            :param str char: string that represents the edge
+            :param char: string that represents the edge
             :return: string representing the edge in ascii
             """
             return char if self.colour == "white" else in_color(char, self.colour, ["bold"])
@@ -898,14 +897,14 @@ class History:
         """Creates a with wrapper, which keeps and prints the context of the current vcs
         starting at head
 
-        :param str head: head minor version
+        :param head: head minor version
         """
-        self.unresolved_edges = [History.Edge(head)]
-        self.auto_flush_with_border = False
+        self.unresolved_edges: list[History.Edge] = [History.Edge(head)]
+        self.auto_flush_with_border: bool = False
         self._original_stdout: TextIO = sys.stdout
         self._saved_print: Callable[..., Any] = builtins.print
 
-    def __enter__(self) -> "History":
+    def __enter__(self) -> History:
         """When entering, we create a new string io object to catch standard output
 
         :return: the history object
@@ -916,22 +915,22 @@ class History:
         self._saved_print = builtins.print
 
         def flushed_print(
-            print_function: Callable[..., Any], history: "History"
+            print_function: Callable[..., Any], history: History
         ) -> Callable[..., Any]:
             """Decorates the print_function with automatic flushing of the output.
 
             Whenever a newline is included in the output, the stream will be automatically flushed
 
-            :param function print_function: function that will include the flushing
-            :param History history: history object that takes care of flushing
+            :param print_function: function that will include the flushing
+            :param history: history object that takes care of flushing
             :return: decorated flushed print
             """
 
             def wrapper(*args: Any, **kwargs: Any) -> None:
                 """Decorator function for flushed print
 
-                :param list args: list of positional arguments for print
-                :param dict kwargs: list of keyword arguments for print
+                :param args: list of positional arguments for print
+                :param kwargs: list of keyword arguments for print
                 """
                 print_function(*args, **kwargs)
                 end_specified = "end" in kwargs.keys()
@@ -946,7 +945,7 @@ class History:
     def __exit__(self, *_: Any) -> None:
         """Restores the stdout to the original state
 
-        :param list _: list of unused parameters
+        :param _: list of unused parameters
         """
         # Restore the stdout and printing function
         self.flush(self.auto_flush_with_border)
@@ -980,7 +979,7 @@ class History:
         This is used, when we are output the parent p2, and first we merged the branches, print
         the information about p2 and then actualize the unresolved parents with parents of p2.
 
-        :param str merged_parent: sha of the parent that is going to be merged in the unresolved
+        :param merged_parent: sha of the parent that is going to be merged in the unresolved
         """
         filtered_unresolved = []
         already_found_parent = False
@@ -1001,7 +1000,7 @@ class History:
         I.e. all unresolved parents are output as | and the printed parent is output as *.
         The further we print first six character of minor version checksum and first line of desc
 
-        :param MinorVersion minor_version_info: printed minor version
+        :param minor_version_info: printed minor version
         """
         minor_str = " ".join(
             "*" if p.next == minor_version_info.checksum else p.to_ascii("|")
@@ -1025,7 +1024,7 @@ class History:
         | | | * | | sha: desc
         | | | |\ \ \
 
-        :param MinorVersion minor_version_info: information about minor version
+        :param minor_version_info: information about minor version
         """
         minor_sha = minor_version_info.checksum
         self.flush(with_border=True)
@@ -1044,8 +1043,8 @@ class History:
         Updates the unresolved parents, taints those where we found degradations and processes
         the merge points. Everything is flushed.
 
-        :param MinorVersion minor_version_info: name of the finished minor version
-        :param list degradation_list: list of found degradations
+        :param minor_version_info: name of the finished minor version
+        :param degradation_list: list of found degradations
         """
         # Update the unresolved parents
         minor_sha = minor_version_info.checksum
@@ -1065,7 +1064,7 @@ class History:
 
         If the current stdout is not readable, the flushing is skipped
 
-        :param bool with_border: if true, then every line is printed with the border of unresolved
+        :param with_border: if true, then every line is printed with the border of unresolved
             parents
         """
         # Unreadable stdout are skipped, since we are probably in silent mode
@@ -1088,8 +1087,8 @@ class History:
 
         Tainted parents are output with red colour, while fixed parents with green colour.
 
-        :param str target: target minor version
-        :param list degradation_list: list of found degradations
+        :param target: target minor version
+        :param degradation_list: list of found degradations
         """
         # First we process all the degradations and optimization
         taints = set()
@@ -1129,8 +1128,8 @@ class History:
         | | | | | |\ \ \
         | | | | | | | | |
 
-        :param int merged_at: index, where the merged has happened
-        :param list merged_parents: list of merged parents
+        :param merged_at: index, where the merged has happened
+        :param merged_parents: list of merged parents
         """
         parent_num = len(merged_parents)
         rightmost_branches_num = len(self.unresolved_edges) - merged_at - parent_num
@@ -1165,7 +1164,7 @@ class History:
         | | | |/ / /
         | | | * | |
 
-        :param str fork_point: sha of the point, where we are forking
+        :param fork_point: sha of the point, where we are forking
         """
         ulen = len(self.unresolved_edges)
         forked_index = common_kit.first_index_of_attr(self.unresolved_edges, "next", fork_point)
@@ -1192,8 +1191,8 @@ class History:
 class Logger(TextIO):
     """Helper object that logs the stream into isolate string io
 
-    :ivar object original: original stream
-    :ivar StringIO log: log saving the stream
+    :ivar original: original stream
+    :ivar log: log saving the stream
     """
 
     __slots__ = ["original", "log"]
@@ -1207,13 +1206,13 @@ class Logger(TextIO):
         return self.original.encoding
 
     def __init__(self, stream: TextIO) -> None:
-        self.original = stream
-        self.log = io.StringIO()
+        self.original: TextIO = stream
+        self.log: io.StringIO = io.StringIO()
 
     def write(self, message: str) -> int:
         """Writes the message to both streams
 
-        :param object message: written message
+        :param message: written message
         """
         result = self.original.write(message)
         self.original.flush()

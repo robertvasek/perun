@@ -46,7 +46,7 @@ def load_profile(prof_directory: str, prof_filename: str) -> Profile:
 def index_filter(file: str) -> bool:
     """Index filtering function
 
-    :param str file: name of the file
+    :param file: name of the file
     :return: true if the file is not index
     """
     return file != ".index"
@@ -56,8 +56,8 @@ def populate_repo_with_untracked_profiles(pcs_path: str, untracked_profiles: lis
     """
     Populates the jobs directory in the repo by untracked profiles
 
-    :param str pcs_path: path to PCS
-    :param list untracked_profiles: list of untracked profiles to be added to repo
+    :param pcs_path: path to PCS
+    :param untracked_profiles: list of untracked profiles to be added to repo
     """
     jobs_dir = os.path.join(pcs_path, "jobs")
     for valid_profile in untracked_profiles:
@@ -66,9 +66,9 @@ def populate_repo_with_untracked_profiles(pcs_path: str, untracked_profiles: lis
 
 def prepare_profile(dest_dir: str, profile: str, origin: str) -> str:
     """
-    :param str dest_dir: destination of the prepared profile
-    :param str profile: name of the profile that is going to be stored in pending jobs
-    :param str origin: origin minor version for the given profile
+    :param dest_dir: destination of the prepared profile
+    :param profile: name of the profile that is going to be stored in pending jobs
+    :param origin: origin minor version for the given profile
     """
     # Copy to jobs and prepare origin for the current version
     shutil.copy2(profile, dest_dir)
@@ -90,8 +90,8 @@ def exists_profile_in_index_such_that(
 ) -> bool:
     """Helper assert to check, if there exists any profile in index such that pred holds.
 
-    :param file index_handle: handle for the index
-    :param lambda pred: predicate over the index entry
+    :param index_handle: handle for the index
+    :param pred: predicate over the index entry
     """
     for entry in index.walk_index(index_handle):
         if pred(entry):
@@ -104,8 +104,8 @@ def open_index(pcs_path: str, minor_version: str) -> BinaryIO:
 
     This encapsulates obtaining the full path to the given index
 
-    :param str pcs_path: path to the pcs
-    :param str minor_version: sha minor version representation
+    :param pcs_path: path to the pcs
+    :param minor_version: sha minor version representation
     """
     assert store.is_sha1(minor_version)
     object_dir_path = os.path.join(pcs_path, "objects")
@@ -117,7 +117,7 @@ def open_index(pcs_path: str, minor_version: str) -> BinaryIO:
 def count_contents_on_path(path: str) -> tuple[int, int]:
     """Helper function for counting the contents of the path
 
-    :param str path: path to the director which we will list
+    :param path: path to the director which we will list
     :return: (int, int), (file number, dir number) on path
     """
     file_number = 0
@@ -133,9 +133,9 @@ def count_contents_on_path(path: str) -> tuple[int, int]:
 def compare_results(expected: float, actual: float, eps: float = 0.0001) -> None:
     """Compare two float values with eps tolerance.
 
-    :param float expected: the expected result value
-    :param float actual: the actual result value
-    :param float eps: the tolerance value
+    :param expected: the expected result value
+    :param actual: the actual result value
+    :param eps: the tolerance value
     """
     assert abs(abs(expected) - abs(actual)) < eps
 
@@ -145,10 +145,10 @@ def generate_models_by_uid(
 ) -> Iterable[list[dict[str, Any]]]:
     """Provides computed models results for each uid in the specified uid sequence.
 
-    :param Profile profile: the whole profile with 'models' results
-    :param str value: the specification of value of given key for matching models
-    :param list uid_sequence: list of uid values to search for
-    :param str key: the key for matching models
+    :param profile: the whole profile with 'models' results
+    :param value: the specification of value of given key for matching models
+    :param uid_sequence: list of uid values to search for
+    :param key: the key for matching models
     :return: stream of lists with models dictionaries according to uid sequence
     """
     models = profile["profile"]["models"]

@@ -1,4 +1,5 @@
 """Basic testing for generation of bars"""
+
 # Standard Imports
 import os
 

@@ -32,10 +32,10 @@ if TYPE_CHECKING:
 
 class Profile(MutableMapping[str, Any]):
     """
-    :ivar dict _storage: internal storage of the profile
-    :ivar dict _tuple_to_resource_type_map: map of tuple of persistent records of resources to
+    :ivar _storage: internal storage of the profile
+    :ivar _tuple_to_resource_type_map: map of tuple of persistent records of resources to
         unique identifier of those resources
-    :ivar Counter _uid_counter: counter of how many resources type uid has
+    :ivar _uid_counter: counter of how many resources type uid has
     """
 
     __slots__ = [
@@ -70,8 +70,8 @@ class Profile(MutableMapping[str, Any]):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initializes the internal storage
 
-        :param list args: positional arguments for dictionary
-        :param kwargs kwargs: keyword arguments for dictionary
+        :param args: positional arguments for dictionary
+        :param kwargs: keyword arguments for dictionary
         """
         super().__init__()
         initialization_data = dict(*args, **kwargs)
@@ -103,11 +103,11 @@ class Profile(MutableMapping[str, Any]):
         This calls appropriate functions to translate older formats of resources to the
         new more efficient representation.
 
-        :param list resource_list: either list or dict
-        :param str resource_type: type of the resources in the resources list,
+        :param resource_list: either list or dict
+        :param resource_type: type of the resources in the resources list,
             can either be snapshots (then it is list of different snapshots), global
             (then it is old type of profile) or it can be resource l
-        :param bool clear_existing_resources: if set to true then the actual storage will be cleared
+        :param clear_existing_resources: if set to true then the actual storage will be cleared
             before updating the resources
         :return:
         """
@@ -176,8 +176,8 @@ class Profile(MutableMapping[str, Any]):
     def register_resource_type(self, uid: str, persistent_properties: tuple[Any, ...]) -> str:
         """Registers tuple of persistent properties under new key or return existing one
 
-        :param str uid: uid of the resource that will be used to describe the resource type
-        :param tuple persistent_properties: tuple of persistent properties
+        :param uid: uid of the resource that will be used to describe the resource type
+        :param persistent_properties: tuple of persistent properties
         :return: uid corresponding to the tuple of persistent properties
         """
         property_key = str(convert.flatten(persistent_properties))
@@ -196,7 +196,7 @@ class Profile(MutableMapping[str, Any]):
 
         Note: No translation of resources is performed! Use all_resources instead!
 
-        :param str item: key of the item we are getting
+        :param item: key of the item we are getting
         :return: item stored in the profile
         """
         return self._storage[item]
@@ -209,8 +209,8 @@ class Profile(MutableMapping[str, Any]):
 
         Note: No translation of resources is performed! Use update_resources instead!
 
-        :param str key: key of the value
-        :param object value:  object we are setting in the profile
+        :param key: key of the value
+        :param value:  object we are setting in the profile
         :return:
         """
         self._storage[key] = value
@@ -218,7 +218,7 @@ class Profile(MutableMapping[str, Any]):
     def __delitem__(self, key: str) -> None:
         """Deletes the item in the storage
 
-        :param str key: key to be deleted
+        :param key: key to be deleted
         """
         del self._storage[key]
 
@@ -271,7 +271,7 @@ class Profile(MutableMapping[str, Any]):
                 "uid:line": 22
             }
 
-        :param str resource_type: type of the resource
+        :param resource_type: type of the resource
         :return: flattened resource
         """
         if resource_type not in self._resource_type_to_flattened_resources_map.keys():
@@ -289,7 +289,7 @@ class Profile(MutableMapping[str, Any]):
         refer to :pkey:`resources`. Resources are not flattened and, thus, can
         contain nested dictionaries (e.g. for `traces` or `uids`).
 
-        :param bool flatten_values: if set to true, then the persistent values will
+        :param flatten_values: if set to true, then the persistent values will
             be flattened to one level.
         :returns: iterable stream of resources represented as pair ``(int, dict)``
             of snapshot number and the resources w.r.t. the specification of the
@@ -355,8 +355,8 @@ class Profile(MutableMapping[str, Any]):
         relevant dictionary with required models or calls the responded functions,
         that returns the models according to the specifications.
 
-        :param str models_strategy: name of detection models strategy to obtains relevant models
-        :return ModelRecord: required models
+        :param models_strategy: name of detection models strategy to obtains relevant models
+        :return: required models
         """
         group = models_strategy.rsplit("-")[1]
         if models_strategy in ("all-param", "all-nonparam"):
@@ -390,7 +390,7 @@ class Profile(MutableMapping[str, Any]):
             'r_square': 0.007076437903106431, 'x_end': 11892})
 
 
-        :param str group: the kind of requested models to return
+        :param group: the kind of requested models to return
         :returns: iterable stream of ``(int, dict)`` pairs, where first yields the
             positional number of model and latter correponds to one 'models'
             record (for more details about models refer to :pkey:`models` or
@@ -415,9 +415,9 @@ class Profile(MutableMapping[str, Any]):
         Finds specific model from profile according to the
         given kind of model and specific unique identification.
 
-        :param str model_type: specific kind of required model (e.g. regressogram, constant, etc.)
-        :param str uid: specific unique identification of required model
-        :return dict: dictionary model with all its relevant items
+        :param model_type: specific kind of required model (e.g. regressogram, constant, etc.)
+        :param uid: specific unique identification of required model
+        :return: dictionary model with all its relevant items
         """
         for _, model in enumerate(self._storage["models"]):
             if model_type == model["model"] and model["uid"] == uid:
@@ -445,7 +445,7 @@ class Profile(MutableMapping[str, Any]):
     def resources_size(self) -> int:
         """Returns the number of resources stored in the internal storage.
 
-        :return int: the number of stored resources
+        :return: the number of stored resources
         """
         return len(self._storage["resources"])
 

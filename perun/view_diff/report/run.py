@@ -267,7 +267,7 @@ class Graph:
         TODO: switch callers to callees and callees to callers
 
         :param link_type: either callees for callees or caller for callers
-        :return string representation of the callee or caller relation
+        :return: string representation of the callee or caller relation
         """
 
         def comma_control(commas_list: list[bool], pos: int) -> str:

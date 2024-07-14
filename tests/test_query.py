@@ -2,6 +2,7 @@
 
 Contains tests for query results of various valid / invalid profiles.
 """
+
 from __future__ import annotations
 
 # Standard Imports

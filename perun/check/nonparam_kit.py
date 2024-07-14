@@ -39,12 +39,12 @@ def classify_change(
         || -> elif DIFF_VALUE <= CHANGE_THRESHOLD then state=MAYBE_CHANGE
         ||| -> else DIFF_VALUE > CHANGE_THRESHOLD then state=CHANGE
 
-    :param float diff_value: value of diff value computed between compared profiles
-    :param float no_change_threshold: threshold to determine `no_change` state
-    :param float change_threshold: threshold to determine remaining two states
+    :param diff_value: value of diff value computed between compared profiles
+    :param no_change_threshold: threshold to determine `no_change` state
+    :param change_threshold: threshold to determine remaining two states
         (`maybe_change` and `change`)
-    :param float baseline_per: percentage rate from the threshold according to the baseline value
-    :return PerformanceChange: determined changes in the basis of given arguments
+    :param baseline_per: percentage rate from the threshold according to the baseline value
+    :return: determined changes in the basis of given arguments
     """
     if abs(diff_value) <= no_change_threshold * baseline_per:
         result = PerformanceChange.NoChange
@@ -75,11 +75,11 @@ def unify_buckets_in_regressogram(
     method to compute the new regressogram models. This method returns the new
     regressogram model, which has the same 'uid' as the given models.
 
-    :param str uid: unique identification of both analysed models
-    :param ModelRecord baseline_model_record: baseline regressogram model with all its parameters
-    :param ModelRecord target_model_record: target regressogram model with all its parameters
-    :param Profile target_profile: target profile corresponding to the checked minor version
-    :return dict: new regressogram model with the required 'uid'
+    :param uid: unique identification of both analysed models
+    :param baseline_model_record: baseline regressogram model with all its parameters
+    :param target_model_record: target regressogram model with all its parameters
+    :param target_profile: target profile corresponding to the checked minor version
+    :return: new regressogram model with the required 'uid'
     """
     uid = re.sub(baseline_model_record.type + "$", "", uid)
     baseline_coeff_len = baseline_model_record.coeff_size()
@@ -126,10 +126,10 @@ def preprocess_nonparam_models(
     The function returns the values of both model (baseline and target) and the common interval
     on which are defined these models.
 
-    :param str uid: unique identification of both analysed models
-    :param ModelRecord baseline_model: baseline model with its parameters for processing
-    :param Profile target_profile: target profile
-    :param ModelRecord target_model: target model with all its parameters for processing
+    :param uid: unique identification of both analysed models
+    :param baseline_model: baseline model with its parameters for processing
+    :param target_profile: target profile
+    :param target_model: target model with all its parameters for processing
     :return: tuple with values of both models and their relevant x-interval
     """
 
@@ -142,7 +142,7 @@ def preprocess_nonparam_models(
         formula. When the model is non-parametric then the function divides
         the stored x-interval according to the length of its stored values.
 
-        :param ModelRecord model: dictionary with model and its required properties
+        :param model: dictionary with model and its required properties
         :return: obtained x and y coordinates - x-points, y-points
         """
         if model.b1 is not None:
@@ -162,7 +162,7 @@ def preprocess_nonparam_models(
         of coordinates. When the lengths are valid, then the function returns
         original coordinates without change.
 
-        :return foursome: x-points and y-points from both profiles (baseline and target)
+        :return: x-points and y-points from both profiles (baseline and target)
         """
         baseline_x_pts_len = len(baseline_x_pts)
         baseline_y_pts_len = len(baseline_y_pts)

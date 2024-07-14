@@ -47,6 +47,7 @@ If the domain of the density estimation is bounded to the interval
 where :math:`\hat{K}` is a modified kernel that depends on the exact method
 used. Currently, only 1D KDE supports bounded domains.
 """
+
 import numpy as np
 
 from perun.thirdparty.pyqt_fit_port.kernels import NormalKernel1d

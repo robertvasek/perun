@@ -3,7 +3,6 @@ incompatible with angr atm.
 
 """
 
-
 import os
 import angr
 
@@ -17,12 +16,12 @@ def extract(stats_name, binary, cache, **kwargs):
     When caching is enabled and the current project version already has a call graph object
     stored in the 'stats' directory, the cached version is used instead of extracting.
 
-    :param str stats_name: name of the call graph stats file name
-    :param str binary: path to the binary executable file
-    :param bool cache: sets the cache on / off mode
+    :param stats_name: name of the call graph stats file name
+    :param binary: path to the binary executable file
+    :param cache: sets the cache on / off mode
     :param kwargs: additional optional parameters
 
-    :return dict: the extracted and transformed CG and CFG dictionaries
+    :return: the extracted and transformed CG and CFG dictionaries
     """
     # Attempt to retrieve the call graph for the given configuration if it already exists
     if cache:
@@ -68,9 +67,9 @@ def extract_cg(cfg, binaries):
     identified callees.
 
     :param cfg: the CFG analysis output structure
-    :param list binaries: the names of the binary executable files
+    :param binaries: the names of the binary executable files
 
-    :return dict: the resulting call graph dictionary
+    :return: the resulting call graph dictionary
     """
     # Inspired by the angrutils callgraph extraction
     addr_to_func = {}
@@ -105,9 +104,9 @@ def extract_func_cfg(project, binaries):
     }
 
     :param project: the loaded angr Project
-    :param list binaries: the names of the binary executable files
+    :param binaries: the names of the binary executable files
 
-    :return dict: the resulting call graph dictionary
+    :return: the resulting call graph dictionary
     """
     # Inspired by the angrutils func graph extraction
     cfgs = {}
@@ -138,7 +137,7 @@ def _build_block_repr(project, block):
     :param project: the loaded angr Project
     :param block: the Angr block object
 
-    :return str or list: the basic block representation
+    :return: the basic block representation
     """
     # Function call blocks are represented by the function name
     if isinstance(block, angr.knowledge_plugins.Function):

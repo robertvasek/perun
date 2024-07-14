@@ -23,6 +23,7 @@ The Integer Generator can be configured by following options:
   * ``step``: the step (or increment) of the range.
 
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -38,9 +39,9 @@ from perun.workload.generator import WorkloadGenerator
 class IntegerGenerator(WorkloadGenerator):
     """Generator of integer values
 
-    :ivar int min_range: the minimal value that should be generated
-    :ivar int max_range: the maximal value that should be generated
-    :ivar int step: the step of the integer generation
+    :ivar min_range: the minimal value that should be generated
+    :ivar max_range: the maximal value that should be generated
+    :ivar step: the step of the integer generation
     """
 
     __slots__ = ["min_range", "max_range", "step"]
@@ -48,17 +49,17 @@ class IntegerGenerator(WorkloadGenerator):
     def __init__(self, job: Job, min_range: int, max_range: int, step: int = 1, **kwargs: Any):
         """Initializes the generator of integer workload
 
-        :param Job job: job for which we are generating the workloads
-        :param int min_range: the minimal value that should be generated
-        :param int max_range: the maximal value that should be generated
-        :param int step: step of the integer generator
-        :param dict kwargs: additional keyword arguments
+        :param job: job for which we are generating the workloads
+        :param min_range: the minimal value that should be generated
+        :param max_range: the maximal value that should be generated
+        :param step: step of the integer generator
+        :param kwargs: additional keyword arguments
         """
         super().__init__(job, **kwargs)
 
-        self.min_range = int(min_range)
-        self.max_range = int(max_range)
-        self.step = int(step)
+        self.min_range: int = int(min_range)
+        self.max_range: int = int(max_range)
+        self.step: int = int(step)
 
     def _generate_next_workload(self) -> Iterable[tuple[Any, dict[str, Any]]]:
         """Generates the next integer as the workload

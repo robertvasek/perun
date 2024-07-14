@@ -12,18 +12,18 @@ def cg_top_down(call_graph, chain_length, keep_leaf):
     """The Call Graph Projection Top Down method.
     The method keeps only the 'chain_length' top-most levels of the call graph.
 
-    :param CallGraphResource call_graph: the CGR optimization resource
-    :param int chain_length: the number of top CG levels to keep
-    :param bool keep_leaf: if set to True, leaf functions will be kept during the trimming
+    :param call_graph: the CGR optimization resource
+    :param chain_length: the number of top CG levels to keep
+    :param keep_leaf: if set to True, leaf functions will be kept during the trimming
     """
 
     def _check_for_leaf(candidate_func):
         """Function that checks whether a function should be filtered or not based on the
         leaf criterion.
 
-        :param str candidate_func: name of the candidate function
+        :param candidate_func: name of the candidate function
 
-        :return bool: True if the function should not be removed
+        :return: True if the function should not be removed
         """
         # Either we accept leaves OR we don't AND the function is not a leaf
         return keep_leaf or (not keep_leaf and not call_graph[candidate_func]["leaf"])
@@ -49,8 +49,8 @@ def cg_bottom_up(call_graph, chain_length):
     functions that are direct callers of some function in the set are added to the set.
     Functions in the resulting set are kept and the rest of the functions is removed
 
-    :param CallGraphResource call_graph: the CGR optimization resource
-    :param int chain_length: the path length to traverse
+    :param call_graph: the CGR optimization resource
+    :param chain_length: the path length to traverse
     """
     # Check that the parameter is valid
     if chain_length == 0:
@@ -66,10 +66,10 @@ def cg_bottom_up(call_graph, chain_length):
 def cg_bottom_sets(call_graph, chain_length=None):
     """Helper function that computes the iterative sets for each bottom function.
 
-    :param CallGraphResource call_graph: the CGR optimization resource
-    :param int chain_length: the path length to traverse
+    :param call_graph: the CGR optimization resource
+    :param chain_length: the path length to traverse
 
-    :return tuple (set, int): set of all visited functions and maximum number of steps taken
+    :return: set of all visited functions and maximum number of steps taken
     """
     if chain_length is None:
         chain_length = call_graph.depth

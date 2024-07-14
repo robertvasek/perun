@@ -6,6 +6,7 @@
     generate profile for each of the generated workload.
 
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
 class WorkloadGenerator:
     """Generator is a base object of all generators and contains generic options for all generators.
 
-    :ivar bool profile_for_each_workload: if set to true, then we will generate one profile
+    :ivar for_each: if set to true, then we will generate one profile
         for each workload, otherwise the workload will be merged into one single profile
     """
 
@@ -36,14 +37,14 @@ class WorkloadGenerator:
     def __init__(self, job: Job, profile_for_each_workload: bool = False, **_: Any) -> None:
         """Initializes the job of the generator
 
-        :param Job job: job for which we will initialize the generator
-        :param bool profile_for_each_workload: if set to true, then we will generate one profile
+        :param job: job for which we will initialize the generator
+        :param profile_for_each_workload: if set to true, then we will generate one profile
             for each workload, otherwise the workload will be merged into one single profile
-        :param dict _: additional keyword arguments
+        :param _: additional keyword arguments
         """
-        self.job = job
-        self.generator_name = self.job.executable.origin_workload
-        self.for_each = common_kit.strtobool(str(profile_for_each_workload))
+        self.job: Job = job
+        self.generator_name: str = self.job.executable.origin_workload
+        self.for_each: bool = common_kit.strtobool(str(profile_for_each_workload))
 
     def generate(
         self, collect_function: Callable[[Unit, Job], tuple[CollectStatus, Profile]]

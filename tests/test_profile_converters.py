@@ -3,6 +3,7 @@
 Tests basic functionality of creating other representations of profiles, like e.g for
 heap and heat map visualizations, etc.
 """
+
 from __future__ import annotations
 
 # Standard Imports

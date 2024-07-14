@@ -39,6 +39,7 @@ baseline model as a confidence for this detected change. Since :math:`r^2` is al
 value `1.0` (which would mean, that the model precisely fits the measured values), this signifies
 that the best model fit the data tightly and hence the detected optimization is **not spurious**.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -75,9 +76,9 @@ class BestModelOrderEquality(AbstractBaseChecker):
         This is based on simple heuristic, where for the same function models, we only check the order
         of the best fit models. If these differ, we detect the possible degradation.
 
-        :param dict baseline_profile: baseline against which we are checking the degradation
-        :param dict target_profile: profile corresponding to the checked minor version
-        :param dict _: unification with other detection methods (unused in this method)
+        :param baseline_profile: baseline against which we are checking the degradation
+        :param target_profile: profile corresponding to the checked minor version
+        :param _: unification with other detection methods (unused in this method)
         :returns: tuple (degradation result, degradation location, degradation rate)
         """
         best_baseline_models = detection.get_filtered_best_models_of(

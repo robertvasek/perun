@@ -16,17 +16,17 @@ from perun.collect.trace.optimizations.structs import Complexity
 class CallGraphResource(CGLevelMixin):
     """The call graph resource class with all the additional properties.
 
-    :ivar dict cg_map: a dictionary with all the call graph nodes,
+    :ivar cg_map: a dictionary with all the call graph nodes,
                        i.e., structures that represent functions
-    :ivar dict reachable: a list of reachable functions computed for each cg_map function
-    :ivar list levels: a list containing lists of functions that have the same 'level' estimation,
+    :ivar reachable: a list of reachable functions computed for each cg_map function
+    :ivar levels: a list containing lists of functions that have the same 'level' estimation,
                        the list index is also the level value
-    :ivar list leaves: a list of leaf function names
-    :ivar int depth: the depth of the call graph, i.e., tha maximum reached level by any function
-    :ivar dict cfg: the control flow graph structure containing list of basic blocks and edges for
+    :ivar leaves: a list of leaf function names
+    :ivar depth: the depth of the call graph, i.e., tha maximum reached level by any function
+    :ivar cfg: the control flow graph structure containing list of basic blocks and edges for
                     each cg_map function
-    :ivar str minor: the minor version associated with the call graph resource
-    :ivar set recursive: the set of self-recursive functions, used in metrics computation
+    :ivar minor: the minor version associated with the call graph resource
+    :ivar recursive: the set of self-recursive functions, used in metrics computation
 
     """
 
@@ -50,27 +50,27 @@ class CallGraphResource(CGLevelMixin):
     def __getitem__(self, item):
         """Quick dictionary-like access to cg_map values.
 
-        :param str item: name of the function that should be retrieved
+        :param item: name of the function that should be retrieved
 
-        :return dict: the dictionary object representing the function node
+        :return: the dictionary object representing the function node
         """
         return self.cg_map[item]
 
     def __setitem__(self, key, value):
         """Quick dictionary-like assignment to cg_map values.
 
-        :param str key: name of the cg_map function
-        :param dict value: the function dictionary object
+        :param key: name of the cg_map function
+        :param value: the function dictionary object
         """
         self.cg_map[key] = value
 
     def from_angr(self, angr_cg, functions):
         """Computes the call graph resource properties based on the extracted call graph object
 
-        :param dict angr_cg: the call graph dictionary extracted using angr
-        :param set functions: a set of function names obtained from the collection strategies
+        :param angr_cg: the call graph dictionary extracted using angr
+        :param functions: a set of function names obtained from the collection strategies
 
-        :return CallGraphResource: a properly initialized CGR object
+        :return: a properly initialized CGR object
         """
         self._build_cg_map(angr_cg["call_graph"], functions)
         # The DFS backedges and level estimator is currently fixed
@@ -84,11 +84,11 @@ class CallGraphResource(CGLevelMixin):
         trace and an old call graph resource (dynamic, static, ...).
         We also use the statically obtained call graph for constructing a control flow graph.
 
-        :param dict dyn_cg: the 'func': callees dictionary from the profiling run
-        :param dict old_cg: call graph structure to update
-        :param dict cfg: the angr CFG dictionary
+        :param dyn_cg: the 'func': callees dictionary from the profiling run
+        :param old_cg: call graph structure to update
+        :param cfg: the angr CFG dictionary
 
-        :return CallGraphResource: a properly initialized CGR object
+        :return: a properly initialized CGR object
         """
         call_graph = {func: conf["callees"] for func, conf in old_cg.items()}
         for name, callees in dyn_cg.items():
@@ -105,9 +105,9 @@ class CallGraphResource(CGLevelMixin):
     def from_dict(self, dict_cg):
         """Initializes the resource properties according to the CGR loaded from 'stats'.
 
-        :param dict dict_cg: the call graph resource in a Perun storage format
+        :param dict_cg: the call graph resource in a Perun storage format
 
-        :return CallGraphResource: the properly initialized CGR object
+        :return: the properly initialized CGR object
         """
         call_graph, cfg = dict_cg["call_graph"], dict_cg["control_flow"]
         self.cg_map = call_graph["cg_map"]
@@ -124,16 +124,16 @@ class CallGraphResource(CGLevelMixin):
         """Obtain functions from the cg_map in format suitable for further processing outside the
         optimization module.
 
-        :param bool diff_only: specifies whether only functions detected as changed should be listed
+        :param diff_only: specifies whether only functions detected as changed should be listed
 
-        :return dict: a dictionary of 'name': 'sample value' format
+        :return: a dictionary of 'name': 'sample value' format
         """
 
         def filter_func(func):
             """The filtering function.
 
-            :param dict func: the function in dictionary format
-            :return bool: whether we should include the given function in output or not
+            :param func: the function in dictionary format
+            :return: whether we should include the given function in output or not
             """
             return func["diff"] if diff_only else not func["filtered"]
 
@@ -146,7 +146,7 @@ class CallGraphResource(CGLevelMixin):
     def set_diff(self, funcs):
         """Set the diff flag to a given functions
 
-        :param list funcs: the collection of functions to set as changed
+        :param funcs: the collection of functions to set as changed
         """
         for func in funcs:
             if func in self.cg_map:
@@ -157,17 +157,17 @@ class CallGraphResource(CGLevelMixin):
     def get_diff(self):
         """Get list of functions with diff flag.
 
-        :return list: a collection of changed functions
+        :return: a collection of changed functions
         """
         return [func["name"] for func in self.cg_map.values() if func["diff"]]
 
     def sort_by_level(self, functions, reverse=True):
         """Sort the provided functions according to their level.
 
-        :param list functions: a collection of function names
-        :param bool reverse: if set to True, the functions are sorted in descending order
+        :param functions: a collection of function names
+        :param reverse: if set to True, the functions are sorted in descending order
 
-        :return list: a list of functions sorted by the level property
+        :return: a list of functions sorted by the level property
         """
         return sorted(
             map(lambda name: (name, self[name]["level"]), functions),
@@ -180,8 +180,8 @@ class CallGraphResource(CGLevelMixin):
         (e.g., no more callers or callees). Otherwise, set the function as filtered to not break
         the CG structure (optional).
 
-        :param list functions: list of functions to remove or filter
-        :param bool set_filtered: if set to True, functions are at least given the 'filtered' flag
+        :param functions: list of functions to remove or filter
+        :param set_filtered: if set to True, functions are at least given the 'filtered' flag
         """
         funcs = self.sort_by_level(functions)
         for func_name, _ in funcs:
@@ -195,10 +195,10 @@ class CallGraphResource(CGLevelMixin):
         """Perform a subsumption check on two functions. Subsumption is defined as follows:
         f1 sub f2 <=> f1.level < f2.level AND f2 in f1.reachable
 
-        :param str func_1: name of the first function
-        :param str func_2: name of the second function
+        :param func_1: name of the first function
+        :param func_2: name of the second function
 
-        :return bool: True if the subsumption property holds, False otherwise
+        :return: True if the subsumption property holds, False otherwise
         """
         if func_1 == func_2:
             return False
@@ -209,7 +209,7 @@ class CallGraphResource(CGLevelMixin):
         """Compute the Bottom set of the call graph. If back edges are available, leverage them
         to compute the set easily. Otherwise, leverage the subsumption operation.
 
-        :return set: the resulting Bottom set of the call graph
+        :return: the resulting Bottom set of the call graph
         """
         unfiltered_funcs = [func for func in self.cg_map.keys() if not self[func]["filtered"]]
         if self.backedges:
@@ -240,7 +240,7 @@ class CallGraphResource(CGLevelMixin):
         callee of main and its successors. Then filter the cut functions and leverage
         subsumption to find the Top set.
 
-        :return set: the resulting Top set of the call graph
+        :return: the resulting Top set of the call graph
         """
         # Find the maximum cut and the corresponding excluded functions
         excluded, _ = self.coverage_max_cut()
@@ -263,7 +263,7 @@ class CallGraphResource(CGLevelMixin):
         """Helper function for the Top Level Coverage Metric. Find call graph cut required to
         identify the TLC probes.
 
-        :return set, int: the set of functions that are not suitable for TLC and the level of
+        :return: the set of functions that are not suitable for TLC and the level of
                           the CG cut
         """
         visited = {"main"}
@@ -291,8 +291,8 @@ class CallGraphResource(CGLevelMixin):
     def _build_cg_map(self, angr_cg, functions):
         """Creates the cg_map property using the angr_cg dictionary.
 
-        :param dict angr_cg: the call graph dictionary extracted using angr
-        :param set functions: a set of function names obtained from the collection strategies
+        :param angr_cg: the call graph dictionary extracted using angr
+        :param functions: a set of function names obtained from the collection strategies
         """
         # Add the nodes of the call graph
         excluded = set()
@@ -338,7 +338,7 @@ class CallGraphResource(CGLevelMixin):
     def _reachable_callees(self, vertex):
         """Compute or obtain the reachability set of the 'vertex' function.
 
-        :param dict vertex: the CG function dictionary with all the properties
+        :param vertex: the CG function dictionary with all the properties
         """
         reachable = set()
         candidates = list(vertex["callees"])
@@ -360,8 +360,8 @@ class CallGraphResource(CGLevelMixin):
     def _build_cfg(self, cfgs, functions):
         """Transforms the extracted CFG into the CGR format.
 
-        :param dict cfgs: the CFG dictionaries with blocks and edges
-        :param set functions: a set of function obtained from a collection strategy
+        :param cfgs: the CFG dictionaries with blocks and edges
+        :param functions: a set of function obtained from a collection strategy
         """
         for func, cfg in cfgs.items():
             if func in functions:
@@ -370,9 +370,9 @@ class CallGraphResource(CGLevelMixin):
     def _remove_function(self, name):
         """Attempt to remove a function from call graph.
 
-        :param str name: name of the function to remove
+        :param name: name of the function to remove
 
-        :return bool: True if the function has been successfully removed, False otherwise
+        :return: True if the function has been successfully removed, False otherwise
         """
         # Remove only existing leaf functions
         if name not in self.cg_map or not self[name]["leaf"]:
@@ -392,7 +392,7 @@ class CallGraphResource(CGLevelMixin):
     def _set_leaf(self, func):
         """Safely set the given function as leaf, i.e., only when the function is actually leaf.
 
-        :param dict func: the function dictionary
+        :param func: the function dictionary
         """
         if not func["callees"]:
             func["leaf"] = True
@@ -402,10 +402,10 @@ class CallGraphResource(CGLevelMixin):
     def _create_cg_node(name, filtered=False):
         """Creates new dictionary that represents a single call graph function.
 
-        :param str name: name of the function
-        :param bool filtered: set if the node should be immediately set as filtered
+        :param name: name of the function
+        :param filtered: set if the node should be immediately set as filtered
 
-        :return dict: the function object
+        :return: the function object
         """
         return {
             "name": name,
@@ -423,8 +423,8 @@ class CallGraphResource(CGLevelMixin):
     def _add_connection(parent, callee):
         """Add 'edge' to the cg_map structure, i.e., set the caller and callee relation
 
-        :param dict parent: the dictionary of the parent function
-        :param dict callee: the dictionary of the callee function
+        :param parent: the dictionary of the parent function
+        :param callee: the dictionary of the callee function
         """
         if callee["name"] not in parent["callees"]:
             parent["callees"].append(callee["name"])
@@ -435,9 +435,9 @@ class CallGraphResource(CGLevelMixin):
 def _remove_unreachable(call_graph):
     """Removes functions from the call graph that are not reachable from the 'main' function.
 
-    :param dict call_graph: a call graph dictionary
+    :param call_graph: a call graph dictionary
 
-    :return dict: pruned call graph dictionary
+    :return: pruned call graph dictionary
     """
     iters = [{"main"}]
     visited = {"main"}
@@ -461,10 +461,10 @@ def _remove_unreachable(call_graph):
 def _is_in_funcs(func_name, functions):
     """Safely checks whether the given function is in the functions obtained from strategies
 
-    :param str func_name: name of the function
-    :param set functions: the set of function obtained from strategies
+    :param func_name: name of the function
+    :param functions: the set of function obtained from strategies
 
-    :return bool: True if 'func_name' is in the strategy functions
+    :return: True if 'func_name' is in the strategy functions
     """
     if not functions:
         return True

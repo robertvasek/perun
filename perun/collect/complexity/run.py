@@ -68,10 +68,10 @@ def before(executable: Executable, **kwargs: Any) -> tuple[CollectStatus, str, d
     information about the available functions for profiling) and the collector executable
     (used for the data collection itself)
 
-    :param Executable executable: executed profiled command
+    :param executable: executed profiled command
     :param kwargs: the configuration settings for the complexity collector
 
-    :return tuple:  int as a status code, nonzero values for errors
+    :return:  int as a status code, nonzero values for errors
                     string as a status message, mainly for error states
                     dict of modified kwargs with 'cmd' value representing the executable
     """
@@ -124,10 +124,10 @@ def before(executable: Executable, **kwargs: Any) -> tuple[CollectStatus, str, d
 def collect(executable: Executable, **kwargs: Any) -> tuple[CollectStatus, str, dict[str, Any]]:
     """Runs the collector executable and extracts the performance data
 
-    :param Executable executable: executable configuration (command, arguments and workloads)
+    :param executable: executable configuration (command, arguments and workloads)
     :param kwargs: the configuration settings for the complexity collector
 
-    :return tuple:  int as a status code, nonzero values for errors
+    :return:  int as a status code, nonzero values for errors
                     string as a status message, mainly for error states
                     dict of unmodified kwargs
     """
@@ -150,10 +150,10 @@ def collect(executable: Executable, **kwargs: Any) -> tuple[CollectStatus, str, 
 def after(executable: Executable, **kwargs: Any) -> tuple[CollectStatus, str, dict[str, Any]]:
     """Performs the transformation of the raw data output into the profile format
 
-    :param Executable executable: full collected command with arguments and workload
+    :param executable: full collected command with arguments and workload
     :param kwargs: the configuration settings for the complexity collector
 
-    :return tuple:  int as a status code, nonzero values for errors
+    :return:  int as a status code, nonzero values for errors
                     string as a status message, mainly for error states
                     dict of modified kwargs with 'profile' value representing the resulting profile
     """
@@ -210,12 +210,12 @@ def _process_file_record(
 ) -> int:
     """Processes the next profile record and tries to pair it with stack record if possible
 
-    :param ProfileRecord record: the ProfileRecord tuple containing the record data
-    :param list call_stack: the call stack with file records
-    :param list resources: the list of resource dictionaries
-    :param dict address_map: the 'function address : demangled name' map
+    :param record: the ProfileRecord tuple containing the record data
+    :param call_stack: the call stack with file records
+    :param resources: the list of resource dictionaries
+    :param address_map: the 'function address : demangled name' map
 
-    :return int: the status code, nonzero values for errors
+    :return: the status code, nonzero values for errors
     """
     returned_code = 1
     if record.action == "i":
@@ -271,7 +271,7 @@ def _validate_input(**kwargs: Any) -> None:
     is raised
 
     :param kwargs: the collector input parameters
-    :return dict: validated input parameters
+    :return: validated input parameters
     """
     target_dir = kwargs["target_dir"]
     if not target_dir:
@@ -291,11 +291,11 @@ def _sampling_to_dictionary(
 ) -> list[dict[str, Any]]:
     """Sampling cli option converter callback. Transforms each sampling tuple into dictionary.
 
-    :param dict _: click context
-    :param object __: the parameter object
-    :param list value: the list of sampling values
+    :param _: click context
+    :param __: the parameter object
+    :param value: the list of sampling values
 
-    :return list of dict: list of sampling dictionaries
+    :return: list of sampling dictionaries
     """
     if value is not None:
         # Initialize

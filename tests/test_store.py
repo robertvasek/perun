@@ -1,4 +1,5 @@
 """Collection of tests for testing the storage system of Perun"""
+
 from __future__ import annotations
 
 # Standard Imports

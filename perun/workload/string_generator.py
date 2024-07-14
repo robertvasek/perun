@@ -24,6 +24,7 @@ The String Generator can be configured by following options:
   * ``step_len``: the step (or increment) of the lengths.
 
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -41,9 +42,9 @@ from perun.workload.generator import WorkloadGenerator
 class StringGenerator(WorkloadGenerator):
     """Generator of random strings
 
-    :ivar int min_len: minimal length of generated strings
-    :ivar int max_len: maximal length of generated strings
-    :ivar int step_len: increment of the lengths
+    :ivar min_len: minimal length of generated strings
+    :ivar max_len: maximal length of generated strings
+    :ivar step_len: increment of the lengths
     """
 
     __slots__ = ["min_len", "max_len", "step_len"]
@@ -53,17 +54,17 @@ class StringGenerator(WorkloadGenerator):
     ) -> None:
         """Initializes the generator of string workloads
 
-        :param Job job: job for which we are generating the workloads
-        :param int min_len: minimal length of the generated string
-        :param int max_len: maximal length of the generated string
-        :param int step_len: step for generating the strings
-        :param dict kwargs: additional keyword arguments
+        :param job: job for which we are generating the workloads
+        :param min_len: minimal length of the generated string
+        :param max_len: maximal length of the generated string
+        :param step_len: step for generating the strings
+        :param kwargs: additional keyword arguments
         """
         super().__init__(job, **kwargs)
 
-        self.min_len = int(min_len)
-        self.max_len = int(max_len)
-        self.step_len = int(step_len)
+        self.min_len: int = int(min_len)
+        self.max_len: int = int(max_len)
+        self.step_len: int = int(step_len)
 
     def _generate_next_workload(self) -> Iterable[tuple[Any, dict[str, Any]]]:
         """Generates the next random string with increased length

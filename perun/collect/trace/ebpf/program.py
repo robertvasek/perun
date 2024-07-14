@@ -11,9 +11,9 @@ from perun.collect.trace.optimizations.structs import Optimizations
 def assemble_ebpf_program(src_file, probes, config, **_):
     """Assembles the eBPF program.
 
-    :param str src_file: path to the program file, that should be generated
-    :param Probes probes: the probes object
-    :param Configuration config: the collection configuration
+    :param src_file: path to the program file, that should be generated
+    :param probes: the probes object
+    :param config: the collection configuration
     """
     WATCH_DOG.info(f"Attempting to assembly the eBPF program '{src_file}'")
 
@@ -48,9 +48,9 @@ def assemble_ebpf_program(src_file, probes, config, **_):
 def _add_structs_and_init(handle, probe_count, sampled_count, timed_sampling):
     """Add include statements, perf_event struct and the required BPF data structures.
 
-    :param TextIO handle: the program file handle
-    :param int probe_count: the number of traced function and USDT locations
-    :param int sampled_count: the number of sampled probes
+    :param handle: the program file handle
+    :param probe_count: the number of traced function and USDT locations
+    :param sampled_count: the number of sampled probes
     """
     # Create the sampling BPF array if there are any sampled probes
     if sampled_count > 0:
@@ -93,13 +93,13 @@ int set_enabled(struct bpf_perf_event_data *ctx)
     if (is_enabled == NULL) {{
         return 0;
     }}
-    
+
     if (*is_enabled) {{
         *is_enabled = 0;
     }} else {{
         *is_enabled = 1;
     }}
-    
+
     struct duration_data data = {{}};
     data.id = {probe_id};
     data.pid = bpf_get_current_pid_tgid();
@@ -117,8 +117,8 @@ int set_enabled(struct bpf_perf_event_data *ctx)
 def _add_entry_probe(handle, probe, timed_sampling=False):
     """Add entry code for the given probe.
 
-    :param TextIO handle: the program file handle
-    :param dict probe: the traced probe
+    :param handle: the program file handle
+    :param probe: the traced probe
     """
     name = (probe["name"],)
     probe_id = (probe["id"],)
@@ -131,11 +131,11 @@ int entry_{name}(struct pt_regs *ctx)
 {{
 {timed_sampling}
 
-    u32 id = {probe_id}; 
+    u32 id = {probe_id};
 {sampling_before}
 {entry_body}
 {sampling_after}
-    
+
     return 0;
 }}
 """
@@ -145,8 +145,8 @@ int entry_{name}(struct pt_regs *ctx)
 def _add_exit_probe(handle, probe, timed_sampling=False):
     """Add exit code for the given probe.
 
-    :param TextIO handle: the program file handle
-    :param dict probe: the traced probe
+    :param handle: the program file handle
+    :param probe: the traced probe
     """
     name = (probe["name"],)
     probe_id = (probe["id"],)
@@ -158,23 +158,23 @@ int exit_{name}(struct pt_regs *ctx)
 
     u64 exit_timestamp = bpf_ktime_get_ns();
     u32 id = {probe_id};
-    
+
     u64 *entry_timestamp = timestamps.lookup(&id);
     if (entry_timestamp == NULL || *entry_timestamp == 0) {{
         return 0;
     }}
-    
+
     struct duration_data data = {{}};
     data.id = id;
     data.pid = bpf_get_current_pid_tgid();
     data.entry_ns = *entry_timestamp;
     data.exit_ns = exit_timestamp;
-    
+
     (*entry_timestamp) = 0;
 
     bpf_get_current_comm(&data.comm, sizeof(data.comm));
     records.perf_submit(ctx, &data, sizeof(data));
-    
+
     return 0;
 }}
 """
@@ -184,8 +184,8 @@ int exit_{name}(struct pt_regs *ctx)
 def _add_single_probe(handle, probe):
     """Add code for probe that has no paired probe, e.g. single USDT locations with no pairing.
 
-    :param TextIO handle: the program file handle
-    :param dict probe: the traced probe
+    :param handle: the program file handle
+    :param probe: the traced probe
     """
     probe_template = f"""
     int usdt_{probe['name']}(struct pt_regs *ctx)
@@ -211,7 +211,7 @@ def _add_cache_probes(handle):
     """Add code for cache probes that simply counts the HW cache events.
     Inspired by: https://github.com/iovisor/bcc/blob/master/tools/llcstat.py
 
-    :param TextIO handle: the program file handle
+    :param handle: the program file handle
     """
     template = """
 int on_cache_ref(struct bpf_perf_event_data *ctx) {
@@ -230,8 +230,8 @@ int on_cache_miss(struct bpf_perf_event_data *ctx) {
 def _create_sampling_before(sample_value):
     """Generate code that goes before the body for sampled probes.
 
-    :param int sample_value: the sample value of the probe
-    :return str: the generated code chunk
+    :param sample_value: the sample value of the probe
+    :return: the generated code chunk
     """
     if sample_value == 1:
         return "   // sampling code omitted"
@@ -240,21 +240,21 @@ def _create_sampling_before(sample_value):
     if (sample == NULL) {
         return 0;
     }
-    
+
     if (*sample == 0) {"""
 
 
 def _create_sampling_after(sample_value):
     """Generate code that goes after the body for sampled probes.
 
-    :param int sample_value: the sample value of the probe
-    :return str: the generated code chunk
+    :param sample_value: the sample value of the probe
+    :return: the generated code chunk
     """
     if sample_value == 1:
         return "   // sampling code omitted"
     return f"""
     }}
-        
+
     (*sample)++;
     if (*sample == {sample_value}) {{
         (*sample) = 0;
@@ -264,10 +264,10 @@ def _create_sampling_after(sample_value):
 def _create_entry_body():
     """Generate the generic body for all entry probes.
 
-    :return str: the generated code chunk
+    :return: the generated code chunk
     """
     return """
-    u64 entry_timestamp = bpf_ktime_get_ns();        
+    u64 entry_timestamp = bpf_ktime_get_ns();
     timestamps.update(&id, &entry_timestamp);"""
 
 

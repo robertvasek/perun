@@ -7,6 +7,7 @@ metrics to check performance change between two profiles and obtaining required 
 these profiles. Module contains two other temporary methods, which are using by mentioned
 general methods.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -43,15 +44,15 @@ def create_filter_by_model(
 
     Note this is to be used in get_filtered_best_models_of
 
-    :param str model_name: name of the model, that will be filtered out
+    :param model_name: name of the model, that will be filtered out
     :return: filter function that retrieves only models of given type
     """
 
     def filter_by_model(_: dict[str, Any], model: dict[str, Any]) -> bool:
         """Filters the models according to the model name
 
-        :param dict _: dictionary with set of models
-        :param dict model: filtered model of given uid
+        :param _: dictionary with set of models
+        :param model: filtered model of given uid
         :return: true if the given model is of the given type
         """
         return model["model"] == model_name
@@ -62,8 +63,8 @@ def create_filter_by_model(
 def filter_by_r_square(model_map: dict[str, Any], model: dict[str, Any]) -> bool:
     """Filters the models according to the value of the r_square
 
-    :param dict model_map: dictionary with found models
-    :param dict model: filtered model of given uid
+    :param model_map: dictionary with found models
+    :param model: filtered model of given uid
     :return: filter function that retrieves only the best model w.r.t r_square
     """
     return model_map[model["uid"]].r_square < model["r_square"]
@@ -73,8 +74,8 @@ def create_model_record(model: dict[str, Any]) -> ModelRecord:
     """
     Function transform model to ModelRecord.
 
-    :param dict model: model for transformation
-    :return ModelRecord: filled ModelRecord with model items
+    :param model: model for transformation
+    :return: filled ModelRecord with model items
     """
     return ModelRecord(
         model["model"],
@@ -104,9 +105,9 @@ def get_filtered_best_models_of(
     represents the individual group of model kinds (currently parametric and
     nonparametric).
 
-    :param Profile profile: dictionary of profile resources and stuff
-    :param str group: name of the group of models kind (e.g. param, nonparam, both) to obtains
-    :param function/None model_filter: filter function for models
+    :param profile: dictionary of profile resources and stuff
+    :param group: name of the group of models kind (e.g. param, nonparam, both) to obtains
+    :param model_filter: filter function for models
     :returns: map of unique identifier of computed models to their best models
     """
     if model_filter is not None:
@@ -131,7 +132,7 @@ def get_function_values(model: ModelRecord) -> tuple[list[float], list[float]]:
     is interval divide into several parts and to them is computed relevant values of
     dependent variables.
 
-    :param ModelRecord model: model with its required metrics (value of coefficient, type, ...)
+    :param model: model with its required metrics (value of coefficient, type, ...)
     :returns: np_array (x-coordinates, y-coordinates)
     """
     model_handler = regression_models.MODEL_MAP[model.type]
@@ -175,9 +176,9 @@ def general_detection(
     classification we know the type of occurred changes. In the last steps is determined
     information, which will be returned to users (i.e. confidence, change between models).
 
-    :param Profile baseline_profile: baseline against which we are checking the degradation
-    :param Profile target_profile: profile corresponding to the checked minor version
-    :param ClassificationMethod classification_method: method used for actual classification of
+    :param baseline_profile: baseline against which we are checking the degradation
+    :param target_profile: profile corresponding to the checked minor version
+    :param classification_method: method used for actual classification of
         performance changes
     :returns: tuple (degradation result, degradation location, degradation rate, confidence)
     """

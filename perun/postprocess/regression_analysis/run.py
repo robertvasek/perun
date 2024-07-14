@@ -1,4 +1,5 @@
 """Regression analysis postprocessor module."""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -24,7 +25,7 @@ def postprocess(
 ) -> tuple[PostprocessStatus, str, dict[str, Any]]:
     """Invoked from perun core, handles the postprocess actions
 
-    :param dict profile: the profile to analyze
+    :param profile: the profile to analyze
     :param configuration: the perun and options context
     """
     # Validate the input configuration
@@ -47,7 +48,7 @@ def postprocess(
 def store_model_counts(analysis: list[dict[str, Any]]) -> None:
     """Store the number of best-fit models for each model category as a metric.
 
-    :param list analysis: the list of inferred models.
+    :param analysis: the list of inferred models.
     """
     # Ignore if metrics are disabled
     if not metrics.is_enabled():

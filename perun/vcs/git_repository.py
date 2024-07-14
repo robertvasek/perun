@@ -41,8 +41,8 @@ class GitRepository(AbstractRepository):
     def contains_git_repo(path: str) -> bool:
         """Checks if there is a git repo at the given @p path.
 
-        :param str path: path where we want to check if there is a git repo
-        :returns bool: true if @p path contains a git repo already
+        :param path: path where we want to check if there is a git repo
+        :return: true if @p path contains a git repo already
         """
         try:
             return Repo(path).git_dir is not None
@@ -51,8 +51,8 @@ class GitRepository(AbstractRepository):
 
     def init(self, vcs_init_params: dict[str, Any]) -> bool:
         """
-        :param dict vcs_init_params: list of additional params for initialization of the vcs
-        :returns bool: true if the vcs was successfully initialized at vcs_path
+        :param vcs_init_params: list of additional params for initialization of the vcs
+        :return: true if the vcs was successfully initialized at vcs_path
         """
         dir_was_newly_created = not os.path.exists(self.vcs_path)
         try:
@@ -100,8 +100,8 @@ class GitRepository(AbstractRepository):
         minor version info, pushing the parents for further processing. At last the list
         is sorted and returned.
 
-        :param str head: identification of the starting point (head)
-        :returns MinorVersion: yields stream of minor versions
+        :param head: identification of the starting point (head)
+        :return: yields stream of minor versions
         """
         try:
             head_commit = self.git_repo.commit(head)
@@ -112,7 +112,7 @@ class GitRepository(AbstractRepository):
 
     def walk_major_versions(self) -> Iterator[MajorVersion]:
         """
-        :returns MajorVersion: yields stream of major versions
+        :return: yields stream of major versions
         :raises VersionControlSystemException: when the master head cannot be massaged
         """
         for branch in self.git_repo.branches:  # type: ignore
@@ -120,8 +120,8 @@ class GitRepository(AbstractRepository):
 
     def parse_commit(self, commit: git.objects.Commit) -> MinorVersion:
         """
-        :param git.Commit commit: commit object
-        :returns MinorVersion: minor version (date author email checksum desc parents)
+        :param commit: commit object
+        :return: minor version (date author email checksum desc parents)
         """
         checksum = str(commit)
         if checksum not in self.parse_commit_cache.keys():
@@ -143,8 +143,8 @@ class GitRepository(AbstractRepository):
 
     def get_minor_version_info(self, minor_version: str) -> MinorVersion:
         """
-        :param str minor_version: identification of minor_version
-        :returns MinorVersion: minor version (date author email checksum desc parents)
+        :param minor_version: identification of minor_version
+        :return: minor version (date author email checksum desc parents)
         """
         if minor_version not in self.minor_version_info_cache.keys():
             minor_version_commit = self.git_repo.commit(minor_version)
@@ -155,10 +155,10 @@ class GitRepository(AbstractRepository):
     def minor_versions_diff(self, baseline_minor_version: str, target_minor_version: str) -> str:
         """Create diff of two supplied minor versions.
 
-        :param str baseline_minor_version: the specification of the first minor version
+        :param baseline_minor_version: the specification of the first minor version
             (in form of sha e.g.)
-        :param str target_minor_version: the specification of the second minor version
-        :return str: the version diff as presented by git
+        :param target_minor_version: the specification of the second minor version
+        :return: the version diff as presented by git
         """
         baseline_minor_version = baseline_minor_version or "HEAD~1"
         target_minor_version = target_minor_version or "HEAD"
@@ -170,7 +170,7 @@ class GitRepository(AbstractRepository):
         Runs the git branch and parses the output in order to infer the currently
         checked out branch (either local or detached head).
 
-        :returns str: representation of the major version
+        :return: representation of the major version
         """
         if self.git_repo.head.is_detached:
             return str(self.git_repo.head.commit)
@@ -179,7 +179,7 @@ class GitRepository(AbstractRepository):
 
     def check_minor_version_validity(self, minor_version: str) -> None:
         """
-        :param str minor_version: string representing a minor version in the git
+        :param minor_version: string representing a minor version in the git
         """
         if minor_version not in self.minor_version_validity_cache:
             try:
@@ -197,7 +197,7 @@ class GitRepository(AbstractRepository):
         commit, blob, etc.) calls 'git rev-parse parameter^{parameter_type}' to translate the rev to
         be used for others.
 
-        :returns str: massaged parameter
+        :return: massaged parameter
         :raises  VersionControlSystemException: when there is an error while rev-parsing the parameter
         """
         try:
@@ -249,8 +249,8 @@ class GitRepository(AbstractRepository):
 
         Warning! This should be used in pair with save state!
 
-        :param bool has_saved_stashed_changes: if true, then we have stashed some changes
-        :param str previous_state: previous head of the repo
+        :param has_saved_stashed_changes: if true, then we have stashed some changes
+        :param previous_state: previous head of the repo
         """
         self.checkout(previous_state)
         if has_saved_stashed_changes:
@@ -259,6 +259,6 @@ class GitRepository(AbstractRepository):
     def checkout(self, minor_version: str) -> None:
         """
 
-        :param str minor_version: newly checkout state
+        :param minor_version: newly checkout state
         """
         self.git_repo.git.checkout(minor_version)

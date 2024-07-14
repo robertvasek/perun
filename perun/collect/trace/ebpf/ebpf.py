@@ -19,20 +19,20 @@ class BpfContext:
     """A BPF context class that stores the reference to the BPF instance, output data file and
     runtime configuration.
 
-    :ivar dict config: the runtime configuration
-    :ivar str binary: path to the binary executable file
-    :ivar list optimizations: the list of enabled optimizations
-    :ivar dict o_params: the optimization parameters
-    :ivar BPF bpf: the BPF instance
-    :ivar TextIO data: the raw performance data file
-    :ivar int lost: the lost records counter
+    :ivar config: the runtime configuration
+    :ivar binary: path to the binary executable file
+    :ivar optimizations: the list of enabled optimizations
+    :ivar o_params: the optimization parameters
+    :ivar bpf: the BPF instance
+    :ivar data: the raw performance data file
+    :ivar lost: the lost records counter
 
-    :ivar int iter: the Dynamic Probing check iteration
-    :ivar int threshold: the number of function calls that trigger probe deactivation
-    :ivar bool re_attached: specifies whether the Dynamic Probing should attempt to reactivate
+    :ivar iter: the Dynamic Probing check iteration
+    :ivar threshold: the number of function calls that trigger probe deactivation
+    :ivar re_attached: specifies whether the Dynamic Probing should attempt to reactivate
                             probes that were previously disabled.
-    :ivar list detached: the list of detached probes
-    :ivar list dynamic probes: simple data structure used by the optimization techniques
+    :ivar detached: the list of detached probes
+    :ivar probes: simple data structure used by the optimization techniques
     """
 
     def __init__(self, runtime_config):
@@ -100,7 +100,7 @@ class BpfContext:
     def add_count(self, func_id):
         """Update the call count for the given function.
 
-        :param int func_id: function identification
+        :param func_id: function identification
         """
         prb = self.dynamic_probes[func_id]
         prb["count"] += prb["sampling"]
@@ -108,7 +108,7 @@ class BpfContext:
     def detach_functions(self, functions):
         """Detach specified functions.
 
-        :param list functions: a collection of function names to detach
+        :param functions: a collection of function names to detach
         """
         for probe in functions:
             self.bpf.detach_uprobe(name=self.binary, sym=probe)
@@ -117,7 +117,7 @@ class BpfContext:
     def attach_functions(self, functions):
         """Attach all of the function probes to the profiled process
 
-        :param list functions: the function names
+        :param functions: the function names
         """
         for func in functions:
             # Attach the entry function probe
@@ -128,7 +128,7 @@ class BpfContext:
     def attach_usdt(self, usdt_probes):
         """Attach all of the USDT probes to the supplied USDT context object
 
-        :param dict usdt_probes: the USDT probes specification
+        :param usdt_probes: the USDT probes specification
         """
         for usdt in usdt_probes.values():
             # If the USDT probe has no pair, attach a single probe
@@ -153,7 +153,7 @@ class BpfContext:
     def attach_cache_counters(self, pid):
         """Attach HW cache counters.
 
-        :param int pid: the pid of the target process
+        :param pid: the pid of the target process
         """
         # Attach cache miss counter probe
         self.bpf.attach_perf_event(
@@ -176,9 +176,9 @@ class BpfContext:
     def _load_config(config_file):
         """Load the runtime configuration from the given file.
 
-        :param str config_file: a full path to the runtime configuration file
+        :param config_file: a full path to the runtime configuration file
 
-        :return dict: the configuration dictionary parsed from the JSON file
+        :return: the configuration dictionary parsed from the JSON file
         """
         with open(config_file, "r") as json_handle:
             return json.load(json_handle)
@@ -263,7 +263,7 @@ def _log_lost(lost):
     """Tracks the number of lost eBPF records due to the internal buffer being full and other
     issues.
 
-    :param int lost: the number of lost records
+    :param lost: the number of lost records
     """
     BPF_CTX.lost += lost
 

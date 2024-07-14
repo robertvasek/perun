@@ -35,16 +35,16 @@ PENDING_TAG_RANGE_REGEX = re.compile(r"^(\d+)@p-(\d+)@p$")
 def compute_checksum(content: bytes) -> str:
     """Compute the checksum of the content using the SHA-1 algorithm
 
-    :param bytes content: content we are computing checksum for
-    :returns str: 40-character SHA-1 checksum of the content
+    :param content: content we are computing checksum for
+    :return: 40-character SHA-1 checksum of the content
     """
     return hashlib.sha1(content).hexdigest()
 
 
 def is_sha1(checksum: str) -> bool:
     """
-    :param str checksum: hexa string
-    :returns bool: true if the checksum is sha1 checksum
+    :param checksum: hexa string
+    :return: true if the checksum is sha1 checksum
     """
     return len(checksum) == 40 and all(c in string.hexdigits for c in checksum)
 
@@ -53,8 +53,8 @@ def version_path_to_sha(sha_path: str) -> Optional[str]:
     """Transforms the path of the minor version file / directory (represented by the SHA value) to
     the actual SHA value as a string.
 
-    :param str sha_path: path to the minor version directory
-    :return str: the SHA value of the minor version or None if it's not a valid SHA value
+    :param sha_path: path to the minor version directory
+    :return: the SHA value of the minor version or None if it's not a valid SHA value
     """
     rest, lower_level = os.path.split(sha_path.rstrip(os.sep))
     _, upper_level = os.path.split(rest.rstrip(os.sep))
@@ -67,16 +67,16 @@ def pack_content(content: bytes) -> bytes:
 
     Uses the zlib compression algorithm, to deflate the content.
 
-    :param bytes content: content we are packing to bytes
-    :returns bytes: packed content
+    :param content: content we are packing to bytes
+    :return: packed content
     """
     return zlib.compress(content)
 
 
 def read_and_deflate_chunk(file_handle: BinaryIO) -> str:
     """
-    :param file file_handle: opened file handle
-    :returns str: deflated chunk or whole file
+    :param file_handle: opened file handle
+    :return: deflated chunk or whole file
     """
     packed_content = file_handle.read()
 
@@ -86,10 +86,10 @@ def read_and_deflate_chunk(file_handle: BinaryIO) -> str:
 
 def split_object_name(base_dir: str, object_name: str, object_ext: str = "") -> tuple[str, str]:
     """
-    :param str base_dir: base directory for the object_name
-    :param str object_name: sha-1 string representing the object (possibly with extension)
-    :param str object_ext: additional extension of the created file
-    :returns (str, str): full path for directory and full path for file
+    :param base_dir: base directory for the object_name
+    :param object_name: sha-1 string representing the object (possibly with extension)
+    :param object_ext: additional extension of the created file
+    :return: full path for directory and full path for file
     """
     object_dir, object_file = object_name[:2], object_name[2:]
     object_dir_full_path = os.path.join(base_dir, object_dir)
@@ -100,9 +100,9 @@ def split_object_name(base_dir: str, object_name: str, object_ext: str = "") -> 
 
 def add_loose_object_to_dir(base_dir: str, object_name: str, object_content: bytes) -> None:
     """
-    :param str base_dir: path to the base directory
-    :param str object_name: sha-1 string representing the object (possibly with extension)
-    :param bytes object_content: contents of the packed object
+    :param base_dir: path to the base directory
+    :param object_name: sha-1 string representing the object (possibly with extension)
+    :param object_content: contents of the packed object
     """
     # Break the sha1 representation to base dir (first byte) and rest of the file
     object_dir_full_path, object_file_full_path = split_object_name(base_dir, object_name)
@@ -120,8 +120,8 @@ def add_loose_object_to_dir(base_dir: str, object_name: str, object_content: byt
 def read_int_from_handle(file_handle: BinaryIO) -> int:
     """Helper function for reading one integer from handle
 
-    :param file file_handle: read file
-    :returns int: one integer
+    :param file_handle: read file
+    :return: one integer
     """
     return struct.unpack("i", file_handle.read(4))[0]
 
@@ -129,8 +129,8 @@ def read_int_from_handle(file_handle: BinaryIO) -> int:
 def read_char_from_handle(file_handle: BinaryIO) -> str:
     """Helper function for reading one char from handle
 
-    :param file file_handle: read file
-    :returns char: one read char
+    :param file_handle: read file
+    :return: one read char
     """
     return struct.unpack("c", file_handle.read(1))[0].decode("utf-8")
 
@@ -138,7 +138,7 @@ def read_char_from_handle(file_handle: BinaryIO) -> str:
 def read_number_of_entries_from_handle(index_handle: BinaryIO) -> int:
     """Helper function for reading number of entries in the handle.
 
-    :param file index_handle: filehandle with index
+    :param index_handle: filehandle with index
     """
     current_position = index_handle.tell()
     index_handle.seek(0)
@@ -154,9 +154,9 @@ def write_list_to_handle(
 ) -> None:
     """Writes list to the opened handle
 
-    :param File file_handle: opened file handle of the index
-    :param list list_content: list to be written in the handle
-    :param str separator: separator of the list
+    :param file_handle: opened file handle of the index
+    :param list_content: list to be written in the handle
+    :param separator: separator of the list
     """
     string_list = separator.join(list_content)
     write_string_to_handle(file_handle, string_list)
@@ -165,8 +165,8 @@ def write_list_to_handle(
 def read_list_from_handle(file_handle: BinaryIO, separator: str = " ") -> list[str]:
     """Reads list from the opened file index handle
 
-    :param File file_handle: opened file handle of the index
-    :param str separator: separator of the list
+    :param file_handle: opened file handle of the index
+    :param separator: separator of the list
     :return: read list
     """
     string_list = read_string_from_handle(file_handle)
@@ -178,8 +178,8 @@ def write_string_to_handle(file_handle: BinaryIO, content: str) -> None:
 
     First we write the number of bytes to the index, and then the actual bytes.
 
-    :param File file_handle: opened file handle of the index
-    :param str content: string content to be written
+    :param file_handle: opened file handle of the index
+    :param content: string content to be written
     """
     binary_content = bytes(content, "utf-8")
     content_len = len(binary_content)
@@ -193,7 +193,7 @@ def read_string_from_handle(file_handle: BinaryIO) -> str:
 
     Reads first one integer that states the number of stored bytes, then the bytes.
 
-    :param File file_handle: opened file handle of the index
+    :param file_handle: opened file handle of the index
     :return: read data
     """
     content_len = read_int_from_handle(file_handle)
@@ -212,8 +212,8 @@ def save_degradation_list_for(
     this loads all the already stored degradations. For each tuple of the change
     location and change type, this saves only one change record.
 
-    :param str base_dir: base directory, where the degradations will be stored
-    :param str minor_version: minor version for which we are storing the degradations
+    :param base_dir: base directory, where the degradations will be stored
+    :param minor_version: minor version for which we are storing the degradations
     :param degradation_list:
     :return:
     """
@@ -240,7 +240,7 @@ def save_degradation_list_for(
 def parse_changelog_line(line: str) -> tuple[DegradationInfo, str, str]:
     """Parses one changelog record into the triple of degradation info, command string and minor.
 
-    :param str line: input line from one change log
+    :param line: input line from one change log
     :return: triple (degradation info, command string, minor version)
     """
     if tokens := common_kit.LINE_PARSING_REGEX.match(line):
@@ -270,8 +270,8 @@ def load_degradation_list_for(
     extension ".changes". The file is basically a log of degradation records separated by
     white spaces in ascii coding.
 
-    :param str base_dir: directory to the storage of the objects
-    :param str minor_version:
+    :param base_dir: directory to the storage of the objects
+    :param minor_version:
     :return: list of triples (DegradationInfo, command string, minor version source)
     """
     minor_dir, minor_storage_file = split_object_name(base_dir, minor_version, ".changes")
@@ -322,10 +322,10 @@ def load_profile_from_handle(
     Fixme: Add check that the loaded profile is in valid format!!!
     TODO: This should be broken into two parts
 
-    :param str file_name: name of the file opened in the handle
-    :param file file_handle: opened file handle
-    :param bool is_raw_profile: true if the profile is in json format already
-    :returns Profile: JSON representation of the profile
+    :param file_name: name of the file opened in the handle
+    :param file_handle: opened file handle
+    :param is_raw_profile: true if the profile is in json format already
+    :return: JSON representation of the profile
     :raises IncorrectProfileFormatException: when the profile cannot be parsed by json.loads(body)
         or when the profile is not in correct supported format or when the profile is malformed
     """

@@ -34,6 +34,7 @@ In the output above, we detected the ``Optimization`` between commits ``1eb3d6``
 changed from about six seconds to a hundred milliseconds. For these detected changes we report no
 confidence at all.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -57,7 +58,7 @@ OPTIMIZATION_THRESHOLD = 0.5
 def get_averages(profile: Profile) -> dict[str, float]:
     """Retrieves the averages of all amounts grouped by the uid
 
-    :param profiles.Profile profile: dictionary representation of profile
+    :param profile: dictionary representation of profile
     :returns: dictionary with averages for all uids
     """
     data_frame = convert.resources_to_pandas_dataframe(profile)
@@ -76,9 +77,9 @@ class AverageAmountThreshold(AbstractBaseChecker):
         This is based on simple heuristic, where for the same function models, we only check the order
         of the best fit models. If these differ, we detect the possible degradation.
 
-        :param profiles.Profile baseline_profile: baseline against which we are checking the degradation
-        :param profiles.Profile target_profile: profile corresponding to the checked minor version
-        :param dict _: unification with other detection methods (unused in this method)
+        :param baseline_profile: baseline against which we are checking the degradation
+        :param target_profile: profile corresponding to the checked minor version
+        :param _: unification with other detection methods (unused in this method)
         :returns: tuple (degradation result, degradation location, degradation rate)
         """
         baseline_averages = get_averages(baseline_profile)

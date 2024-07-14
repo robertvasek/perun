@@ -3,6 +3,7 @@
 In general, this testing is trying to find performance degradation in newly generated target
 profile comparing with baseline profile.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -36,13 +37,13 @@ def baseline_testing(
 
     TODO: This might need some checking and tweaking as I believe it is quite shady
 
-    :param Executable executable: called command with arguments
-    :param list seeds: list of workloads
-    :param str collector: list of collectors
-    :param list postprocessor: list of postprocessors
-    :param list minor_version_list: list of MinorVersion info
-    :param dict kwargs: dictionary of additional params for postprocessor and collector
-    :return generator: copy of baseline profile generator
+    :param executable: called command with arguments
+    :param seeds: list of workloads
+    :param collector: list of collectors
+    :param postprocessor: list of postprocessors
+    :param minor_version_list: list of MinorVersion info
+    :param kwargs: dictionary of additional params for postprocessor and collector
+    :return: copy of baseline profile generator
     """
 
     # create baseline profile
@@ -88,14 +89,14 @@ def target_testing(
     """Generates a profile for specified command with fuzzed workload, compares with
     baseline profile.
 
-    :param Executable executable: called command with arguments
-    :param Mutation workload: list of workloads
-    :param str collector: list of collectors
-    :param list postprocessor: list of postprocessors
-    :param list minor_version_list: list of MinorVersion info
-    :param iterable base_result: list of results for baseline
-    :param dict kwargs: dictionary of additional params for postprocessor and collector
-    :return bool: True if performance degradation was detected, False otherwise.
+    :param executable: called command with arguments
+    :param workload: list of workloads
+    :param collector: list of collectors
+    :param postprocessor: list of postprocessors
+    :param minor_version_list: list of MinorVersion info
+    :param base_result: list of results for baseline
+    :param kwargs: dictionary of additional params for postprocessor and collector
+    :return: True if performance degradation was detected, False otherwise.
     """
     # target profile with a new workload
     target_pg = list(
@@ -120,11 +121,11 @@ def check_for_change(
 ) -> float:
     """Function that randomly choose an index from list.
 
-    :param generator base_pg: base performance profile generator
-    :param generator target_pg: target performance profile generator
+    :param base_pg: base performance profile generator
+    :param target_pg: target performance profile generator
     :param method: name of detection models strategy to obtains relevant model kinds
 
-    :return int: ratio between checks and founded degradations
+    :return: ratio between checks and founded degradations
     """
     for base_prof, target_prof in zip(base_pg, target_pg):
         checks = 0

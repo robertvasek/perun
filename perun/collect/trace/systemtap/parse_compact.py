@@ -29,12 +29,12 @@ class ThreadContext:
     """Class that keeps track of function call stack, USDT hit stack, function call sequence
     map and bottom indicator per each active thread.
 
-    :ivar dict start: the thread starting record
-    :ivar list func_stack: keeps track of the function call stack
-    :ivar dict usdt_stack: stores stack of USDT probe hits for each probe
-    :ivar dict seq_map: tracks sequence number for each probe that identifies the order of records
-    :ivar bool bottom_flag: flag used to identify records that have no more callees
-    :ivar int depth: the current trace (call stack) depth
+    :ivar start: the thread starting record
+    :ivar func_stack: keeps track of the function call stack
+    :ivar usdt_stack: stores stack of USDT probe hits for each probe
+    :ivar seq_map: tracks sequence number for each probe that identifies the order of records
+    :ivar bottom_flag: flag used to identify records that have no more callees
+    :ivar depth: the current trace (call stack) depth
     """
 
     def __init__(self):
@@ -49,22 +49,22 @@ class ThreadContext:
 class TransformContext:
     """Class that keeps track of the context information during the raw data transformation.
 
-    :ivar bool verbose_trace: switches between verbose / compact trace output
-    :ivar set binaries: all profiled binaries (including libraries)
-    :ivar str workload: the workload specification of the current run
-    :ivar Probes probes: the probes specification
-    :ivar set probes_hit: a set of actually hit probes
-    :ivar ThreadContext per_thread: per-thread context for function / usdt stacks, sequence maps etc
-    :ivar dict bottom: summary of total elapsed time per bottom functions per thread
-    :ivar dict level_times_exclusive: summary of exclusive times per trace depth
+    :ivar verbose_trace: switches between verbose / compact trace output
+    :ivar binaries: all profiled binaries (including libraries)
+    :ivar workload: the workload specification of the current run
+    :ivar probes: the probes specification
+    :ivar probes_hit: a set of actually hit probes
+    :ivar per_thread: per-thread context for function / usdt stacks, sequence maps etc
+    :ivar bottom: summary of total elapsed time per bottom functions per thread
+    :ivar level_times_exclusive: summary of exclusive times per trace depth
     """
 
     def __init__(self, probes, binaries, verbose_trace, workload):
         """
-        :param Probes probes: the probes specification
-        :param set binaries: all profiled binaries (including libraries)
-        :param bool verbose_trace: switches between verbose / compact trace output
-        :param str workload: the workload specification of the current run
+        :param probes: the probes specification
+        :param binaries: all profiled binaries (including libraries)
+        :param verbose_trace: switches between verbose / compact trace output
+        :param workload: the workload specification of the current run
         """
         self.verbose_trace = verbose_trace
         self.binaries = binaries
@@ -98,10 +98,10 @@ def trace_to_profile(data_file, config, probes, **_):
     """Process raw data and (optionally) convert them into a Perun profile. The conversion is
     delegated to a separate process to speedup the processing task.
 
-    :param str data_file: name of the file containing raw data
-    :param Configuration config: an object containing configuration parameters
-    :param Probes probes: an object containing info about probed locations
-    :return Profile: the resulting profile
+    :param data_file: name of the file containing raw data
+    :param config: an object containing configuration parameters
+    :param probes: an object containing info about probed locations
+    :return: the resulting profile
     """
     # Profile should not be generated, simply process the raw data and return empty profile
     if config.no_profile:
@@ -142,8 +142,8 @@ def profile_builder(resource_queue, profile_queue):
     """Transforms resources into a Perun profile. Should be run as a standalone process that
     obtains resources from a queue and returns the resulting profile through a queue.
 
-    :param SafeQueue resource_queue: a multiprocessing queue for obtaining resources
-    :param SafeQueue profile_queue: a multiprocessing queue for passing profile
+    :param resource_queue: a multiprocessing queue for obtaining resources
+    :param profile_queue: a multiprocessing queue for passing profile
     """
     try:
         # Create a new profile structure
@@ -171,11 +171,11 @@ def process_records(data_file, config, probes):
     """Transforms the collection output into performance resources. The
     collected time data are paired and provided as resources dictionaries.
 
-    :param str data_file: name of the collection output file
-    :param Configuration config: the configuration object
-    :param Probes probes: the Probes object
+    :param data_file: name of the collection output file
+    :param config: the configuration object
+    :param probes: the Probes object
 
-    :return iterable: generator object that produces dictionaries representing the resources
+    :return: generator object that produces dictionaries representing the resources
     """
     # Initialize the context
     binaries = set(map(os.path.basename, config.libs + [config.binary]))
@@ -254,8 +254,8 @@ def _build_alternative_cg(config, ctx):
     The mixed CG still uses the statically obtained Call Graph to combine with the dynamic one
     in order to retrieve more general Call Graph structure.
 
-    :param Configuration config: the configuration object
-    :param TransformContext ctx: the parsing context which contains caller-callee relationships
+    :param config: the configuration object
+    :param ctx: the parsing context which contains caller-callee relationships
     """
     cg_stats_name, _ = build_stats_names(config)
 
@@ -301,7 +301,7 @@ def _build_alternative_cg(config, ctx):
 def _record_handlers():
     """Mapping of a raw data record type to its corresponding function handler.
 
-    :return dict: the mapping dictionary
+    :return: the mapping dictionary
     """
     return {
         vals.RecordType.PROCESS_BEGIN.value: _record_process_begin,
@@ -320,7 +320,7 @@ def _record_handlers():
 def _record_corrupt(_, __):
     """Corrupted records are simply discarded.
 
-    :return dict: empty dictionary
+    :return: empty dictionary
     """
     return {}
 
@@ -328,10 +328,10 @@ def _record_corrupt(_, __):
 def _record_process_begin(record, ctx):
     """Handler for process begin probe. We delegate the action to the thread handler.
 
-    :param dict record: the parsed raw data record
-    :param TransformContext ctx: the parsing context object
+    :param record: the parsed raw data record
+    :param ctx: the parsing context object
 
-    :return dict: empty dictionary
+    :return: empty dictionary
     """
     return _record_thread_begin(record, ctx)
 
@@ -339,10 +339,10 @@ def _record_process_begin(record, ctx):
 def _record_process_end(record, ctx):
     """Handler for the process termination probe that generates special process context record.
 
-    :param dict record: the parsed raw data record
-    :param TransformContext ctx: the parsing context object
+    :param record: the parsed raw data record
+    :param ctx: the parsing context object
 
-    :return dict: process resource
+    :return: process resource
     """
     # The .begin and .end probes are sometimes triggered by other spawned processes, filter them
     if record["id"] not in ctx.binaries:
@@ -364,10 +364,10 @@ def _record_process_end(record, ctx):
 def _record_thread_begin(record, ctx):
     """Handler for thread begin probe that creates a new thread context.
 
-    :param dict record: the parsed raw data record
-    :param TransformContext ctx: the parsing context object
+    :param record: the parsed raw data record
+    :param ctx: the parsing context object
 
-    :return dict: empty dictionary
+    :return: empty dictionary
     """
     ctx.per_thread[record["tid"]].start = record
     return {}
@@ -376,10 +376,10 @@ def _record_thread_begin(record, ctx):
 def _record_thread_end(record, ctx):
     """Handler for thread end probe that produces thread resource and cleans up thread context.
 
-    :param dict record: the parsed raw data record
-    :param TransformContext ctx: the parsing context object
+    :param record: the parsed raw data record
+    :param ctx: the parsing context object
 
-    :return dict: thread resource
+    :return: thread resource
     """
     # Build thread resource with additional PID attribute
     thread_start = ctx.per_thread[record["tid"]].start
@@ -394,10 +394,10 @@ def _record_thread_end(record, ctx):
 def _record_func_begin(record, ctx):
     """Handler for the entry function probes.
 
-    :param dict record: the parsed raw data record
-    :param TransformContext ctx: the parsing context object
+    :param record: the parsed raw data record
+    :param ctx: the parsing context object
 
-    :return dict: empty dictionary
+    :return: empty dictionary
     """
     record["callee_tmp"] = 0
     record["callee_time"] = 0
@@ -426,10 +426,10 @@ def _record_func_begin(record, ctx):
 def _record_func_end(record, ctx):
     """Handler for the exit function probes.
 
-    :param dict record: the parsed raw data record
-    :param TransformContext ctx: the parsing context object
+    :param record: the parsed raw data record
+    :param ctx: the parsing context object
 
-    :return dict: profile resource dictionary or empty dictionary if matching failed
+    :return: profile resource dictionary or empty dictionary if matching failed
     """
     resource = {}
     record_tid = record["tid"]
@@ -474,10 +474,10 @@ def _record_func_end(record, ctx):
 def _record_usdt_single(record, ctx):
     """Handler for the single USDT probes (not paired).
 
-    :param dict record: the parsed raw data record
-    :param TransformContext ctx: the parsing context object
+    :param record: the parsed raw data record
+    :param ctx: the parsing context object
 
-    :return dict: profile resource dictionary or empty dictionary if no resource could be created
+    :return: profile resource dictionary or empty dictionary if no resource could be created
     """
     ctx.probes_hit.add(record["id"])
     matching_record, usdt_uid = _pair_usdt(ctx, record)
@@ -487,10 +487,10 @@ def _record_usdt_single(record, ctx):
 def _record_usdt_begin(record, ctx):
     """Handler for the entry USDT probes (paired).
 
-    :param dict record: the parsed raw data record
-    :param TransformContext ctx: the parsing context object
+    :param record: the parsed raw data record
+    :param ctx: the parsing context object
 
-    :return dict: empty dictionary
+    :return: empty dictionary
     """
     ctx.probes_hit.add(record["id"])
     ctx.per_thread[record["tid"]].usdt_stack[record["id"]].append(record)
@@ -500,10 +500,10 @@ def _record_usdt_begin(record, ctx):
 def _record_usdt_end(record, ctx):
     """Handler for the exit USDT probes (paired).
 
-    :param dict record: the parsed raw data record
-    :param TransformContext ctx: the parsing context object
+    :param record: the parsed raw data record
+    :param ctx: the parsing context object
 
-    :return dict: profile resource dictionary
+    :return: profile resource dictionary
     """
     # Obtain the corresponding probe pair and matching record
     matching_record, usdt_uid = _pair_usdt(ctx, record, ctx.probes.usdt_reversed[record["id"]])
@@ -515,9 +515,9 @@ def _pair_usdt(ctx, record, pair=None):
     by the record ID (for single USDT) or pairing name (for paired USDT, i.e., distinct entry and
     exit probes).
 
-    :param TransformContext ctx: the parsing context object
-    :param dict record: the parsed raw data record
-    :param str or None pair: ID of the paired probe
+    :param ctx: the parsing context object
+    :param record: the parsed raw data record
+    :param pair: ID of the paired probe
     :return:
     """
     # Get the probe stack
@@ -538,12 +538,12 @@ def _pair_usdt(ctx, record, pair=None):
 def _build_resource(record_entry, record_exit, uid, workload):
     """Creates the profile resource from the entry and exit records.
 
-    :param dict record_entry: the entry raw data record
-    :param dict record_exit: the exit raw data record
-    :param str uid: the resource UID
-    :param str workload: the collection workload
+    :param record_entry: the entry raw data record
+    :param record_exit: the exit raw data record
+    :param uid: the resource UID
+    :param workload: the collection workload
 
-    :return dict: the resulting profile resource
+    :return: the resulting profile resource
     """
     if not record_entry:
         return {}
@@ -564,11 +564,11 @@ def _build_resource(record_entry, record_exit, uid, workload):
 def parse_records(file_name, probes, verbose_trace):
     """Parse the raw data line by line, each line represented as a dictionary of components.
 
-    :param str file_name: name of the file containing raw collection data
-    :param Probes probes: class containing probed locations
-    :param bool verbose_trace: flag indicating whether the raw data are verbose or not
+    :param file_name: name of the file containing raw collection data
+    :param probes: class containing probed locations
+    :param verbose_trace: flag indicating whether the raw data are verbose or not
 
-    :return iterable: a generator object that returns parsed raw data lines
+    :return: a generator object that returns parsed raw data lines
     """
     # ID (numeric id or name) -> (NAME, SAMPLE)
     dict_key = "name" if verbose_trace else "id"

@@ -24,10 +24,10 @@ except ImportError:
 class BpfEngine(engine.CollectEngine):
     """The eBPF engine class, derived from the abstract CollectEngine class.
 
-    :ivar str program: a full path to the file that stores the generated eBPF collection program
-    :ivar str runtime_conf: a full path to the file that is used to configure the eBPF process
-    :ivar str data: a full path to the file that stores the raw performance data
-    :ivar Subprocess.Popen ebpf_process: a subprocess object of the running eBPF process
+    :ivar program: a full path to the file that stores the generated eBPF collection program
+    :ivar runtime_conf: a full path to the file that is used to configure the eBPF process
+    :ivar data: a full path to the file that stores the raw performance data
+    :ivar ebpf_process a subprocess object of the running eBPF process
     """
 
     name = "ebpf"
@@ -35,7 +35,7 @@ class BpfEngine(engine.CollectEngine):
     def __init__(self, config):
         """Constructs the engine object.
 
-        :param Configuration config: the collection parameters stored in the configuration object
+        :param config: the collection parameters stored in the configuration object
         """
         super().__init__(config)
         self.program = self._assemble_file_name("program", ".c")
@@ -57,7 +57,7 @@ class BpfEngine(engine.CollectEngine):
 
         Inspired by: https://github.com/iovisor/bcc/blob/master/tools/tplist.py
 
-        :return dict: a list of the found USDT probe names per binary file
+        :return: a list of the found USDT probe names per binary file
         """
         return {
             target: list(
@@ -76,8 +76,8 @@ class BpfEngine(engine.CollectEngine):
     def collect(self, config, probes, **_):
         """Run the performance data collection according to the engine capabilities.
 
-        :param Configuration config: the collection configuration object
-        :param Probes probes: the probes specification
+        :param config: the collection configuration object
+        :param probes: the probes specification
         """
         # Create the runtime configuration file for the ebpf process with elevated privileges
         self._build_runtime_conf(config, probes)
@@ -100,10 +100,10 @@ class BpfEngine(engine.CollectEngine):
     def transform(self, probes, config, **_):
         """Transform the raw performance data to the perun profile resources.
 
-        :param Probes probes: the probes specification
-        :param Configuration config: the collection configuration
+        :param probes: the probes specification
+        :param config: the collection configuration
 
-        :return iterable: a generator object that provides profile resources
+        :return: a generator object that provides profile resources
         """
         WATCH_DOG.info("Transforming the raw performance data into a perun profile format")
         func_map = [{}] * (len(probes.func.keys()) + 1)
@@ -141,7 +141,7 @@ class BpfEngine(engine.CollectEngine):
         """Safely clean up any resource that is still in use, e.g. the eBPF collection process or
         temporary collect files.
 
-        :param Configuration config: the collection configuration
+        :param config: the collection configuration
         """
         WATCH_DOG.info("Cleaning up the eBPF-related resources.")
         # Terminate the eBPF process if it is still running
@@ -155,8 +155,8 @@ class BpfEngine(engine.CollectEngine):
     def _build_runtime_conf(self, config, probes):
         """Create the runtime configuration as a json-formatted file.
 
-        :param Configuration config: the supplied collection configuration
-        :param Probes probes: the probes specification
+        :param config: the supplied collection configuration
+        :param probes: the probes specification
         """
         with open(self.runtime_conf, "w") as config_handle:
             # Store the parameters that are needed by the separate eBPF process
@@ -176,7 +176,7 @@ class BpfEngine(engine.CollectEngine):
 def _get_ebpf_file():
     """Fetch the full path to the ebpf file that collects the performance data.
 
-    :return str: a full path to the ebpf.py file
+    :return: a full path to the ebpf.py file
     """
     return os.path.join(os.path.dirname(__file__), "ebpf.py")
 

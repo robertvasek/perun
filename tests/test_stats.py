@@ -1,4 +1,5 @@
 """Collection of tests for stats module"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -642,7 +643,7 @@ def test_stats_clear(pcs_full_no_prof):
 def _get_vcs_versions():
     """Obtains the VCS minor versions.
 
-    :return list: list of minor version checksums sorted as in the VCS.
+    :return: list of minor version checksums sorted as in the VCS.
     """
     return [v.checksum for v in pcs.vcs().walk_minor_versions(pcs.vcs().get_minor_head())]
 
@@ -650,10 +651,10 @@ def _get_vcs_versions():
 def _fake_checksums(source, count, collisions):
     """Generates SHA-1 checksums that represent fake perun objects.
 
-    :param str source: a seed value for the generator
-    :param int count: number of requested checksums
-    :param list collisions: list of forbidden values for the generated results
-    :return list: the requested number of SHA-1 checksums
+    :param source: a seed value for the generator
+    :param count: number of requested checksums
+    :param collisions: list of forbidden values for the generated results
+    :return: the requested number of SHA-1 checksums
     """
     results = []
     for _ in range(count):
@@ -676,11 +677,11 @@ def _check_objects(
     directory contents must be exactly the same as specified by the parameters - no missing or
     excess files or directories.
 
-    :param list versions_with_files: list of tuples (version, [files within the version])
-    :param list custom_empty_dirs: custom empty directories that don't have a record in the index
-    :param list custom_files: custom files within the stats directory
-    :param bool with_index: flag indicating whether the checked directory has the index file
-    :param bool check_index: checks the supplied versions with the versions listed in the index
+    :param versions_with_files: list of tuples (version, [files within the version])
+    :param custom_empty_dirs: custom empty directories that don't have a record in the index
+    :param custom_files: custom files within the stats directory
+    :param with_index: flag indicating whether the checked directory has the index file
+    :param check_index: checks the supplied versions with the versions listed in the index
     """
     stats_dir = pcs.get_stats_directory() + os.sep
     indexed_versions = [v for v, _ in stats.list_stat_versions()]
@@ -709,19 +710,19 @@ def _transform_paths(versions_with_files, custom_empty_dirs, custom_files, with_
     'a4': {'files': [], 'dirs': ['rest_of_the_SHA']},
     'dir1/dir2': {...}}
 
-    :param list versions_with_files: list of tuples (version, [files within the version])
-    :param list custom_empty_dirs: custom empty directories that don't have a record in the index
-    :param list custom_files: custom files within the stats directory
-    :param bool with_index: flag indicating whether the checked directory has the index file
-    :return dict: the resulting dictionary
+    :param versions_with_files: list of tuples (version, [files within the version])
+    :param custom_empty_dirs: custom empty directories that don't have a record in the index
+    :param custom_files: custom files within the stats directory
+    :param with_index: flag indicating whether the checked directory has the index file
+    :return: the resulting dictionary
     """
 
     def _process_dir(dir_path, dir_files):
         """Transforms one directory with its files into the requested format and stores it in the
         objects dictionary.
 
-        :param str dir_path: relative path (starting from the stats) to the directory
-        :param list dir_files: list of file names within the directory
+        :param dir_path: relative path (starting from the stats) to the directory
+        :param dir_files: list of file names within the directory
         """
         # Split the path into all the components
         path_parts = pathlib.Path(dir_path).parts

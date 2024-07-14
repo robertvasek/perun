@@ -4,6 +4,7 @@ This module contains method for classification the performance change between tw
 according to computed metrics and models from these profiles, based on the linear regression.
 
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -33,9 +34,9 @@ class LinearRegression(AbstractBaseChecker):
         """Temporary function, which call the general function and subsequently returns the
         information about performance changes to calling function.
 
-        :param dict baseline_profile: base against which we are checking the degradation
-        :param dict target_profile: profile corresponding to the checked minor version
-        :param dict _: unification with other detection methods (unused in this method)
+        :param baseline_profile: base against which we are checking the degradation
+        :param target_profile: profile corresponding to the checked minor version
+        :param _: unification with other detection methods (unused in this method)
         :returns: tuple (degradation result, degradation location, degradation rate, confidence)
         """
 
@@ -60,15 +61,15 @@ def exec_linear_regression(
     absolute error. The absolute error is regressed in the all approach used in this method. This
     error is calculated from the linear models from both profiles.
 
-    :param str uid: uid for which we are computing the linear regression
-    :param np_array baseline_x_pts: values of the independent variables from both profiles
-    :param np_array lin_abs_error: the value absolute error computed from the linear models obtained
+    :param uid: uid for which we are computing the linear regression
+    :param baseline_x_pts: values of the independent variables from both profiles
+    :param lin_abs_error: the value absolute error computed from the linear models obtained
         from both profiles
-    :param integer threshold: the appropriate value for distinction individual state of detection
-    :param integer linear_diff_b1: difference coefficients b1 from both linear models
-    :param ModelRecord baseline_model: the best model from the baseline profile
-    :param ModelRecord target_model: the best model from the target profile
-    :param dict baseline_profile: baseline against which we are checking the degradation
+    :param threshold: the appropriate value for distinction individual state of detection
+    :param linear_diff_b1: difference coefficients b1 from both linear models
+    :param baseline_model: the best model from the baseline profile
+    :param target_model: the best model from the target profile
+    :param baseline_profile: baseline against which we are checking the degradation
     :returns: string (classification of the change)
     """
 

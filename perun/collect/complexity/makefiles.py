@@ -18,6 +18,7 @@
               - add global error log
               - enable the users to also specify their own compiler flags and settings?
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -43,10 +44,10 @@ CMAKE_API_LIB_NAME = "profapi"
 def create_config_cmake(target_path: str, file_paths: list[str]) -> str:
     """Creates the cmake file for workload configuration executable
 
-    :param str target_path: cmake target directory path
-    :param list file_paths: paths to the workload source and header files
+    :param target_path: cmake target directory path
+    :param file_paths: paths to the workload source and header files
 
-    :return str: absolute path to the created cmake file
+    :return: absolute path to the created cmake file
     """
 
     # Open the cmake file and get the path
@@ -70,11 +71,11 @@ def create_config_cmake(target_path: str, file_paths: list[str]) -> str:
 def create_collector_cmake(target_path: str, file_paths: list[str], exclude_list: list[str]) -> str:
     """Creates the cmake file for workload collector executable
 
-    :param str target_path: cmake target directory path
-    :param list file_paths: paths to the workload source and header files
-    :param list exclude_list: function names that should be statically excluded
+    :param target_path: cmake target directory path
+    :param file_paths: paths to the workload source and header files
+    :param exclude_list: function names that should be statically excluded
 
-    :return str: absolute path to the created cmake file
+    :return: absolute path to the created cmake file
     """
     # Open the cmake file and get the path
     cmake_path = _construct_cmake_file_path(target_path)
@@ -103,11 +104,11 @@ def build_executable(cmake_path: str, target_name: str) -> str:
     """Invokes call sequence of cmake -> make to build the executable
        Warning - can be time expensive function due to cmake generator and g++ compilation
 
-    :param str cmake_path: path to the CMakeLists.txt file
-    :param str target_name: the target executable name (CMAKE_CONFIG_TARGET or CMAKE_COLLECT_TARGET,
+    :param cmake_path: path to the CMakeLists.txt file
+    :param target_name: the target executable name (CMAKE_CONFIG_TARGET or CMAKE_COLLECT_TARGET,
                             depending on the generated cmake type)
 
-    :return str: absolute path to the built executable
+    :return: absolute path to the built executable
     """
     # Get the cmake directory
     cmake_dir = os.path.dirname(cmake_path)
@@ -127,9 +128,9 @@ def build_executable(cmake_path: str, target_name: str) -> str:
 def _construct_cmake_file_path(target_path: str) -> str:
     """Constructs the cmake file absolute path
 
-    :param str target_path: cmake target directory path
+    :param target_path: cmake target directory path
 
-    :return str: the constructed cmake file path
+    :return: the constructed cmake file path
     """
     # Extend the path accordingly
     return os.path.realpath(os.path.join(target_path, "CMakeLists.txt"))
@@ -138,7 +139,7 @@ def _construct_cmake_file_path(target_path: str) -> str:
 def _init_cmake(cmake_file: TextIO) -> None:
     """Writes init configuration to the cmake file
 
-    :param file cmake_file: file handle to the opened cmake file
+    :param cmake_file: file handle to the opened cmake file
     """
     # Note: We assume that the compiler is fresh enough to support `-no-pie`
     cc_flags = "-std=c++11 -g -fno-pic"
@@ -159,8 +160,8 @@ def _init_cmake(cmake_file: TextIO) -> None:
 def _add_profile_instructions(cmake_file: TextIO, exclude_list: list[str]) -> None:
     """Extends the compiler configuration with instrumentation options
 
-    :param file cmake_file: file handle to the opened cmake file
-    :param list exclude_list: names of statically excluded functions from profiling
+    :param cmake_file: file handle to the opened cmake file
+    :param exclude_list: names of statically excluded functions from profiling
     """
     # Enable the instrumentation
     cmake_file.write(
@@ -178,9 +179,9 @@ def _add_profile_instructions(cmake_file: TextIO, exclude_list: list[str]) -> No
 def _add_build_data(cmake_file: TextIO, target_name: str, source_files: list[str]) -> None:
     """Writes build configuration to the cmake file
 
-    :param file cmake_file: file handle to the opened cmake file
-    :param str target_name: build target name
-    :param list source_files: paths to the workload source and header files
+    :param cmake_file: file handle to the opened cmake file
+    :param target_name: build target name
+    :param source_files: paths to the workload source and header files
     """
     # Set the source variable
     cmake_file.write("# set the sources\nset(SOURCE_FILES\n\t")
@@ -198,10 +199,10 @@ def _find_library(cmake_file: TextIO, lib_name: str, lib_path: str) -> str:
 
 
     :param cmake_file: file handle to the opened cmake file
-    :param str lib_name: the name of the library to search for
-    :param str lib_path: the path to the library directory to search for
+    :param lib_name: the name of the library to search for
+    :param lib_path: the path to the library directory to search for
 
-    :return str: the cmake variable representing the library
+    :return: the cmake variable representing the library
     """
     # Create the library variable name
     library_var = f"LIB_{lib_name}"
@@ -215,9 +216,9 @@ def _find_library(cmake_file: TextIO, lib_name: str, lib_path: str) -> str:
 def _link_libraries(cmake_file: TextIO, library_vars: list[str], target_name: str) -> None:
     """Links the profiling library with the collection executable
 
-    :param file cmake_file: file handle to the opened cmake file
-    :param list library_vars: list of libraries to be linked
-    :param str target_name: build target to be linked with
+    :param cmake_file: file handle to the opened cmake file
+    :param library_vars: list of libraries to be linked
+    :param target_name: build target to be linked with
     """
     # Create the string list of all libraries
     libraries = " ".join(f"${{{lib}}}" for lib in library_vars)
@@ -231,7 +232,7 @@ def _get_libs_path() -> str:
     """Return the path to the directory where the libraries needed for compilation should be
     located, or a default location if the directory cannot be found.
 
-    :return str: path where the libraries should be located
+    :return: path where the libraries should be located
     """
     try:
         # Get the path to the 'lib' dir within the complexity collector
@@ -260,9 +261,9 @@ def _get_libs_path() -> str:
 def _libraries_exist(libs_dir: str) -> bool:
     """Checks if the required libraries are present in the given directory
 
-    :param str libs_dir: the path to the libraries location
+    :param libs_dir: the path to the libraries location
 
-    :return bool: True if both libraries exist in the path
+    :return: True if both libraries exist in the path
     """
     return os.path.exists(os.path.join(libs_dir, "libprofapi.so")) and os.path.exists(
         os.path.join(libs_dir, "libprofile.so")

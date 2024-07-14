@@ -12,6 +12,7 @@ Combined with ``perun.profile.factory``, ``perun.profile.convert`` and e.g.
 `Pandas library`_ one can obtain efficient interpreter for executing more
 complex queries and statistical tests over the profiles.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -34,9 +35,9 @@ def flattened_values(root_key: Any, root_value: Any) -> Iterable[tuple[str, str 
     Flattens all the dictionaries to single level and <key>(:<key>)? values, lists are processed
     to comma separated representation and rest is left as it is.
 
-    :param str or int root_key: name (or index) of the processed key, that is going to be flattened
-    :param object root_value: value that is flattened
-    :returns (key, object): either decimal, string, or something else
+    :param root_key: name (or index) of the processed key, that is going to be flattened
+    :param root_value: value that is flattened
+    :return: either decimal, string, or something else
     """
     # Dictionary is processed recursively according to the all items that are nested
     if isinstance(root_value, dict):
@@ -97,7 +98,7 @@ def all_items_of(resource: dict[str, Any]) -> Iterable[tuple[str, str | float]]:
         ("uid:function", "main")
         ("uid:line": 22)
 
-    :param dict resource: dictionary representing one resource
+    :param resource: dictionary representing one resource
         w.r.t :pkey:`resources`
     :returns: iterable stream of ``(str, value)`` pairs, where the ``value`` is
         flattened to either a `string`, or `decimal` representation and ``str``
@@ -122,7 +123,7 @@ def all_model_fields_of(profile: Profile) -> Iterable[str]:
             'uid:line', 'uid', 'trace', 'subtype'
         ]
 
-    :param Profile profile: performance profile w.r.t :ref:`profile-spec`
+    :param profile: performance profile w.r.t :ref:`profile-spec`
     :returns: iterable stream of model field keys represented as `str`
     """
     yield from _all_fields_of(profile.all_models())
@@ -134,7 +135,7 @@ def _all_fields_of(item_generator: Iterable[tuple[int, dict[str, Any]]]) -> Iter
     Generator iterates through all the resources and checks their flattened
     keys. In case some of the keys were not yet processed, they are yielded.
 
-    :param iterable item_generator: iterable stream of items
+    :param item_generator: iterable stream of items
     :return: iterable stream of field keys represented as `str`
     """
     resource_fields = set()
@@ -162,7 +163,7 @@ def all_numerical_resource_fields_of(profile: Profile) -> Iterable[str]:
         time_num_resource_fields = ['amount']
         complexity_num_resource_fields = ['amount', 'structure-unit-size']
 
-    :param Profile profile: performance profile w.r.t :ref:`profile-spec`
+    :param profile: performance profile w.r.t :ref:`profile-spec`
     :returns: iterable stream of resource fields key as `str`, that takes integer values
     """
     resource_fields = set()
@@ -205,8 +206,8 @@ def unique_resource_values_of(profile: Profile, resource_key: str) -> Iterable[s
         ['SLList_init(SLList*)', 'SLList_search(SLList*, int)',
          'SLList_insert(SLList*, int)', 'SLList_destroy(SLList*)']
 
-    :param Profile profile: performance profile w.r.t :ref:`profile-spec`
-    :param str resource_key: the resources key identifier whose unique values
+    :param profile: performance profile w.r.t :ref:`profile-spec`
+    :param resource_key: the resources key identifier whose unique values
         will be iterated
     :returns: iterable stream of unique resource key values
     """
@@ -233,9 +234,9 @@ def all_key_values_of(resource: dict[str, Any], resource_key: str) -> Iterable[A
     Note that this is mostly useful for iterating through list or nested
     dictionaries.
 
-    :param dict resource: dictionary representing one resource
+    :param resource: dictionary representing one resource
         w.r.t :pkey:`resources`
-    :param str resource_key: the resources key identifier whose unique values
+    :param resource_key: the resources key identifier whose unique values
         will be iterated
     :returns: iterable stream of all resource key values
     """
@@ -281,8 +282,8 @@ def unique_model_values_of(profile: Profile, model_key: str) -> Iterable[Any]:
          0.8391363620083871, 0.9840099999298596, 0.7283427343995424,
          0.9709120064750161, 0.9305786182556899]
 
-    :param Profile profile: performance profile w.r.t :ref:`profile-spec`
-    :param str model_key: key identifier from `models` for which we query
+    :param profile: performance profile w.r.t :ref:`profile-spec`
+    :param model_key: key identifier from `models` for which we query
         its unique values
     :returns: iterable stream of unique model key values
     """
@@ -293,9 +294,9 @@ def unique_model_values_of(profile: Profile, model_key: str) -> Iterable[Any]:
 def _unique_values_generator(key: str, blocks_gen: Iterable[tuple[Any, dict[str, Any]]]) -> Any:
     """Generator of all unique values of 'key' occurring in the profile blocks generated by 'blocks_gen'.
 
-    :param str key: the key identifier whose unique values are returned
-    :param iterable blocks_gen: the data blocks generator (e.g. all_resources of Profile)
-    :returns iterable: stream of unique key values
+    :param key: the key identifier whose unique values are returned
+    :param blocks_gen: the data blocks generator (e.g. all_resources of Profile)
+    :return: stream of unique key values
     """
     # value can be dict, list, set etc. and not only simple type, thus the list
     unique_values = list()

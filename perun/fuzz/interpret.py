@@ -1,4 +1,5 @@
 """ Module contains a set of functions for fuzzing results interpretation."""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -37,9 +38,9 @@ QUARTILE_LINE_WIDTH = 2
 def save_anomalies(anomalies: list[Mutation], anomaly_type: str, file_handle: TextIO) -> None:
     """Saves anomalies (faults and hangs) into the file
 
-    :param list anomalies: list of
-    :param str anomaly_type: type of the anomalies (e.g. Faults, Hangs)
-    :param File file_handle: file, where the anomalies are written
+    :param anomalies: list of
+    :param anomaly_type: type of the anomalies (e.g. Faults, Hangs)
+    :param file_handle: file, where the anomalies are written
     """
     if anomalies:
         log.minor_info(f"Saving {log.highlight(anomaly_type + 's')}")
@@ -52,8 +53,8 @@ def save_anomalies(anomalies: list[Mutation], anomaly_type: str, file_handle: Te
 def save_time_series(file_handle: TextIO, time_series: TimeSeries) -> None:
     """Saves the time series data into the file handle
 
-    :param File file_handle: opened file handle for writing
-    :param TimeSeries time_series: list of times for values
+    :param file_handle: opened file handle for writing
+    :param time_series: list of times for values
     """
     for x_value, y_value in zip(time_series.x_axis, time_series.y_axis):
         file_handle.write(str(x_value) + " " + str(y_value) + "\n")
@@ -62,8 +63,8 @@ def save_time_series(file_handle: TextIO, time_series: TimeSeries) -> None:
 def save_log_files(log_dir: str, fuzz_progress: FuzzingProgress) -> None:
     """Saves information about fuzzing in log file. Note: refactor
 
-    :param str log_dir: path to the output log directory
-    :param FuzzingProgress fuzz_progress: progress of the fuzzing
+    :param log_dir: path to the output log directory
+    :param fuzz_progress: progress of the fuzzing
     """
     deg_data_file = open(log_dir + "/degradation_plot_data.txt", "w")
     cov_data_file = open(log_dir + "/coverage_plot_data.txt", "w")
@@ -103,10 +104,10 @@ def get_time_for_value(
 ) -> int | float:
     """Function gets time value according to measured value.
 
-    :param numeric value: selected y-axis value
-    :param list time_data: time values (x-axis)
-    :param list data: measured values (y-axis)
-    :return int: time value from `time_data` according to measured value from `data`
+    :param value: selected y-axis value
+    :param time_data: time values (x-axis)
+    :param data: measured values (y-axis)
+    :return: time value from `time_data` according to measured value from `data`
     """
     result = time_data[-1]
     for x, y in zip(time_data, data):
@@ -130,11 +131,11 @@ def plot_fuzz_time_series(
 ) -> None:
     """Plots the measured values to time series graph.
 
-    :param TimeSeries time_series: measured values (x and y-axis)
-    :param str filename: name of the output .pdf file
-    :param str title: title of graph
-    :param str x_label: name of x-axis
-    :param str y_label: name of y-axis
+    :param time_series: measured values (x and y-axis)
+    :param filename: name of the output .pdf file
+    :param title: title of graph
+    :param x_label: name of x-axis
+    :param y_label: name of y-axis
     """
     lazy_initialize_matplotlib()
     _, axis = plt.subplots(figsize=(PLOT_SIZE_X, PLOT_SIZE_Y))
@@ -257,8 +258,8 @@ def files_diff(fuzz_progress: FuzzingProgress, diffs_dir: str) -> None:
     """Creates html files showing the difference between mutations and its predecessor
     in diff unified format.
 
-    :param FuzzingProgress fuzz_progress: collection of statistics of fuzzing process
-    :param str diffs_dir: path to the directory where diffs will be stored
+    :param fuzz_progress: collection of statistics of fuzzing process
+    :param diffs_dir: path to the directory where diffs will be stored
     """
     log.minor_info("Computing deltas")
     log.increase_indent()

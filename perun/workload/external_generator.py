@@ -30,6 +30,7 @@ The External Generator can be configured by following options:
   * ``output_dir``: target directory, where generated workloads are stored
 
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -52,17 +53,17 @@ if TYPE_CHECKING:
 class ExternalGenerator(WorkloadGenerator):
     """Generator of random text files
 
-    :ivar str generator: string that is executed and that generates into @p output_dir list of
+    :ivar generator: string that is executed and that generates into @p output_dir list of
         generated workloads
-    :ivar str output_dir: path to the directory, where the externally generated workloads will
+    :ivar output_dir: path to the directory, where the externally generated workloads will
         be stored
-    :ivar str file_format: format of the generated workloads, that contains short format string
+    :ivar file_format: format of the generated workloads, that contains short format string
         delimited by pair of opening and closing @p delimiters (e.g. {width}). The format strings
         are used to extract concrete values that are set for each resource in the measured program.
-    :ivar str delimiters: pair of delimiters used to delimit the formatting strings/patters
-    :ivar list splits: list of fixed patters of the generated filenames, that are used to extract
+    :ivar delimiters: pair of delimiters used to delimit the formatting strings/patters
+    :ivar splits: list of fixed patters of the generated filenames, that are used to extract
         collectable/persistent parts for the resources
-    :ivar list key: list of keys for extracted resources
+    :ivar key: list of keys for extracted resources
     """
 
     __slots__ = ["generator", "output_dir", "file_format", "delimiters", "splits", "keys"]
@@ -78,24 +79,24 @@ class ExternalGenerator(WorkloadGenerator):
     ) -> None:
         """Initializes the generator of random text files
 
-        :param Job job: job for which we are generating workloads
-        :param str generator: string that is executed and that generates into @p output_dir list of
+        :param job: job for which we are generating workloads
+        :param generator: string that is executed and that generates into @p output_dir list of
             generated workloads
-        :param str output_dir: path to the directory, where the externally generated workloads will
+        :param output_dir: path to the directory, where the externally generated workloads will
             be stored
-        :param str file_format: format of the generated workloads, that contains short format string
+        :param file_format: format of the generated workloads, that contains short format string
             delimited by pair of opening and closing @p delimiters (e.g. {width}). The format
             strings are used to extract concrete values that are set for each resource in the
             measured program.
-        :param str delimiters: pair of delimiters used to delimit the formatting strings/patters
-        :param dict kwargs: additional keyword arguments
+        :param delimiters: pair of delimiters used to delimit the formatting strings/patters
+        :param kwargs: additional keyword arguments
         """
         super().__init__(job, **kwargs)
 
-        self.generator = external_generator
-        self.output_dir = output_dir
-        self.file_format = file_format
-        self.delimiters = delimiters
+        self.generator: str = external_generator
+        self.output_dir: str = output_dir
+        self.file_format: str = file_format
+        self.delimiters: str = delimiters
         self.splits, self.keys = self._parse_workload_keys()
 
     def _parse_workload_keys(self) -> tuple[list[str], list[str]]:
@@ -123,7 +124,7 @@ class ExternalGenerator(WorkloadGenerator):
         be considered as collectable resources), otherwise they are stored as string (hence they
         will be considered as persistent resources)
 
-        :param str workload: real workload
+        :param workload: real workload
         :return: parsed concrete values of the workload
         """
         values = []

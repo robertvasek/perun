@@ -31,7 +31,7 @@ from perun.utils.structs import CollectStatus
 def before(executable, **kwargs):
     """Validates, initializes and normalizes the collection configuration.
 
-    :param Executable executable: full collection command with arguments and workload
+    :param executable: full collection command with arguments and workload
     :param kwargs: dictionary containing the supplied configuration settings for the collector
     :returns: tuple (CollectStatus enum code,
                     string as a status message, mainly for error states,

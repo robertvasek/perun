@@ -1,4 +1,5 @@
 """This module contains methods needed by Perun logic"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -23,8 +24,8 @@ DEFAULT_SAMPLING: float = 0.001
 def before(executable: Executable, **_: Any) -> tuple[CollectStatus, str, dict[str, Any]]:
     """Phase for initialization the collect module
 
-    :param Executable executable: executable profiled command
-    :returns tuple: (return code, status message, updated kwargs)
+    :param executable: executable profiled command
+    :return: (return code, status message, updated kwargs)
     """
     log.major_info("Building Instrumented Binary")
     pwd = os.path.dirname(os.path.abspath(__file__))
@@ -60,8 +61,8 @@ def before(executable: Executable, **_: Any) -> tuple[CollectStatus, str, dict[s
 def collect(executable: Executable, **_: Any) -> tuple[CollectStatus, str, dict[str, Any]]:
     """Phase for collection of the profile data
 
-    :param Executable executable: executable profiled command
-    :returns tuple: (return code, status message, updated kwargs)
+    :param executable: executable profiled command
+    :return: (return code, status message, updated kwargs)
     """
     log.major_info("Collecting Performance data")
     result, collector_errors = syscalls.run(executable)
@@ -81,10 +82,10 @@ def after(
     """Phase after the collection for minor postprocessing
         that needs to be done after collect
 
-    :param Executable executable: executable profiled command
-    :param int sampling: sampling of the collection of the data
-    :param dict kwargs: profile's header
-    :returns tuple: (return code, message, updated kwargs)
+    :param executable: executable profiled command
+    :param sampling: sampling of the collection of the data
+    :param kwargs: profile's header
+    :return: (return code, message, updated kwargs)
 
     Case studies:
         --sampling=0.1 --no-func=f2 --no-source=s --all

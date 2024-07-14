@@ -36,6 +36,7 @@ techniques respectively. Internals of perun storage is described in
     :width: 100%
     :align: center
 """
+
 from __future__ import annotations
 from typing import Callable, Any
 

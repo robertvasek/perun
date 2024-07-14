@@ -3,6 +3,7 @@
 Some of the stuff are stored in the stream, like e.g. yaml and are reused in several places.
 This module encapsulates such functions, so they can be used in CLI, in tests, in configs.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -22,8 +23,8 @@ from perun.utils import log
 def store_json(profile: dict[Any, Any], file_path: str) -> None:
     """Stores profile w.r.t. :ref:`profile-spec` to output file.
 
-    :param Profile profile: dictionary with profile w.r.t. :ref:`profile-spec`
-    :param str file_path: output path, where the `profile` will be stored
+    :param profile: dictionary with profile w.r.t. :ref:`profile-spec`
+    :param file_path: output path, where the `profile` will be stored
     """
     with open(file_path, "w") as profile_handle:
         serialized_profile = json.dumps(profile, indent=2)
@@ -33,7 +34,7 @@ def store_json(profile: dict[Any, Any], file_path: str) -> None:
 
 def safely_load_yaml_from_file(yaml_file: str) -> dict[Any, Any]:
     """
-    :param str yaml_file: name of the yaml file
+    :param yaml_file: name of the yaml file
     :raises ruamel.yaml.scanner.ScannerError: when the input file contains error
     """
     if not os.path.exists(yaml_file):
@@ -46,7 +47,7 @@ def safely_load_yaml_from_file(yaml_file: str) -> dict[Any, Any]:
 
 def safely_load_yaml_from_stream(yaml_stream: TextIO | str) -> dict[Any, Any]:
     """
-    :param str yaml_stream: stream in the yaml format (or not)
+    :param yaml_stream: stream in the yaml format (or not)
     :raises ruamel.yaml.scanner.ScannerError: when the input file contains error
     """
     # Remove the trailing double quotes screwing correct loading of yaml
@@ -63,7 +64,7 @@ def safely_load_yaml_from_stream(yaml_stream: TextIO | str) -> dict[Any, Any]:
 def safely_load_yaml(yaml_source: str) -> dict[Any, Any]:
     """Wrapper which takes the yaml source and either load it from the file or from the string
 
-    :param str yaml_source: either string or name of the file
+    :param yaml_source: either string or name of the file
     :raises ruamel.yaml.scanner.ScannerError: when the input file contains error
     """
     if os.path.exists(yaml_source):
@@ -74,7 +75,7 @@ def safely_load_yaml(yaml_source: str) -> dict[Any, Any]:
 def yaml_to_string(dictionary: dict[Any, Any]) -> str:
     """Converts the dictionary representing the YAML into string
 
-    :param dict dictionary: yaml stored as dictionary
+    :param dictionary: yaml stored as dictionary
     :return: string representation of the yaml
     """
     string_stream = io.StringIO()
@@ -87,7 +88,7 @@ def yaml_to_string(dictionary: dict[Any, Any]) -> str:
 def safely_load_file(filename: str) -> list[str]:
     """Safely reads filename. In case of Unicode errors, returns empty list.
 
-    :param str filename: read filename
+    :param filename: read filename
     :return: list of read lines
     """
     with open(filename, "r") as file_handle:

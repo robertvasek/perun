@@ -30,6 +30,7 @@ The TextFile Generator can be configured by following options:
     from interval (``min_chars``, ``max_chars``). Otherwise, (if set to false), the lines will
     always be of maximal length (``max_chars``).
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -50,12 +51,12 @@ from perun.workload.generator import WorkloadGenerator
 class TextfileGenerator(WorkloadGenerator):
     """Generator of random text files
 
-    :ivar int min_lines: minimal number of lines in generated text file
-    :ivar int max_lines: maximal number of lines in generated text file
-    :ivar int step: step for lines in generated text file
-    :ivar int min_chars: minimal number of rows/chars on one line in the text file
-    :ivar int max_chars: maximal number of rows/chars on one line in the text file
-    :ivar bool randomize_rows: if set to true, then the lines in the file will be
+    :ivar min_lines: minimal number of lines in generated text file
+    :ivar max_lines: maximal number of lines in generated text file
+    :ivar step: step for lines in generated text file
+    :ivar min_chars: minimal number of rows/chars on one line in the text file
+    :ivar max_chars: maximal number of rows/chars on one line in the text file
+    :ivar randomize_rows: if set to true, then the lines in the file will be
         randomized. Otherwise, they will always be maximal.
     """
 
@@ -82,30 +83,30 @@ class TextfileGenerator(WorkloadGenerator):
     ):
         """Initializes the generator of random text files
 
-        :param Job job: job for which we are generating workloads
-        :param int min_lines: minimal number of lines in generated text file
-        :param int max_lines: maximal number of lines in generated text file
-        :param int step: step for lines in generated text file
-        :param int min_rows: minimal number of rows/chars on one line in the text file
-        :param int max_rows: maximal number of rows/chars on one line in the text file
-        :param bool randomize_rows: if set to true, then the lines in the file will be
+        :param job: job for which we are generating workloads
+        :param min_lines: minimal number of lines in generated text file
+        :param max_lines: maximal number of lines in generated text file
+        :param step: step for lines in generated text file
+        :param min_rows: minimal number of rows/chars on one line in the text file
+        :param max_rows: maximal number of rows/chars on one line in the text file
+        :param randomize_rows: if set to true, then the lines in the file will be
             randomized. Otherwise, they will always be maximal.
-        :param dict kwargs: additional keyword arguments
+        :param kwargs: additional keyword arguments
         """
         super().__init__(job, **kwargs)
 
         # Line specific attributes
-        self.min_lines = int(min_lines)
-        self.max_lines = int(max_lines)
-        self.step = int(step)
+        self.min_lines: int = int(min_lines)
+        self.max_lines: int = int(max_lines)
+        self.step: int = int(step)
 
         # Row / Character specific
         # Note that faker has a lower limit on generated text.
-        self.min_chars = max(int(min_rows), 5)
-        self.max_chars = int(max_rows)
-        self.randomize_rows = common_kit.strtobool(str(randomize_rows))
+        self.min_chars: int = max(int(min_rows), 5)
+        self.max_chars: int = int(max_rows)
+        self.randomize_rows: bool = common_kit.strtobool(str(randomize_rows))
 
-        self.faker = faker.Faker()
+        self.faker: faker.Faker = faker.Faker()
 
     def _get_line(self) -> str:
         """Generates text of given length
@@ -122,7 +123,7 @@ class TextfileGenerator(WorkloadGenerator):
     def _get_file_content(self, file_len: int) -> str:
         """Generates text file content for the file of given length
 
-        :param int file_len: length of the generated file
+        :param file_len: length of the generated file
         :return: content to be used in randomly generated file
         """
         return "\n".join(self._get_line() for _ in range(file_len))

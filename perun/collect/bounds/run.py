@@ -4,6 +4,7 @@ First compiles the given sources using clang into LLVM IR representation,
 each compiled file is then analysed by loopus. The output of loopus is finally
 parsed by internal scanner resulting into profile.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -110,9 +111,9 @@ def lookup_source_files(ctx: click.Context, __: click.Option, value: list[str]) 
 
     The sources can either be single file, or directory which contains .c files.
 
-    :param Context ctx: context of the called command
-    :param click.Option __: parameter that is being parsed and read from commandline
-    :param str value: value that is being read from the commandline
+    :param ctx: context of the called command
+    :param __: parameter that is being parsed and read from commandline
+    :param value: value that is being read from the commandline
     """
     # Initialize sources if it does not exist
     if "sources" not in ctx.params.keys():

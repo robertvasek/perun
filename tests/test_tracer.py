@@ -1,4 +1,5 @@
 """Collection of tests for testing tracer"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -176,9 +177,9 @@ def _mocked_stap_extraction_empty(_):
 def _compare_collect_scripts(new_script, reference_script):
     """Compares collect script with its reference scripts
 
-    :param str new_script: path to the script to compare
-    :param str reference_script: path to the reference script
-    :return bool: True if scripts are the same (except machine specific values in the script),
+    :param new_script: path to the script to compare
+    :param reference_script: path to the reference script
+    :return: True if scripts are the same (except machine specific values in the script),
                   False otherwise
     """
     # Replace the machine-specific path to the binary with some generic text to allow for comparison
@@ -193,14 +194,14 @@ def _compare_collect_scripts(new_script, reference_script):
 def _get_latest_collect_script():
     """Return name of the latest collect script from the script directory
 
-    :return str: path to the latest trace collector script
+    :return: path to the latest trace collector script
     """
 
     def extract_timestamp(file_name):
         """Extracts the timestamp from the file name
 
-        :param str file_name: the name of the file
-        :return int: the extracted timestamp as int
+        :param file_name: the name of the file
+        :return: the extracted timestamp as int
         """
         _, _, timestamp_block, _ = os.path.basename(file_name).split("_")
         return int("".join(timestamp_block.split("-")))

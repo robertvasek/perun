@@ -4,6 +4,7 @@ Fixme: Add test for detached head
 
 Tests whether the perun correctly displays the status of the repository, with all of the extreme
 cases, etc."""
+
 from __future__ import annotations
 
 # Standard Imports

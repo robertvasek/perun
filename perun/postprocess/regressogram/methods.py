@@ -1,6 +1,7 @@
 """
 Module with regressogram computational method and auxiliary methods at executing of this method.
 """
+
 from __future__ import annotations
 
 # Standard Imports
@@ -26,7 +27,7 @@ def get_supported_nparam_methods() -> list[str]:
     """Provides all currently supported computational methods, to
     estimate the optimal number of buckets, as a list of their names.
 
-    :returns list of str: the names of all supported methods
+    :return: the names of all supported methods
     """
     return _METHODS
 
@@ -35,7 +36,7 @@ def get_supported_selectors() -> list[str]:
     """Provides all currently supported computational methods, to
     estimate the optimal number of buckets, as a list of their names.
 
-    :returns list of str: the names of all supported methods
+    :return: the names of all supported methods
     """
     return list(_BUCKET_SELECTORS.keys())
 
@@ -46,8 +47,8 @@ def compute_regressogram(
     """
     The regressogram wrapper to execute the analysis on the individual chunks of resources.
 
-    :param iter data_gen: the generator object with collected data (data provider generators)
-    :param dict config: the perun and option context
+    :param data_gen: the generator object with collected data (data provider generators)
+    :param config: the perun and option context
     :return: list of dict: the computation results
     """
     # checking the presence of specific keys in individual methods
@@ -92,11 +93,11 @@ def regressogram(
     use the chosen method to calculate the optimal bucket width and consequently the number of
     buckets.
 
-    :param list x_pts: the list of x points coordinates
-    :param list y_pts: the list of y points coordinates
-    :param str statistic_function: the statistic_function to compute
-    :param str/int buckets: the number of buckets to calculate or the name of computational method
-    :return dict: the output dictionary with result of analysis
+    :param x_pts: the list of x points coordinates
+    :param y_pts: the list of y points coordinates
+    :param statistic_function: the statistic_function to compute
+    :param buckets: the number of buckets to calculate or the name of computational method
+    :return: the output dictionary with result of analysis
     """
     # Check whether the buckets is given by number or by name of method to its compute
     if isinstance(buckets, int):
