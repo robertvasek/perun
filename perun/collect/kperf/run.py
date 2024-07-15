@@ -4,6 +4,7 @@ from __future__ import annotations
 
 # Standard Imports
 from typing import Any
+import os
 import subprocess
 import time
 
@@ -18,6 +19,7 @@ from perun.utils import log
 from perun.utils.common import script_kit
 from perun.utils.structs import Executable, CollectStatus
 from perun.utils.external import commands
+from perun.utils.exceptions import SuppressedExceptions
 
 
 def before(**_: Any) -> tuple[CollectStatus, str, dict[str, Any]]:
@@ -48,10 +50,11 @@ def before(**_: Any) -> tuple[CollectStatus, str, dict[str, Any]]:
     return CollectStatus.OK, "", {}
 
 
-def run_perf(executable: Executable, run_with_sudo: bool = False) -> str:
+def run_perf(executable: Executable, tag: str, run_with_sudo: bool = False) -> str:
     """Runs perf and obtains the output
 
     :param executable: run executable profiled by perf
+    :param tag: tag that is appended to the log
     :param run_with_sudo: if the command should be run with sudo
     :return: parsed output of perf
     """
@@ -65,11 +68,19 @@ def run_perf(executable: Executable, run_with_sudo: bool = False) -> str:
         perf_script_command = f"perf script -i collected.data | {parse_script}"
 
     try:
-        commands.run_safely_external_command(perf_record_command)
-        out, _ = commands.run_safely_external_command(perf_script_command)
+        commands.run_safely_external_command(
+            perf_record_command, log_verbosity=log.VERBOSE_RELEASE, log_tag=tag
+        )
+        out, _ = commands.run_safely_external_command(
+            perf_script_command, log_verbosity=log.VERBOSE_RELEASE, log_tag=tag
+        )
         log.minor_success(f"Raw data from {log.cmd_style(str(executable))}", "collected")
+        with SuppressedExceptions(Exception):
+            os.remove("collected.data")
     except subprocess.CalledProcessError:
         log.minor_fail(f"Raw data from {log.cmd_style(str(executable))}", "not collected")
+        with SuppressedExceptions(Exception):
+            os.remove("collected.data")
         return ""
     return out.decode("utf-8")
 
@@ -82,13 +93,13 @@ def collect(executable: Executable, **kwargs: Any) -> tuple[CollectStatus, str, 
 
     log.minor_info(f"Running {log.highlight(warmups)} warmup iterations")
     for _ in progressbar.progressbar(range(0, warmups)):
-        run_perf(executable, kwargs.get("with_sudo", False))
+        run_perf(executable, "warmup", kwargs.get("with_sudo", False))
 
     log.minor_info(f"Running {log.highlight(repeats)} iterations")
     before_time = time.time()
     kwargs["raw_data"] = []
     for _ in progressbar.progressbar(range(0, repeats)):
-        output = run_perf(executable, kwargs.get("with_sudo", False))
+        output = run_perf(executable, "main_run", kwargs.get("with_sudo", False))
         kwargs["raw_data"].extend(output.splitlines())
     kwargs["time"] = time.time() - before_time
 

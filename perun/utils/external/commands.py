@@ -23,24 +23,32 @@ from perun.logic import pcs, config
 log_file_cache: dict[str, int] = defaultdict(int)
 
 
-def save_output_of_command(command: str, content: bytes, extension: str = "out") -> None:
+def save_output_of_command(
+    command: str,
+    content: bytes,
+    extension: str = "out",
+    verbosity: int = log.VERBOSE_DEBUG,
+    tag: str = "debug",
+) -> None:
     """Saves output of command to log
 
     :param command: command for which we are storing the logs
     :param content: content we are storing
     :param extension: extension of the saved log (to differentiated between stderr and stdout)
     """
-    if log.LOGGING:
+    if log.LOGGING and log.is_verbose_enough(verbosity):
         log_directory = config.lookup_key_recursively("path.logs", "")
         if log_directory == "":
             log_directory = os.path.join(
                 pcs.get_log_directory(), time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
             )
             common_kit.touch_dir(log_directory)
-        log_file = common_kit.sanitize_filepart(command.split()[0])
+        log_file = common_kit.sanitize_filepart(" ".join(command.split()[:2]))
         log_file_cache[f"{log_file}.{extension}"] += 1
         log_no = log_file_cache[f"{log_file}.{extension}"]
-        target_file = os.path.join(log_directory, f"{log_file}.{log_no:04d}.{extension}")
+        target_file = os.path.join(
+            log_directory, ".".join([tag, log_file, f"{log_no:04d}", extension])
+        )
         with open(target_file, "w") as target_handle:
             target_handle.write(f"# cmd: {command}\n")
             target_handle.write(content.decode("utf-8"))
@@ -49,7 +57,12 @@ def save_output_of_command(command: str, content: bytes, extension: str = "out")
         )
 
 
-def get_stdout_from_external_command(command: list[str], stdin: Optional[IO[bytes]] = None) -> str:
+def get_stdout_from_external_command(
+    command: list[str],
+    stdin: Optional[IO[bytes]] = None,
+    log_verbosity: int = log.VERBOSE_DEBUG,
+    log_tag: str = "debug",
+) -> str:
     """Runs external command with parameters, checks its output and provides its output.
 
     :param command: list of arguments for command
@@ -59,7 +72,7 @@ def get_stdout_from_external_command(command: list[str], stdin: Optional[IO[byte
     output = subprocess.check_output(
         [c for c in command if c != ""], stderr=subprocess.STDOUT, stdin=stdin
     )
-    save_output_of_command(";".join(command), output)
+    save_output_of_command(";".join(command), output, verbosity=log_verbosity, tag=log_tag)
     return output.decode("utf-8")
 
 
@@ -68,6 +81,8 @@ def run_safely_external_command(
     check_results: bool = True,
     quiet: bool = True,
     timeout: Optional[float | int] = None,
+    log_verbosity: int = log.VERBOSE_DEBUG,
+    log_tag: str = "debug",
     **kwargs: Any,
 ) -> tuple[bytes, bytes]:
     """Safely runs the piped command, without executing of the shell
@@ -128,16 +143,18 @@ def run_safely_external_command(
                 if not quiet and (cmdout or cmderr):
                     log.cprintln(f"captured stdout: {cmdout.decode('utf-8')}", "red")
                     log.cprintln(f"captured stderr: {cmderr.decode('utf-8')}", "red")
-                save_output_of_command(cmd, cmdout, "stdout")
-                save_output_of_command(cmd, cmderr, "stderr")
+                save_output_of_command(cmd, cmdout, "stdout", verbosity=log_verbosity, tag=log_tag)
+                save_output_of_command(cmd, cmderr, "stderr", verbosity=log_verbosity, tag=log_tag)
                 raise subprocess.CalledProcessError(objects[i].returncode, unpiped_commands[i])
 
-    save_output_of_command(cmd, cmdout, "stdout")
-    save_output_of_command(cmd, cmderr, "stderr")
+    save_output_of_command(cmd, cmdout, "stdout", verbosity=log_verbosity, tag=log_tag)
+    save_output_of_command(cmd, cmderr, "stderr", verbosity=log_verbosity, tag=log_tag)
     return cmdout, cmderr
 
 
-def run_safely_list_of_commands(cmd_list: list[str]) -> None:
+def run_safely_list_of_commands(
+    cmd_list: list[str], log_verbosity: int = log.VERBOSE_DEBUG
+) -> None:
     """Runs safely list of commands
 
     :param cmd_list: list of external commands
@@ -145,7 +162,7 @@ def run_safely_list_of_commands(cmd_list: list[str]) -> None:
     """
     for cmd in cmd_list:
         log.write(">", cmd)
-        out, err = run_safely_external_command(cmd)
+        out, err = run_safely_external_command(cmd, log_verbosity=log_verbosity)
         if out:
             log.write(out.decode("utf-8"), end="")
         if err:
