@@ -4,6 +4,7 @@ from __future__ import annotations
 
 # Standard Imports
 from typing import Any
+import os
 import subprocess
 import time
 
@@ -18,6 +19,7 @@ from perun.utils import log
 from perun.utils.common import script_kit
 from perun.utils.structs import Executable, CollectStatus
 from perun.utils.external import commands
+from perun.utils.exceptions import SuppressedExceptions
 
 
 def before(**_: Any) -> tuple[CollectStatus, str, dict[str, Any]]:
@@ -73,8 +75,12 @@ def run_perf(executable: Executable, tag: str, run_with_sudo: bool = False) -> s
             perf_script_command, log_verbosity=log.VERBOSE_RELEASE, log_tag=tag
         )
         log.minor_success(f"Raw data from {log.cmd_style(str(executable))}", "collected")
+        with SuppressedExceptions(Exception):
+            os.remove("collected.data")
     except subprocess.CalledProcessError:
         log.minor_fail(f"Raw data from {log.cmd_style(str(executable))}", "not collected")
+        with SuppressedExceptions(Exception):
+            os.remove("collected.data")
         return ""
     return out.decode("utf-8")
 
