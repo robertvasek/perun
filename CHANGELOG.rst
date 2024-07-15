@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.23.1 (2024-07-15)
+
+  - Improve logging with tags and verbosity
+  - Improve the code climate (precommit hooks, formatting, etc.)
+  - Fix some compatibility issues
+
 0.23 (2024-07-11)
 
   - Add SVS (single version system) as default VCS system (this enables gitless integration)
