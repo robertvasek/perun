@@ -2109,11 +2109,11 @@ def test_run(pcs_with_root, monkeypatch):
     # Run the matrix with error in prerun phase
     saved_func = commands.run_safely_external_command
 
-    def run_wrapper(cmd):
+    def run_wrapper(cmd, **kwargs):
         if cmd == 'ls | grep "."':
             return b"hello", b"world"
         else:
-            return saved_func(cmd)
+            return saved_func(cmd, **kwargs)
 
     monkeypatch.setattr("perun.utils.external.commands.run_safely_external_command", run_wrapper)
     matrix.data["execute"]["pre_run"].append("ls | grep dafad")

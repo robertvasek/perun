@@ -65,8 +65,10 @@ def run_perf(executable: Executable, run_with_sudo: bool = False) -> str:
         perf_script_command = f"perf script -i collected.data | {parse_script}"
 
     try:
-        commands.run_safely_external_command(perf_record_command)
-        out, _ = commands.run_safely_external_command(perf_script_command)
+        commands.run_safely_external_command(perf_record_command, log_verbosity=log.VERBOSE_RELEASE)
+        out, _ = commands.run_safely_external_command(
+            perf_script_command, log_verbosity=log.VERBOSE_RELEASE
+        )
         log.minor_success(f"Raw data from {log.cmd_style(str(executable))}", "collected")
     except subprocess.CalledProcessError:
         log.minor_fail(f"Raw data from {log.cmd_style(str(executable))}", "not collected")

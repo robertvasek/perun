@@ -178,7 +178,9 @@ class CollectEngine(ABC):
             WATCH_DOG.debug(
                 f"Attempting to terminate the '{proc_name}' subprocess with PID '{proc.pid}'"
             )
-            commands.run_safely_external_command(f"sudo kill -{SIGINT} {proc.pid}", False)
+            commands.run_safely_external_command(
+                f"sudo kill -{SIGINT} {proc.pid}", check_results=False
+            )
             # The wait is needed to get rid of the resulting zombie process
             try:
                 proc.wait(timeout=CLEANUP_TIMEOUT)

@@ -228,7 +228,11 @@ def _is_running_perun_process(pid: int) -> bool:
     # Request information about process with the given PID
     WATCH_DOG.debug(f"Checking the details of a process '{pid}'")
     query = f"ps -o {PS_FORMAT} -p {pid}"
-    result = commands.run_safely_external_command(query, False)[0].decode("utf-8").splitlines()
+    result = (
+        commands.run_safely_external_command(query, check_results=False)[0]
+        .decode("utf-8")
+        .splitlines()
+    )
     WATCH_DOG.log_variable(f"process::{pid}", result)
     # If no such process exists then the output contains only header line
     if len(result) < 2:

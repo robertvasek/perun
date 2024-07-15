@@ -135,7 +135,11 @@ def collect(executable: Executable, **kwargs: Any) -> tuple[CollectStatus, str, 
     collect_dir = os.path.dirname(executable.cmd)
     # Run the command and evaluate the return code
     try:
-        commands.run_safely_external_command(str(executable), cwd=collect_dir)
+        commands.run_safely_external_command(
+            str(executable),
+            log_verbosity=log.VERBOSE_RELEASE,
+            cwd=collect_dir,
+        )
         log.minor_success("Collection of data")
         return CollectStatus.OK, _COLLECTOR_STATUS_MSG[0], dict(kwargs)
     except (CalledProcessError, IOError) as err:
