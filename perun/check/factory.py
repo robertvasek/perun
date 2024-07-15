@@ -35,9 +35,9 @@ from perun.utils.structs import (
     ModelRecord,
 )
 from perun.utils.common import common_kit
-
 from perun.utils.exceptions import UnsupportedModuleException
 import perun.profile.helpers as profiles
+import perun.select.factory as select
 
 if TYPE_CHECKING:
     from perun.profile.factory import Profile
@@ -147,7 +147,7 @@ def degradation_in_minor(
     :returns: list of found changes
     """
     log.major_info(f"Checking Version {minor_version}")
-    selection: AbstractBaseSelection = pcs.selection()
+    selection: AbstractBaseSelection = select.selection()
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
 
     # Precollect profiles for all near versions
@@ -190,7 +190,7 @@ def degradation_in_history(head: str) -> list[tuple[DegradationInfo, str, str]]:
     log.major_info("Checking Whole History")
     log.minor_info("This might take a while")
     detected_changes = []
-    version_selection: AbstractBaseSelection = pcs.selection()
+    version_selection: AbstractBaseSelection = select.selection()
     with log.History(head) as history:
         for minor_version in pcs.vcs().walk_minor_versions(head):
             history.progress_to_next_minor_version(minor_version)

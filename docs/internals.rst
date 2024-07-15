@@ -51,31 +51,33 @@ control and performance versioning systems.
 Version Control System API
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. module:: perun.vcs
+.. module:: perun.vcs.abstract_repository
 
-.. autofunction:: init
+.. autoclass:: AbstractRepository
 
-.. autofunction:: walk_minor_versions
+    .. method:: init
 
-.. autofunction:: walk_major_versions
+    .. method:: walk_minor_versions
 
-.. autofunction:: get_minor_head
+    .. method:: walk_major_versions
 
-.. autofunction:: get_head_major_version
+    .. method:: get_minor_head
 
-.. autofunction:: get_minor_version_info
+    .. method:: get_head_major_version
 
-.. autofunction:: check_minor_version_validity
+    .. method:: get_minor_version_info
 
-.. autofunction:: massage_parameter
+    .. method:: check_minor_version_validity
 
-.. autofunction:: is_dirty
+    .. method:: massage_parameter
 
-.. autofunction:: save_state
+    .. method:: is_dirty
 
-.. autofunction:: restore_state
+    .. method:: save_state
 
-.. autofunction:: checkout
+    .. method:: restore_state
+
+    .. method:: checkout
 
 .. _internals-vcs-custom:
 
