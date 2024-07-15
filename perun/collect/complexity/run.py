@@ -138,6 +138,7 @@ def collect(executable: Executable, **kwargs: Any) -> tuple[CollectStatus, str, 
         commands.run_safely_external_command(
             str(executable),
             log_verbosity=log.VERBOSE_RELEASE,
+            log_tag="main_run",
             cwd=collect_dir,
         )
         log.minor_success("Collection of data")

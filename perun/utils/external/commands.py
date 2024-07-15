@@ -24,7 +24,11 @@ log_file_cache: dict[str, int] = defaultdict(int)
 
 
 def save_output_of_command(
-    command: str, content: bytes, extension: str = "out", verbosity: int = log.VERBOSE_DEBUG
+    command: str,
+    content: bytes,
+    extension: str = "out",
+    verbosity: int = log.VERBOSE_DEBUG,
+    tag: str = "debug",
 ) -> None:
     """Saves output of command to log
 
@@ -42,7 +46,9 @@ def save_output_of_command(
         log_file = common_kit.sanitize_filepart(" ".join(command.split()[:2]))
         log_file_cache[f"{log_file}.{extension}"] += 1
         log_no = log_file_cache[f"{log_file}.{extension}"]
-        target_file = os.path.join(log_directory, f"{log_file}.{log_no:04d}.{extension}")
+        target_file = os.path.join(
+            log_directory, ".".join([tag, log_file, f"{log_no:04d}", extension])
+        )
         with open(target_file, "w") as target_handle:
             target_handle.write(f"# cmd: {command}\n")
             target_handle.write(content.decode("utf-8"))
@@ -52,7 +58,10 @@ def save_output_of_command(
 
 
 def get_stdout_from_external_command(
-    command: list[str], stdin: Optional[IO[bytes]] = None, log_verbosity: int = log.VERBOSE_DEBUG
+    command: list[str],
+    stdin: Optional[IO[bytes]] = None,
+    log_verbosity: int = log.VERBOSE_DEBUG,
+    log_tag: str = "debug",
 ) -> str:
     """Runs external command with parameters, checks its output and provides its output.
 
@@ -63,7 +72,7 @@ def get_stdout_from_external_command(
     output = subprocess.check_output(
         [c for c in command if c != ""], stderr=subprocess.STDOUT, stdin=stdin
     )
-    save_output_of_command(";".join(command), output, verbosity=log_verbosity)
+    save_output_of_command(";".join(command), output, verbosity=log_verbosity, tag=log_tag)
     return output.decode("utf-8")
 
 
@@ -73,6 +82,7 @@ def run_safely_external_command(
     quiet: bool = True,
     timeout: Optional[float | int] = None,
     log_verbosity: int = log.VERBOSE_DEBUG,
+    log_tag: str = "debug",
     **kwargs: Any,
 ) -> tuple[bytes, bytes]:
     """Safely runs the piped command, without executing of the shell
@@ -90,7 +100,6 @@ def run_safely_external_command(
     # Split
     unpiped_commands = list(map(str.strip, cmd.split(" | ")))
     cmd_no = len(unpiped_commands)
-    assert "log_verbosity" not in kwargs, f"{kwargs=}"
 
     # Run the command through pipes
     objects: list[subprocess.Popen[bytes]] = []
@@ -134,12 +143,12 @@ def run_safely_external_command(
                 if not quiet and (cmdout or cmderr):
                     log.cprintln(f"captured stdout: {cmdout.decode('utf-8')}", "red")
                     log.cprintln(f"captured stderr: {cmderr.decode('utf-8')}", "red")
-                save_output_of_command(cmd, cmdout, "stdout", verbosity=log_verbosity)
-                save_output_of_command(cmd, cmderr, "stderr", verbosity=log_verbosity)
+                save_output_of_command(cmd, cmdout, "stdout", verbosity=log_verbosity, tag=log_tag)
+                save_output_of_command(cmd, cmderr, "stderr", verbosity=log_verbosity, tag=log_tag)
                 raise subprocess.CalledProcessError(objects[i].returncode, unpiped_commands[i])
 
-    save_output_of_command(cmd, cmdout, "stdout", verbosity=log_verbosity)
-    save_output_of_command(cmd, cmderr, "stderr", verbosity=log_verbosity)
+    save_output_of_command(cmd, cmdout, "stdout", verbosity=log_verbosity, tag=log_tag)
+    save_output_of_command(cmd, cmderr, "stderr", verbosity=log_verbosity, tag=log_tag)
     return cmdout, cmderr
 
 
