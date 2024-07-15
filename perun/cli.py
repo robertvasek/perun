@@ -1269,27 +1269,18 @@ def fuzz_cmd(cmd: str, **kwargs: Any) -> None:
     fuzz.run_fuzzing_for_command(**kwargs)
 
 @cli.command()
-@click.option("--cmd", "-b", nargs=1, required=True, help="The command being delta debugged.")
-@click.option(
-    "--input-sample",
-    "-w",
+@click.argument("cmd", nargs=1, required=True)
+@click.argument(
+    "input-sample",
     nargs=1,
     required=True,
-    multiple=False,
-    help=(
-        "The input file specifies the command to be analyzed using Delta Debugging."
-        "The tool systematically reduces the complexity of the input file."
-        "It identify the minimal configuration that triggers a time issue"
-    ),
 )
-@click.option(
-    "--output-dir",
-    "-o",
+@click.argument(
+    "output-dir",
     nargs=1,
     required=True,
     type=click.Path(exists=True, writable=True),
     metavar="<path>",
-    help="The path to the directory where generated outputs will be stored.",
 )
 @click.option(
     "--timeout",
@@ -1301,9 +1292,11 @@ def fuzz_cmd(cmd: str, **kwargs: Any) -> None:
     metavar="<float>",
     help="Time limit for delta debugging (in seconds). Default value is 1s.",
 )
-def deltadebugging(cmd: str, **kwargs: Any):
+def deltadebugging(cmd: str, input_sample: str, output_dir: str, **kwargs: Any) -> None:
     """Performs delta debugging on this command."""
     kwargs["executable"] = Executable(cmd)
+    kwargs["input_sample"] = input_sample
+    kwargs["output_dir"] = output_dir
     delta.run_delta_debugging_for_command(**kwargs)
 
 def init_unit_commands(lazy_init: bool = True) -> None:
