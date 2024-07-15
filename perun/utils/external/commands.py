@@ -37,7 +37,7 @@ def save_output_of_command(command: str, content: bytes, extension: str = "out")
                 pcs.get_log_directory(), time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
             )
             common_kit.touch_dir(log_directory)
-        log_file = common_kit.sanitize_filepart(command.split()[0])
+        log_file = common_kit.sanitize_filepart(" ".join(command.split()[:2]))
         log_file_cache[f"{log_file}.{extension}"] += 1
         log_no = log_file_cache[f"{log_file}.{extension}"]
         target_file = os.path.join(log_directory, f"{log_file}.{log_no:04d}.{extension}")
