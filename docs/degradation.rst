@@ -230,10 +230,13 @@ Create Your Own Degradation Checker
 
 New performance change checkers can be registered within Perun in several steps. The checkers have
 just small requirements and have to `yield` the reports about degradation as a instances of
-:class:`DegradationInfo` objects specified as follows:
+``DegradationInfo`` objects specified as follows:
 
 .. currentmodule: perun.utils.structs
 .. autoclass::  perun.utils.structs.DegradationInfo
+   :members:
+
+.. autoclass::  perun.utils.structs.PerformanceChange
    :members:
 
 You can register your new performance change checker as follows:

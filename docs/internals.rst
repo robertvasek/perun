@@ -89,8 +89,8 @@ You can register support for your own version control system as follows:
     1. Create a new module in ``perun/vcs`` directory implementing functions from
        :ref:`internals-vcs-api`.
 
-    2. Finally register your newly created vcs wrapper in :func:`get_supported_module_names`
-       located in ``perun.utils.__init__.py``:
+    2. Finally register your newly created vcs wrapper in function ``get_supported_module_names``
+       located in ``perun.utils.common.cli_kit``:
 
     .. literalinclude:: _static/templates/supported_module_names_collectors.py
         :language: python
