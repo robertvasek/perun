@@ -185,6 +185,8 @@ texinfo_documents = [
     ),
 ]
 
+nitpick_ignore = [("py:class", "ModelRecord"), ("py:class", "pandas.DataFrame")]
+
 
 def doctree_read_handler(_, doctree):
     """Handler for postprocessing the read doctree
