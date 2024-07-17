@@ -32,7 +32,7 @@ dev:
 	pre-commit install
 
 install:
-	pip3 install .
+	pip3 install .[test]
 
 check:
 	python3 -m mypy ./perun/
