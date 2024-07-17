@@ -25,6 +25,7 @@ import jinja2
 import progressbar
 
 # Perun Imports
+from perun.templates import factory as templates
 from perun.profile import convert
 from perun.profile.factory import Profile
 from perun.utils import log
@@ -528,9 +529,7 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     ]
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
 
-    # Note: we keep the autoescape=false, since we kindof believe we are not trying to fuck us up
-    env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
-    template = env.get_template("diff_view_sankey.html.jinja2")
+    template = templates.get_template("diff_view_sankey.html.jinja2")
     content = template.render(
         title="Differences of profiles (with sankey)",
         lhs_tag="Baseline (base)",

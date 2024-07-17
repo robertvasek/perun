@@ -31,7 +31,7 @@ import progressbar
 from perun.logic import config
 from perun.profile import convert
 from perun.profile.factory import Profile
-from perun.templates import filters
+from perun.templates import filters, factory as templates
 from perun.utils import log, mapping
 from perun.utils.common import diff_kit, common_kit
 from perun.utils.structs import WebColorPalette
@@ -684,10 +684,8 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
     log.minor_success("Sankey graphs", "generated")
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
 
-    # Note: we keep the autoescape=false, since we kindof believe we are not trying to fuck us up
-    env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
-    env.filters["sanitize_variable_name"] = filters.sanitize_variable_name
-    template = env.get_template("diff_view_report.html.jinja2")
+    env_filters = {"sanitize_variable_name": filters.sanitize_variable_name}
+    template = templates.get_template("diff_view_report.html.jinja2", filters=env_filters)
     content = template.render(
         title="Differences of profiles (with sankey)",
         lhs_tag="Baseline (base)",
