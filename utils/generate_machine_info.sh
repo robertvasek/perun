@@ -45,7 +45,7 @@ get_machine_specification() {
   first=0
   if [[ -e /proc/meminfo ]]; then
     while IFS=: read -r key value; do
-      if [[ -n $key && -n $value ]]; then
+      if [[ -n "$key" && -n "$value" ]]; then
         value=$(echo -n $value | xargs)
         if [[ $first -eq 0 ]]; then
           first=1
@@ -80,7 +80,7 @@ get_machine_specification() {
               echo -n -e ", "
             fi
             while IFS=: read -r key value; do
-              echo -n -e "\"$(echo $key | xargs)\": \"$(echo $value | xargs)\""
+              echo -n -e "\"$(echo "$key" | xargs)\": \"$(echo "$value" | xargs)\""
             done <<< "$cpu_detail"
           fi
         done
