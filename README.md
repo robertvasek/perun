@@ -73,8 +73,6 @@ might require root permissions to install Perun.
 
 It is advised to verify that Perun is running correctly in your environment as follows:
 
-    # You can run this only once: it will initialize the requirements necessary for testing
-    make init-test
     # Runs all tests using pytest
     make test
 
