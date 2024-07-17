@@ -12,6 +12,7 @@ perun_templates_files = files(
     'diff_view_datatables.html.jinja2',
     'diff_view_report.html.jinja2',
     'diff_view_sankey.html.jinja2',
+    'factory.py',
     'filters.py',
     'jquery-3.6.0.min.js',
     'macros_accordion.html.jinja2',

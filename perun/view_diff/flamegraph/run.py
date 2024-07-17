@@ -12,6 +12,7 @@ import click
 import jinja2
 
 # Perun Imports
+from perun.templates import factory as templates
 from perun.utils import log, mapping
 from perun.utils.common import diff_kit
 from perun.profile.factory import Profile
@@ -195,8 +196,7 @@ def generate_flamegraph_difference(
     )
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
 
-    env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"))
-    template = env.get_template("diff_view_flamegraph.html.jinja2")
+    template = templates.get_template("diff_view_flamegraph.html.jinja2")
     content = template.render(
         flamegraphs=flamegraphs,
         lhs_header=lhs_header,

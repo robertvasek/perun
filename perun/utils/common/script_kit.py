@@ -9,10 +9,9 @@ import os
 
 # Third-Party Imports
 
-import jinja2
-
 # Perun Imports
 from perun.logic import config
+from perun.templates import factory as templates
 from perun.utils import log
 from perun.utils.common import common_kit
 from perun.utils.exceptions import ExternalEditorErrorException
@@ -71,7 +70,7 @@ def create_unit_from_template(template_type: str, no_edit: bool, **kwargs: Any) 
     log.minor_status("Target Perun development dir", status=log.path_style(perun_dev_dir))
 
     # Initialize the jinja2 environment and load all templates for template_type set
-    env = jinja2.Environment(loader=jinja2.PackageLoader("perun", "templates"), autoescape=True)
+    env = templates.get_environment(autoescape=True)
     list_of_templates = env.list_templates(filter_func=template_name_filter)
 
     # Specify the target dir (for packages we create a new directory)
