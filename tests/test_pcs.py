@@ -9,14 +9,14 @@ import pytest
 
 # Perun Imports
 from perun.utils.exceptions import UnsupportedModuleException
-from perun.logic import pcs
 from perun.select.whole_repository_selection import WholeRepositorySelection
+import perun.select.factory as select
 
 
 def test_selection(pcs_with_root):
     """Tests basic selection"""
-    selection = pcs.selection()
+    selection = select.selection()
     assert isinstance(selection, WholeRepositorySelection)
 
     with pytest.raises(UnsupportedModuleException):
-        pcs.selection("nonexisting_selection")
+        select.selection("nonexisting_selection")

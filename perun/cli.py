@@ -96,7 +96,7 @@ DEV_MODE = False
     help=(
         "Disables the paging of the long standard output (currently"
         " affects only ``status`` and ``log`` outputs). See "
-        ":ckey:`paging` to change the default paging strategy."
+        ":ckey:`general.paging` to change the default paging strategy."
     ),
 )
 @click.option(
@@ -257,8 +257,7 @@ def configure_local_perun(perun_path: str) -> None:
     default=False,
     help=(
         "After successful initialization of both systems, opens "
-        "the local configuration using the :ckey:`editor` set in shared "
-        "config."
+        "the local configuration using the :ckey:`general.editor` set in shared config."
     ),
 )
 @click.option(
@@ -536,7 +535,7 @@ def log(head: Optional[str], **kwargs: Any) -> None:
     In no <hash> is given, then HEAD of the version control system is used as a starting point.
 
     Unless ``perun --no-pager log`` is issued as command, or appropriate
-    :ckey:`paging` option is set, the outputs of log will be paged (by
+    :ckey:`general.paging` option is set, the outputs of log will be paged (by
     default using ``less``).
 
     Refer to :ref:`logs-log` for information how to customize the outputs of
@@ -583,7 +582,7 @@ def status(**kwargs: Any) -> None:
     types and creation times.
 
     Unless ``perun --no-pager status`` is issued as command, or appropriate
-    :ckey:`paging` option is set, the outputs of status will be paged (by
+    :ckey:`general.paging` option is set, the outputs of status will be paged (by
     default using ``less``).
 
     An error is raised if the command is executed outside of range of any

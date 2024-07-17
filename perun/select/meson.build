@@ -3,6 +3,7 @@ perun_select_dir = perun_dir / 'select'
 perun_select_files = files(
     '__init__.py',
     'abstract_base_selection.py',
+    'factory.py',
     'whole_repository_selection.py'
 )
 

@@ -8,14 +8,12 @@ by its path.
 from __future__ import annotations
 
 # Standard Imports
-from typing import Optional
 import os
 
 # Third-Party Imports
 
 # Perun Imports
 from perun.logic import config
-from perun.select import whole_repository_selection, abstract_base_selection
 from perun.utils import decorators
 from perun.utils.common import common_kit
 from perun.utils.exceptions import NotPerunRepositoryException, UnsupportedModuleException
@@ -197,23 +195,3 @@ def get_config_file(config_type: str) -> str:
     if config_type in ("shared", "global"):
         return os.path.join(config.lookup_shared_config_dir(), "shared.yml")
     return os.path.join(get_path(), "local.yml")
-
-
-@decorators.singleton_with_args
-def selection(
-    selection_type: Optional[str] = None,
-) -> abstract_base_selection.AbstractBaseSelection:
-    """Factory method for creating selection method
-
-    Currently, supports:
-      1. Whole Repository Selection: selects everything in the repository
-    """
-    if selection_type is None:
-        selection_type = config.lookup_key_recursively(
-            "selection_method", "whole_repository_selection"
-        )
-
-    if selection_type == "whole_repository_selection":
-        return whole_repository_selection.WholeRepositorySelection()
-
-    raise UnsupportedModuleException(selection_type)
