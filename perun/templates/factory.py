@@ -6,7 +6,7 @@ from __future__ import annotations
 
 # Standard Imports
 from pathlib import Path
-from typing import Callable, Any, Optional
+from typing import Callable, Any, Optional, Mapping
 
 # Third-Party Imports
 from jinja2 import Environment, FileSystemLoader, Template
@@ -15,7 +15,7 @@ from jinja2 import Environment, FileSystemLoader, Template
 
 
 def get_template(
-    template_name: str, filters: Optional[dict[str, Callable[[str], str]]] = None
+    template_name: str, filters: Optional[Mapping[str, Callable[[str], str]]] = None
 ) -> Template:
     """Loads jinja2 template from the templates directory
 
