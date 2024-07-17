@@ -529,7 +529,6 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     ]
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
 
-    # Note: we keep the autoescape=false, since we kindof believe we are not trying to fuck us up
     template = templates.get_template("diff_view_sankey.html.jinja2")
     content = template.render(
         title="Differences of profiles (with sankey)",
