@@ -4,6 +4,7 @@ from __future__ import annotations
 
 # Standard Imports
 from typing import Any, Optional
+import json
 import os
 import subprocess
 
@@ -20,12 +21,25 @@ from perun.utils.structs import MinorVersion
 from perun.profile.factory import Profile
 
 
+def get_machine_info(machine_info: Optional[str] = None) -> dict[str, Any]:
+    """Returns machine info either from input file or constructs it from environment
+
+    :param machine info: file in json format, which contains machine specification
+    :return: parsed dictionary format of machine specification
+    """
+    if machine_info is not None:
+        return json.load(machine_info)
+    else:
+        return environment.get_machine_specification()
+
+
 def import_from_string(
     out: str,
     minor_version: MinorVersion,
     machine_info: Optional[str] = None,
     with_sudo: bool = False,
     save_to_index: bool = False,
+    **kwargs: Any,
 ):
     resources = parser.parse_events(out.split("\n"))
     prof = Profile(
@@ -37,13 +51,13 @@ def import_from_string(
         }
     )
     prof.update({"origin": minor_version.checksum})
-    prof.update({"machine": environment.get_machine_specification()})
+    prof.update({"machine": get_machine_info(machine_info)})
     prof.update(
         {
             "header": {
                 "type": "time",
-                "cmd": "",  # TODO
-                "workload": "",
+                "cmd": kwargs.get("cmd", "?"),
+                "workload": kwargs.get("cmd", "?"),
                 "units": {"time": "sample"},
             }
         }
@@ -54,8 +68,8 @@ def import_from_string(
                 "name": "kperf",
                 "params": {
                     "with_sudo": with_sudo,
-                    "warmup": 0,  # TODO
-                    "repeat": 1,  # TODO
+                    "warmup": kwargs.get("warmup", "?"),
+                    "repeat": kwargs.get("repeat", 0),
                 },
             }
         }
