@@ -27,10 +27,11 @@ def get_machine_info(machine_info: Optional[str] = None) -> dict[str, Any]:
     :param machine info: file in json format, which contains machine specification
     :return: parsed dictionary format of machine specification
     """
-    if machine_info is not None:
-        return json.load(machine_info)
-    else:
-        return environment.get_machine_specification()
+    return (
+        json.load(machine_info)
+        if machine_info is not None
+        else environment.get_machine_specification()
+    )
 
 
 def get_param(l: dict[str, Any], param: str, index: int) -> Any:
@@ -99,7 +100,7 @@ def import_from_string(
         status=f"{log.path_style(os.path.relpath(full_profile_path))}",
     )
     if save_to_index:
-        commands.add([full_profile_path], minor_version, keep_profile=False)
+        commands.add([full_profile_path], minor_version.checksum, keep_profile=False)
     else:
         # Else we register the profile in pending index
         index.register_in_pending_index(full_profile_path, prof)
@@ -119,18 +120,18 @@ def import_perf_from_record(
     ), f"One can import profile for single version only (got {len(minor_version_list)} instead)"
 
     parse_script = script_kit.get_script("stackcollapse-perf.pl")
-    out = ""
+    out = b""
 
     for i, imported_file in enumerate(imported):
-        if with_sudo:
-            perf_script_command = f"sudo perf script -i {imported_file} | {parse_script}"
-        else:
-            perf_script_command = f"perf script -i {imported_file} | {parse_script}"
+        perf_script_command = (
+            f"{'sudo ' if with_sudo else ''}perf script -i {imported_file} | {parse_script}"
+        )
         try:
             out, _ = external_commands.run_safely_external_command(perf_script_command)
             log.minor_success(f"Raw data from {log.path_style(imported_file)}", "collected")
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as err:
             log.minor_fail(f"Raw data from {log.path_style(imported_file)}", "not collected")
+            log.error(f"Cannot load data due to: {err}")
         import_from_string(
             out.decode("utf-8"),
             minor_version_list[0],

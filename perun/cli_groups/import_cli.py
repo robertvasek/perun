@@ -53,6 +53,13 @@ from perun.utils.common import cli_kit
     default=[""],
     help="Inputs for <cmd>. E.g. ``./subdir`` is possible workload for ``ls`` command.",
 )
+@click.option(
+    "--save-to-index",
+    "-s",
+    is_flag=True,
+    help="Saves the imported profile to index.",
+    default=False,
+)
 @click.pass_context
 def import_group(ctx: click.Context, **kwargs: Any) -> None:
     """Imports Perun profiles from different formats"""
