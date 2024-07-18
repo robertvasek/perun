@@ -1,5 +1,32 @@
 #!/bin/bash
 
+output_file=""
+
+
+usage() { {
+        [ $# -gt 0 ] && echo "error: $1"
+        echo "usage: ./generate_machine_info.sh [opt1, ..., optn]"
+        echo "options:"
+        echo "     --output-file [FILE]   saves the output file of the script to [FILE]. Otherwise, prints to stdout."
+  } >&2
+}
+
+# Parse command-line arguments
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      usage;
+      exit 0;;
+    -o|--output-file)
+      output_file="$2";
+      shift 2;;
+    *)
+      echo "Unknown option '$1'";
+      usage;
+      exit 1;;
+  esac
+done
+
 get_machine_specification() {
   echo -n "{"
 
@@ -96,4 +123,8 @@ get_machine_specification() {
   echo -n "}"
 }
 
-get_machine_specification
+if [[ -z "$output_file" ]]; then
+  get_machine_specification | sed 's/\\/\\\\/g'
+else
+  get_machine_specification | sed 's/\\/\\\\/g' > "$output_file"
+fi
