@@ -33,9 +33,22 @@ def get_machine_info(machine_info: Optional[str] = None) -> dict[str, Any]:
         return environment.get_machine_specification()
 
 
+def get_param(l: dict[str, Any], param: str, index: int) -> Any:
+    """
+
+    :param l: list we are getting from
+    :param param: param which contains the list
+    :param index: index from which we are retrieving
+    :return: value of the param
+    """
+    assert index < len(l[param]), f"Not enough values set up for the '{param}' command."
+    return l[param][index]
+
+
 def import_from_string(
     out: str,
     minor_version: MinorVersion,
+    prof_index: int,
     machine_info: Optional[str] = None,
     with_sudo: bool = False,
     save_to_index: bool = False,
@@ -56,8 +69,8 @@ def import_from_string(
         {
             "header": {
                 "type": "time",
-                "cmd": kwargs.get("cmd", "?"),
-                "workload": kwargs.get("cmd", "?"),
+                "cmd": get_param(kwargs, "cmd", prof_index),
+                "workload": get_param(kwargs, "workload", prof_index),
                 "units": {"time": "sample"},
             }
         }
@@ -68,8 +81,8 @@ def import_from_string(
                 "name": "kperf",
                 "params": {
                     "with_sudo": with_sudo,
-                    "warmup": kwargs.get("warmup", "?"),
-                    "repeat": kwargs.get("repeat", 0),
+                    "warmup": get_param(kwargs, "warmup", prof_index),
+                    "repeat": get_param(kwargs, "repeat", prof_index),
                 },
             }
         }
@@ -98,7 +111,7 @@ def import_perf_from_record(
     minor_version_list: list[MinorVersion],
     with_sudo: bool = False,
     save_to_index: bool = False,
-    **_: Any,
+    **kwargs: Any,
 ) -> None:
     """Imports profile collected by `perf record`"""
     assert (
@@ -108,7 +121,7 @@ def import_perf_from_record(
     parse_script = script_kit.get_script("stackcollapse-perf.pl")
     out = ""
 
-    for imported_file in imported:
+    for i, imported_file in enumerate(imported):
         if with_sudo:
             perf_script_command = f"sudo perf script -i {imported_file} | {parse_script}"
         else:
@@ -121,9 +134,11 @@ def import_perf_from_record(
         import_from_string(
             out.decode("utf-8"),
             minor_version_list[0],
+            i,
             machine_info,
             with_sudo=with_sudo,
             save_to_index=save_to_index,
+            **kwargs,
         )
         log.minor_success(log.path_style(imported_file), "imported")
 
@@ -133,7 +148,7 @@ def import_perf_from_script(
     machine_info: Optional[str],
     minor_version_list: list[MinorVersion],
     save_to_index: bool = False,
-    **_: Any,
+    **kwargs: Any,
 ) -> None:
     """Imports profile collected by `perf record; perf script`"""
     assert (
@@ -143,15 +158,17 @@ def import_perf_from_script(
     parse_script = script_kit.get_script("stackcollapse-perf.pl")
     out = ""
 
-    for imported_file in imported:
+    for i, imported_file in enumerate(imported):
         perf_script_command = f"cat {imported_file} | {parse_script}"
         out, _ = external_commands.run_safely_external_command(perf_script_command)
         log.minor_success(f"Raw data from {log.path_style(imported_file)}", "collected")
         import_from_string(
             out.decode("utf-8"),
             minor_version_list[0],
+            i,
             machine_info,
             save_to_index=save_to_index,
+            **kwargs,
         )
         log.minor_success(log.path_style(imported_file), "imported")
 
@@ -161,20 +178,22 @@ def import_perf_from_stack(
     machine_info: Optional[str],
     minor_version_list: list[MinorVersion],
     save_to_index: bool = False,
-    **_: Any,
+    **kwargs: Any,
 ) -> None:
     """Imports profile collected by `perf record; perf script | stackcollapse-perf.pl`"""
     assert (
         len(minor_version_list) == 1
     ), f"One can import profile for single version only (got {len(minor_version_list)} instead)"
 
-    for imported_file in imported:
+    for i, imported_file in enumerate(imported):
         with open(imported_file, "r", encoding="utf-8") as imported_handle:
             out = imported_handle.read()
         import_from_string(
             out,
             minor_version_list[0],
+            i,
             machine_info,
             save_to_index=save_to_index,
+            **kwargs,
         )
         log.minor_success(log.path_style(imported_file), "imported")

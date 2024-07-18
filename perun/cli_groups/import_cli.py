@@ -32,6 +32,27 @@ from perun.utils.common import cli_kit
     default=["HEAD"],
     help="Specifies the head minor version, for which the profiles will be imported.",
 )
+@click.option(
+    "--cmd",
+    "-c",
+    nargs=1,
+    required=False,
+    multiple=True,
+    default=[""],
+    help=(
+        "Command that was being profiled. Either corresponds to some"
+        " script, binary or command, e.g. ``./mybin`` or ``perun``."
+    ),
+)
+@click.option(
+    "--workload",
+    "-w",
+    nargs=1,
+    required=False,
+    multiple=True,
+    default=[""],
+    help="Inputs for <cmd>. E.g. ``./subdir`` is possible workload for ``ls`` command.",
+)
 @click.pass_context
 def import_group(ctx: click.Context, **kwargs: Any) -> None:
     """Imports Perun profiles from different formats"""
@@ -40,6 +61,20 @@ def import_group(ctx: click.Context, **kwargs: Any) -> None:
 
 
 @import_group.group("perf")
+@click.option(
+    "--warmup",
+    "-w",
+    multiple=True,
+    default=[0],
+    help="Sets [INT] warm up iterations of ith profiled command.",
+)
+@click.option(
+    "--repeat",
+    "-r",
+    multiple=True,
+    default=[1],
+    help="Sets [INT] samplings of the ith profiled command.",
+)
 @click.pass_context
 def perf_group(ctx: click.Context, **kwargs: Any) -> None:
     """Imports Perun profiles from perf results
