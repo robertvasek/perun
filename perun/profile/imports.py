@@ -27,11 +27,11 @@ def get_machine_info(machine_info: Optional[str] = None) -> dict[str, Any]:
     :param machine info: file in json format, which contains machine specification
     :return: parsed dictionary format of machine specification
     """
-    return (
-        json.load(machine_info)
-        if machine_info is not None
-        else environment.get_machine_specification()
-    )
+    if machine_info is not None:
+        with open(machine_info, "r") as machine_handle:
+            return json.load(machine_handle)
+    else:
+        return environment.get_machine_specification()
 
 
 def get_param(l: dict[str, Any], param: str, index: int) -> Any:
@@ -54,7 +54,7 @@ def import_from_string(
     with_sudo: bool = False,
     save_to_index: bool = False,
     **kwargs: Any,
-):
+) -> None:
     resources = parser.parse_events(out.split("\n"))
     prof = Profile(
         {
@@ -157,7 +157,7 @@ def import_perf_from_script(
     ), f"One can import profile for single version only (got {len(minor_version_list)} instead)"
 
     parse_script = script_kit.get_script("stackcollapse-perf.pl")
-    out = ""
+    out = b""
 
     for i, imported_file in enumerate(imported):
         perf_script_command = f"cat {imported_file} | {parse_script}"
