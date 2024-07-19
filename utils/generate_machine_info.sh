@@ -73,7 +73,7 @@ get_machine_specification() {
   if [[ -e /proc/meminfo ]]; then
     while IFS=: read -r key value; do
       if [[ -n "$key" && -n "$value" ]]; then
-        value=$(echo -n $value | xargs)
+        value=$(echo -n "$value" | xargs)
         if [[ $first -eq 0 ]]; then
           first=1
         else

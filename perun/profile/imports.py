@@ -34,7 +34,7 @@ def get_machine_info(machine_info: Optional[str] = None) -> dict[str, Any]:
         return environment.get_machine_specification()
 
 
-def get_param(l: dict[str, Any], param: str, index: int) -> Any:
+def get_param(cfg: dict[str, Any], param: str, index: int) -> Any:
     """
 
     :param l: list we are getting from
@@ -42,8 +42,8 @@ def get_param(l: dict[str, Any], param: str, index: int) -> Any:
     :param index: index from which we are retrieving
     :return: value of the param
     """
-    assert index < len(l[param]), f"Not enough values set up for the '{param}' command."
-    return l[param][index]
+    assert index < len(cfg[param]), f"Not enough values set up for the '{param}' command."
+    return cfg[param][index]
 
 
 def import_from_string(
