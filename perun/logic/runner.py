@@ -430,6 +430,7 @@ def store_generated_profile(
     else:
         full_profile_path = output_file
     streams.store_json(full_profile.serialize(), full_profile_path)
+    external_commands.finalize_logs(os.path.split(full_profile_path)[1])
     # FIXME: there is an inconsistency in dict/Profile types, needs to be investigated more thoroughly
     log.minor_status(
         "stored generated profile ", status=f"{log.path_style(os.path.relpath(full_profile_path))}"

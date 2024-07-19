@@ -21,6 +21,40 @@ from perun.utils.common import common_kit
 from perun.logic import pcs, config
 
 log_file_cache: dict[str, int] = defaultdict(int)
+LOG_DIRECTORY: str = "LOGS"
+
+
+def finalize_logs(profile_name: str) -> None:
+    """Finalizes the storage of the logs
+
+    After the logs are generated, we rename the temporary directory to conform
+    to profile name. This is due to (probably not ideal notion of names).
+
+    :param profile_name: name of the final generated profile
+    """
+    if log.LOGGING:
+        log_directory = get_log_directory()
+        target_directory = os.path.join(
+            os.path.split(log_directory)[0], os.path.splitext(profile_name)[0]
+        )
+        if os.path.exists(log_directory):
+            os.rename(log_directory, target_directory)
+            log.minor_status(
+                "logs saved ", status=f"{log.path_style(os.path.relpath(target_directory))}"
+            )
+
+
+def get_log_directory() -> str:
+    """Returns log directory
+
+    :return: log directory
+    """
+    log_directory = config.lookup_key_recursively("path.logs", "")
+    if log_directory == "":
+        log_directory = pcs.get_log_directory()
+    log_directory = os.path.join(log_directory, LOG_DIRECTORY)
+    common_kit.touch_dir(log_directory)
+    return log_directory
 
 
 def save_output_of_command(
@@ -37,12 +71,7 @@ def save_output_of_command(
     :param extension: extension of the saved log (to differentiated between stderr and stdout)
     """
     if log.LOGGING and log.is_verbose_enough(verbosity):
-        log_directory = config.lookup_key_recursively("path.logs", "")
-        if log_directory == "":
-            log_directory = os.path.join(
-                pcs.get_log_directory(), time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
-            )
-            common_kit.touch_dir(log_directory)
+        log_directory = get_log_directory()
         log_file = common_kit.sanitize_filepart(" ".join(command.split()[:2]))
         log_file_cache[f"{tag}.{log_file}.{extension}"] += 1
         log_no = log_file_cache[f"{tag}.{log_file}.{extension}"]
@@ -53,7 +82,8 @@ def save_output_of_command(
             target_handle.write(f"# cmd: {command}\n")
             target_handle.write(content.decode("utf-8"))
         log.minor_status(
-            f"Saved {extension} of {log.cmd_style(command)}", log.path_style(target_file)
+            f"Saved {extension} of {log.cmd_style(command)}",
+            log.path_style(os.path.split(target_file)[1]),
         )
 
 
