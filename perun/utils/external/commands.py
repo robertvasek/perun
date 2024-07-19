@@ -44,8 +44,8 @@ def save_output_of_command(
             )
             common_kit.touch_dir(log_directory)
         log_file = common_kit.sanitize_filepart(" ".join(command.split()[:2]))
-        log_file_cache[f"{log_file}.{extension}"] += 1
-        log_no = log_file_cache[f"{log_file}.{extension}"]
+        log_file_cache[f"{tag}.{log_file}.{extension}"] += 1
+        log_no = log_file_cache[f"{tag}.{log_file}.{extension}"]
         target_file = os.path.join(
             log_directory, ".".join([tag, log_file, f"{log_no:04d}", extension])
         )
