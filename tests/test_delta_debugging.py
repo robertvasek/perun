@@ -2,6 +2,8 @@ from __future__ import annotations
 
 # Standard Imports
 from pathlib import Path
+import subprocess
+
 # Third-Party Imports
 import pytest
 from click.testing import CliRunner
@@ -15,10 +17,14 @@ def test_delta_debugging_correct():
     """Runs basic tests for delta debugging CLI"""
     runner = CliRunner()
     examples = Path(__file__).parent / "sources" / "delta_debugging_examples"
-
     num_workload = examples / "samples" / "txt" / "simple.txt"
 
-    delta_debugging_test = examples / "dd-minimal-test" / "dd-minimal"
+    # 08. Testing for delta debugging minimal test
+    process = subprocess.Popen(["make", "-C", examples / "dd-minimal"])
+    process.communicate()
+    process.wait()
+
+    delta_debugging_test = examples / "dd-minimal" / "dd-minimal"
     result = runner.invoke(
         cli.deltadebugging,
         [
