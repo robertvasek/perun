@@ -12,6 +12,7 @@ from click.testing import CliRunner
 from perun import cli
 from perun.testing import asserts
 
+
 @pytest.mark.usefixtures("cleandir")
 def test_delta_debugging_correct():
     """Runs basic tests for delta debugging CLI"""
@@ -31,7 +32,8 @@ def test_delta_debugging_correct():
             str(delta_debugging_test),
             str(num_workload),
             str(examples),
-            "-t", "2",
+            "-t",
+            "2",
         ],
     )
 

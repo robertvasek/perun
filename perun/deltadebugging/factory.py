@@ -14,6 +14,7 @@ from perun.utils.common import common_kit
 if TYPE_CHECKING:
     from perun.utils.structs import Executable
 
+
 def run_delta_debugging_for_command(
     executable: Executable,
     input_sample: str,
@@ -62,6 +63,7 @@ def read_input(input_file: str) -> str:
         input_value = input_file
 
     return input_value
+
 
 def create_debugging_file(output_dir: Path, file_name: str, input_data: str) -> None:
     output_dir = output_dir.resolve()

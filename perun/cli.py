@@ -1268,6 +1268,7 @@ def fuzz_cmd(cmd: str, **kwargs: Any) -> None:
     kwargs["executable"] = Executable(cmd)
     fuzz.run_fuzzing_for_command(**kwargs)
 
+
 @cli.command()
 @click.argument("cmd", nargs=1, required=True)
 @click.argument(
@@ -1298,6 +1299,7 @@ def deltadebugging(cmd: str, input_sample: str, output_dir: str, **kwargs: Any) 
     kwargs["input_sample"] = input_sample
     kwargs["output_dir"] = output_dir
     delta.run_delta_debugging_for_command(**kwargs)
+
 
 def init_unit_commands(lazy_init: bool = True) -> None:
     """Runs initializations for all of subcommands (shows, collectors, postprocessors)
