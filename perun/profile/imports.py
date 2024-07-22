@@ -35,7 +35,11 @@ def get_machine_info(machine_info: Optional[str] = None) -> dict[str, Any]:
 
 
 def get_param(cfg: dict[str, Any], param: str, index: int) -> Any:
-    """
+    """Helper function for retrieving parameter from the dictionary of lists.
+
+    This assumes, that dictionary contains list of parameters under certain keys.
+    It retrieves the list under the key and then returns the index. The function
+    fails, when the index is out of bounds.
 
     :param l: list we are getting from
     :param param: param which contains the list

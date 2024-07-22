@@ -19,7 +19,7 @@ from perun.utils.common import cli_kit
     "--machine-info",
     "-m",
     type=click.Path(resolve_path=True, readable=True),
-    help="Imports machine info from file in JSON format (by default, machine info is loaded from the current hoot)."
+    help="Imports machine info from file in JSON format (by default, machine info is loaded from the current host)."
     "You can use `utils/generate_machine_info.sh` script to generate the machine info file.",
 )
 @click.option(
@@ -89,7 +89,7 @@ def perf_group(ctx: click.Context, **kwargs: Any) -> None:
     This supports either profiles collected in:
 
       1. Binary format: e.g., `collected.data` files, that are results of `perf record`
-      2. Text format: result of `perf script` that parses the binary into user-friendly and parsing-frinedly text format
+      2. Text format: result of `perf script` that parses the binary into user-friendly and parsing-friendly text format
     """
     ctx.obj.update(kwargs)
 
