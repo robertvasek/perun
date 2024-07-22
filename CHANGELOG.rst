@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.23.2 (2024-07-22)
+
+  - Fix issues in logging (wrong counters, and add auto-generated directories)
+  - Add perun import command for importing profiles from perf results
+  - Fix issues with jinja and editable install (for developers only)
+  - Fix failing build of documentation
+
 0.23.1 (2024-07-15)
 
   - Improve logging with tags and verbosity
