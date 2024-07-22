@@ -13,7 +13,6 @@ from perun.logic import commands
 from perun.utils import log as perun_log
 from perun.utils.common import cli_kit
 from perun.utils.exceptions import (
-    NotPerunRepositoryException,
     MissingConfigSectionException,
     ExternalEditorErrorException,
 )

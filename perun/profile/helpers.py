@@ -159,7 +159,9 @@ def generate_profile_name(profile: profiles.Profile) -> str:
             ),
             (
                 r"%date%",
-                lambda scanner, token: time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime()),
+                lambda scanner, token: time.strftime(
+                    "%Y-%m-%d-%H-%M-%S", config.runtime().safe_get("current_time", time.gmtime())
+                ),
             ),
             (r"%origin%", lambda scanner, token: lookup_value(profile, "origin", "_")),
             (r"%counter%", lambda scanner, token: str(PROFILE_COUNTER)),
