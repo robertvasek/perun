@@ -167,5 +167,6 @@ def get_machine_specification() -> dict[str, Any]:
                     for (key, value) in [line.split(":") for line in cpu_line.split("\n") if line]
                 }
                 for cpu_line in cpuinfo_handle.read().split("\n\n")
+                if cpu_line
             ]
     return machine_info

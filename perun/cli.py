@@ -50,7 +50,7 @@ import sys
 import click
 
 # Perun Imports
-from perun.cli_groups import check_cli, config_cli, run_cli, utils_cli
+from perun.cli_groups import check_cli, config_cli, run_cli, utils_cli, import_cli
 from perun.logic import commands, pcs, config as perun_config
 from perun.utils import exceptions, log as perun_log
 from perun.utils.common import cli_kit, common_kit
@@ -1292,6 +1292,7 @@ cli.add_command(check_cli.check_group)
 cli.add_command(config_cli.config)
 cli.add_command(run_cli.run)
 cli.add_command(utils_cli.utils_group)
+cli.add_command(import_cli.import_group)
 
 
 def launch_cli_in_dev_mode() -> None:

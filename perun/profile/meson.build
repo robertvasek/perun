@@ -5,6 +5,7 @@ perun_profile_files = files(
     'convert.py',
     'factory.py',
     'helpers.py',
+    'imports.py',
     'query.py',
 )
 
