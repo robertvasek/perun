@@ -1114,7 +1114,7 @@ def get_untracked_profiles() -> list[ProfileInfo]:
     #   extract the info and register it in the index
     if untracked_list:
         perun_log.minor_info(
-            f"{perun_log.highlight(len(untracked_list))} files are not registered in pending index."
+            f"{perun_log.highlight(str(len(untracked_list)))} files are not registered in pending index."
         )
         perun_log.minor_info("Refreshing pending index: this might take some time.")
     for untracked_path in progressbar.progressbar(untracked_list):
