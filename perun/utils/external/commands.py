@@ -87,6 +87,17 @@ def save_output_of_command(
         )
 
 
+def set_exit_code(exit_code: int, log_verbosity: int):
+    """If the verbosity is set to log.VERBOSE_RELEASE, then the exit code is saved to runtime configuration
+
+    :param exit_code: numerical exit code of the command
+    :param log_verbosity: verbosity of the command, VERBOSE_RELEASE corresponds to main, tracked commands
+    """
+    if log_verbosity == log.VERBOSE_RELEASE:
+        previous_exit_code = config.runtime().safe_get("exitcode", 0)
+        config.runtime().set("exitcode", max(exit_code, previous_exit_code))
+
+
 def get_stdout_from_external_command(
     command: list[str],
     stdin: Optional[IO[bytes]] = None,
@@ -170,6 +181,7 @@ def run_safely_external_command(
     if check_results:
         for i in range(cmd_no):
             if objects[i].returncode:
+                set_exit_code(objects[i].returncode, log_verbosity)
                 if not quiet and (cmdout or cmderr):
                     log.cprintln(f"captured stdout: {cmdout.decode('utf-8')}", "red")
                     log.cprintln(f"captured stderr: {cmderr.decode('utf-8')}", "red")
@@ -177,6 +189,8 @@ def run_safely_external_command(
                 save_output_of_command(cmd, cmderr, "stderr", verbosity=log_verbosity, tag=log_tag)
                 raise subprocess.CalledProcessError(objects[i].returncode, unpiped_commands[i])
 
+    # We set exit code to 0 since everything was OK
+    set_exit_code(0, log_verbosity)
     save_output_of_command(cmd, cmdout, "stdout", verbosity=log_verbosity, tag=log_tag)
     save_output_of_command(cmd, cmderr, "stderr", verbosity=log_verbosity, tag=log_tag)
     return cmdout, cmderr

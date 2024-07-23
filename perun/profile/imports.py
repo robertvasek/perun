@@ -75,6 +75,7 @@ def import_from_string(
             "header": {
                 "type": "time",
                 "cmd": get_param(kwargs, "cmd", prof_index),
+                "exitcode": get_param(kwargs, "exitcode", prof_index),
                 "workload": get_param(kwargs, "workload", prof_index),
                 "units": {"time": "sample"},
             }

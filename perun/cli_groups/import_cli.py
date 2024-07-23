@@ -33,6 +33,15 @@ from perun.utils.common import cli_kit
     help="Specifies the head minor version, for which the profiles will be imported.",
 )
 @click.option(
+    "--exitcode",
+    "-e",
+    nargs=1,
+    required=False,
+    multiple=True,
+    default=["?"],
+    help=("Exit code of the command."),
+)
+@click.option(
     "--cmd",
     "-c",
     nargs=1,
