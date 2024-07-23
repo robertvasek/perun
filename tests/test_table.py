@@ -22,7 +22,7 @@ def output_to_list(output):
     :param output: list of lines
     :return: sorted list of lines without newlines and filtered out empty lines
     """
-    return sorted([l.rstrip() for l in output if l.rstrip()])
+    return sorted([l.rstrip() for l in output if l.rstrip() and not l.startswith(" -")])
 
 
 def assert_files_match(lhs, rhs):

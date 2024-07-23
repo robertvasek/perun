@@ -276,19 +276,30 @@ def test_status(pcs_full, capsys, stored_profile_pool, valid_profile_pool):
 
     Expecting no errors and long display of the current status of the perun, with all profiles.
     """
-    test_utils.populate_repo_with_untracked_profiles(pcs_full.get_path(), valid_profile_pool)
+    pcs_path = pcs_full.get_path()
+    test_utils.populate_repo_with_untracked_profiles(pcs_path, valid_profile_pool)
+    jobs_dir = os.path.join(pcs_path, "jobs")
+    with open(os.path.join(jobs_dir, "incorrect.perf"), "w") as incorrect_handle:
+        incorrect_handle.write("incorrect")
+
     git_repo = git.Repo(pcs_full.get_vcs_path())
 
     commands.status()
     raw_out, _ = capsys.readouterr()
-    out = raw_out.split("\n")
+    # We filter out minor info for potential refreshing of pending index
+    out = [
+        line for line in raw_out.split("\n") if not line.startswith(" -") and "WARNING" not in line
+    ]
     assert_info(out, git_repo, stored_profile_pool[1:], valid_profile_pool)
     capsys.readouterr()
 
     # Test short command
     commands.status(**{"short": True})
     raw_out, _ = capsys.readouterr()
-    out = raw_out.split("\n")
+    # We filter out minor info for potential refreshing of pending index
+    out = [
+        line for line in raw_out.split("\n") if not line.startswith(" -") and "WARNING" not in line
+    ]
     assert_short_info(out, git_repo, stored_profile_pool[1:], valid_profile_pool)
 
 
