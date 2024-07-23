@@ -281,14 +281,16 @@ def test_status(pcs_full, capsys, stored_profile_pool, valid_profile_pool):
 
     commands.status()
     raw_out, _ = capsys.readouterr()
-    out = raw_out.split("\n")
+    # We filter out minor info for potential refreshing of pending index
+    out = [line for line in raw_out.split("\n") if not line.startswith(" -")]
     assert_info(out, git_repo, stored_profile_pool[1:], valid_profile_pool)
     capsys.readouterr()
 
     # Test short command
     commands.status(**{"short": True})
     raw_out, _ = capsys.readouterr()
-    out = raw_out.split("\n")
+    # We filter out minor info for potential refreshing of pending index
+    out = [line for line in raw_out.split("\n") if not line.startswith(" -")]
     assert_short_info(out, git_repo, stored_profile_pool[1:], valid_profile_pool)
 
 

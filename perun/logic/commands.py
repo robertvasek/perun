@@ -16,6 +16,7 @@ import re
 import subprocess
 
 # Third-Party Imports
+import progressbar
 
 # Perun Imports
 from perun.logic import pcs, config as perun_config, store, index, temp, stats
@@ -27,6 +28,7 @@ from perun.utils.exceptions import (
     MissingConfigSectionException,
     InvalidTempPathException,
     ProtectedTempException,
+    IncorrectProfileFormatException,
 )
 from perun.utils.external import commands as external_commands
 from perun.utils.common.common_kit import (
@@ -1110,27 +1112,37 @@ def get_untracked_profiles() -> list[ProfileInfo]:
 
     # Now for every non-registered file in the ./jobs/ directory, we load the profile,
     #   extract the info and register it in the index
-    for untracked_path in untracked_list:
-        real_path = os.path.join(pcs.get_job_directory(), untracked_path)
-        time = timestamps.timestamp_to_str(os.stat(real_path).st_mtime)
-
-        # Load the data from JSON, which contains additional information about profile
-        # We know, that the real_path exists, since we obtained it above from listdir
-        loaded_profile = store.load_profile_from_file(
-            real_path, is_raw_profile=True, unsafe_load=True
+    if untracked_list:
+        perun_log.minor_info(
+            f"{perun_log.highlight(len(untracked_list))} files are not registered in pending index."
         )
-        registered_checksum = store.compute_checksum(real_path.encode("utf-8"))
+        perun_log.minor_info("Refreshing pending index: this might take some time.")
+    for untracked_path in progressbar.progressbar(untracked_list):
+        try:
+            real_path = os.path.join(pcs.get_job_directory(), untracked_path)
+            time = timestamps.timestamp_to_str(os.stat(real_path).st_mtime)
 
-        # Update the list of profiles and counters of types
-        profile_info = profile.ProfileInfo(
-            untracked_path, real_path, time, loaded_profile, is_raw_profile=True
-        )
-        untracked_entry = index.INDEX_ENTRY_CONSTRUCTORS[index.INDEX_VERSION - 1](
-            time, registered_checksum, untracked_path, -1, loaded_profile
-        )
+            # Load the data from JSON, which contains additional information about profile
+            # We know, that the real_path exists, since we obtained it above from listdir
+            loaded_profile = store.load_profile_from_file(
+                real_path, is_raw_profile=True, unsafe_load=True
+            )
+            registered_checksum = store.compute_checksum(real_path.encode("utf-8"))
 
-        profile_list.append(profile_info)
-        saved_entries.append(untracked_entry)
+            # Update the list of profiles and counters of types
+            profile_info = profile.ProfileInfo(
+                untracked_path, real_path, time, loaded_profile, is_raw_profile=True
+            )
+            untracked_entry = index.INDEX_ENTRY_CONSTRUCTORS[index.INDEX_VERSION - 1](
+                time, registered_checksum, untracked_path, -1, loaded_profile
+            )
+
+            profile_list.append(profile_info)
+            saved_entries.append(untracked_entry)
+        except (IncorrectProfileFormatException, KeyError):
+            perun_log.warn(
+                f"skipping file {perun_log.path_style(untracked_path)}: not in valid perun format"
+            )
 
     # We write all of the entries that are valid in the ./jobs/ directory in the index
     index.write_list_of_entries(job_index, saved_entries)
