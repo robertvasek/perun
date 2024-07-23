@@ -27,6 +27,11 @@
         white-space: pre-wrap;
         border: 0;
     }
+    .superscript {
+        vertical-align: super;
+        font-size: smaller;
+        color: grey;
+    }
 {%- endmacro %}
 
 {%  macro top_n_table(function_name, element_name, top_records, rhs_uids, rhs_tag) %}
@@ -87,7 +92,7 @@
     <tbody>
     {%- for (key, value, title) in lhs_header %}
         <tr title="{{ title }}">
-            <td class="key">{{ key }}</td>
+            <td class="key">{{ key }}<span class="superscript">?</span></td>
             <td class="value">{{ value }}</td>
         </tr>
     {%- endfor %}
