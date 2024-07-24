@@ -24,7 +24,6 @@ import sys
 
 # Third-Party Imports
 import click
-import jinja2
 import progressbar
 
 # Perun Imports
@@ -516,8 +515,6 @@ def process_traces(
                 src = f"{full_trace[i]}#{i}"
                 process_node(graph, profile_type, resource, src)
         else:
-            if trace_len == 2:
-                process_max(max_samples, resource)
             tgt = f"{full_trace[-1]}#{trace_len - 1}"
             process_node(graph, profile_type, resource, tgt)
 

@@ -1,19 +1,21 @@
-"""Flategraph difference of the profile"""
+"""Flamegraph difference of the profile"""
 
 from __future__ import annotations
 
 # Standard Imports
+from collections import defaultdict
 from subprocess import CalledProcessError
 from typing import Any, Optional
 import re
 
 # Third-Party Imports
 import click
+import progressbar
 
 # Perun Imports
 from perun.templates import factory as templates
 from perun.utils import log, mapping
-from perun.utils.common import diff_kit
+from perun.utils.common import diff_kit, common_kit
 from perun.profile.factory import Profile
 from perun.profile import convert
 from perun.view.flamegraph import flamegraph as flamegraph_factory
@@ -176,6 +178,25 @@ def generate_flamegraphs(
     return flamegraphs
 
 
+def process_maxima(maxima_per_resources: dict[str, float], profile: Profile) -> None:
+    """Processes maxima for each profile
+
+    :param maxima_per_resources: dictionary that maps resources to their maxima
+    :param profile: input profile
+    """
+    is_inclusive = profile.get("collector_info", {}).get("name") == "kperf"
+    counts = defaultdict(float)
+    for _, resource in progressbar.progressbar(profile.all_resources()):
+        if is_inclusive:
+            for key in resource:
+                amount = common_kit.try_convert(resource[key], [float])
+                if amount is None or key == "time":
+                    continue
+                counts[key] += amount
+    for key in counts.keys():
+        maxima_per_resources[key] = max(maxima_per_resources[key], counts[key])
+
+
 def generate_flamegraph_difference(
     lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any
 ) -> None:
@@ -185,10 +206,13 @@ def generate_flamegraph_difference(
     :param rhs_profile: target profile
     :param kwargs: additional arguments
     """
+    maxima_per_resource = defaultdict(float)
     lhs_types = list(lhs_profile.all_resource_fields())
     rhs_types = list(rhs_profile.all_resource_fields())
     data_types = diff_kit.get_candidate_keys(set(lhs_types).union(set(rhs_types)))
     data_type = list(data_types)[0]
+    process_maxima(maxima_per_resource, lhs_profile)
+    process_maxima(maxima_per_resource, rhs_profile)
 
     log.major_info("Generating Flamegraph Difference")
     flamegraphs = generate_flamegraphs(
@@ -196,6 +220,7 @@ def generate_flamegraph_difference(
         rhs_profile,
         data_types,
         kwargs.get("width", DEFAULT_WIDTH),
+        max_per_resource=maxima_per_resource,
     )
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
 
