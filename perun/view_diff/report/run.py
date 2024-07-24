@@ -71,6 +71,7 @@ class Config:
         self.top_n_traces: int = self.DefaultTopN
         self.relative_threshold = self.DefaultRelativeThreshold
         self.max_seen_trace: int = 0
+        self.max_per_resource: dict[str, float] = defaultdict(float)
         self.minimize: bool = False
 
 
@@ -411,6 +412,23 @@ class Stats:
         ]
 
 
+def process_max(
+    counts: dict[str, float],
+    resource: dict[str, Any],
+) -> None:
+    """Accumulates resources
+
+    :param counts: counts of resources
+    :param resource: consumed resources
+    """
+    for key in resource:
+        amount = common_kit.try_convert(resource[key], [float])
+        if amount is None or key == "time":
+            continue
+        readable_key = mapping.get_readable_key(key)
+        counts[readable_key] += amount
+
+
 def process_node(
     graph: Graph,
     profile_type: Literal["baseline", "target"],
@@ -472,6 +490,7 @@ def process_traces(
     :param graph: sankey graph
     """
     max_trace = 0
+    max_samples = defaultdict(float)
     for _, resource in progressbar.progressbar(profile.all_resources()):
         full_trace = [convert.to_uid(t, Config().minimize) for t in resource["trace"]]
         full_trace.append(convert.to_uid(resource["uid"], Config().minimize))
@@ -492,13 +511,19 @@ def process_traces(
                 graph.uid_to_traces[uid].append(full_trace)
         # Process node stats TODO: Return to this, as this was fixed very quickly
         if Config().trace_is_inclusive:
+            process_max(max_samples, resource)
             for i in range(0, trace_len):
                 src = f"{full_trace[i]}#{i}"
                 process_node(graph, profile_type, resource, src)
         else:
+            if trace_len == 2:
+                process_max(max_samples, resource)
             tgt = f"{full_trace[-1]}#{trace_len - 1}"
             process_node(graph, profile_type, resource, tgt)
 
+    saved_maxima = Config().max_per_resource
+    for key in max_samples.keys():
+        saved_maxima[key] = max(saved_maxima[key], max_samples[key])
     Config().max_seen_trace = max(max_trace, Config().max_seen_trace)
 
 
@@ -680,6 +705,7 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
         skip_diff=True,
         minimize=Config().minimize,
         max_trace=Config().max_seen_trace,
+        max_per_resource=Config().max_per_resource,
     )
     log.minor_success("Sankey graphs", "generated")
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)

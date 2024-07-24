@@ -98,6 +98,7 @@ use open qw(:std :utf8);
 
 # tunables
 my $encoding;
+my $rootnode = "all";
 my $fonttype = "Verdana";
 my $imagewidth = 1200;          # max width, pixels
 my $frameheight = 16;           # max height is dynamic
@@ -191,6 +192,7 @@ GetOptions(
 	'negate'      => \$negate,
 	'notes=s'     => \$notestext,
 	'help'        => \$help,
+	'rootnode=s'    => \$rootnode,
 ) or usage();
 $help && usage();
 
@@ -1184,7 +1186,7 @@ while (my ($id, $node) = each %Node) {
 
 	my $info;
 	if ($func eq "" and $depth == 0) {
-		$info = "all ($samples_txt $countname, 100%)";
+		$info = "$rootnode ($samples_txt $countname, 100%)";
 	} else {
 		my $pct = sprintf "%.2f", ((100 * $samples) / ($timemax * $factor));
 		my $escaped_func = $func;

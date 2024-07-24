@@ -72,6 +72,7 @@ def draw_flame_graph(
     profile: Profile,
     width: int = 1200,
     max_trace: int = 0,
+    max_resource: float = 0.0,
     title: str = "",
     profile_key: str = "amount",
     minimize: bool = False,
@@ -116,6 +117,8 @@ def draw_flame_graph(
                 "1",
             ]
         )
+        if max_resource > 0.0:
+            cmd += f' --total {max_resource} --rootnode "Maximum (Baseline, Target)"'
         out, _ = commands.run_safely_external_command(cmd)
         os.remove(tmp.name)
     return out.decode("utf-8")

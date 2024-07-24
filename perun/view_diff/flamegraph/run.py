@@ -1,15 +1,14 @@
-"""Flamegraph difference of the profile"""
+"""Flategraph difference of the profile"""
 
 from __future__ import annotations
 
 # Standard Imports
 from subprocess import CalledProcessError
-from typing import Any
+from typing import Any, Optional
 import re
 
 # Third-Party Imports
 import click
-import jinja2
 
 # Perun Imports
 from perun.templates import factory as templates
@@ -118,6 +117,7 @@ def generate_flamegraphs(
     skip_diff: bool = False,
     minimize: bool = False,
     max_trace: int = 0,
+    max_per_resource: Optional[dict[str, float]] = None,
 ) -> list[tuple[str, str, str, str]]:
     """Constructs a list of tuples of flamegraphs for list of data_types
 
@@ -125,6 +125,7 @@ def generate_flamegraphs(
     :param rhs_profile: target profile
     :param minimize: whether the flamegraph should be minimized or not
     :param max_trace: maximal size of the trace
+    :param max_per_resource: maximal values for each resource
     :param data_types: list of data types (resources)
     :param width: width of the flame graph
     """
@@ -139,6 +140,7 @@ def generate_flamegraphs(
                 profile_key=data_type,
                 minimize=minimize,
                 max_trace=max_trace,
+                max_resource=max_per_resource[dtype] if max_per_resource else 0,
             )
             escaped_lhs = escape_content(f"lhs_{i}", lhs_graph)
             log.minor_success(f"Baseline flamegraph ({dtype})", "generated")
@@ -150,6 +152,7 @@ def generate_flamegraphs(
                 profile_key=data_type,
                 minimize=minimize,
                 max_trace=max_trace,
+                max_resource=max_per_resource[dtype] if max_per_resource else 0,
             )
             escaped_rhs = escape_content(f"rhs_{i}", rhs_graph)
             log.minor_success(f"Target flamegraph ({dtype})", "generated")
