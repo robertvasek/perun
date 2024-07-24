@@ -87,7 +87,7 @@ def save_output_of_command(
         )
 
 
-def set_exit_code(exit_code: int, log_verbosity: int):
+def set_exit_code(exit_code: int, log_verbosity: int) -> None:
     """If the verbosity is set to log.VERBOSE_RELEASE, then the exit code is saved to runtime configuration
 
     :param exit_code: numerical exit code of the command

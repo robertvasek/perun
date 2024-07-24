@@ -185,7 +185,7 @@ def process_maxima(maxima_per_resources: dict[str, float], profile: Profile) -> 
     :param profile: input profile
     """
     is_inclusive = profile.get("collector_info", {}).get("name") == "kperf"
-    counts = defaultdict(float)
+    counts: dict[str, float] = defaultdict(float)
     for _, resource in progressbar.progressbar(profile.all_resources()):
         if is_inclusive:
             for key in resource:
@@ -206,7 +206,7 @@ def generate_flamegraph_difference(
     :param rhs_profile: target profile
     :param kwargs: additional arguments
     """
-    maxima_per_resource = defaultdict(float)
+    maxima_per_resource: dict[str, float] = defaultdict(float)
     lhs_types = list(lhs_profile.all_resource_fields())
     rhs_types = list(rhs_profile.all_resource_fields())
     data_types = diff_kit.get_candidate_keys(set(lhs_types).union(set(rhs_types)))

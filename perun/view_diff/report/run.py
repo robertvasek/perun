@@ -489,7 +489,7 @@ def process_traces(
     :param graph: sankey graph
     """
     max_trace = 0
-    max_samples = defaultdict(float)
+    max_samples: dict[str, float] = defaultdict(float)
     for _, resource in progressbar.progressbar(profile.all_resources()):
         full_trace = [convert.to_uid(t, Config().minimize) for t in resource["trace"]]
         full_trace.append(convert.to_uid(resource["uid"], Config().minimize))
