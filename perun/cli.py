@@ -76,6 +76,7 @@ import perun.postprocess
 import perun.profile.helpers as profiles
 import perun.view
 import perun.view_diff
+import perun.deltadebugging.factory as delta
 
 
 DEV_MODE = False
@@ -1266,6 +1267,38 @@ def fuzz_cmd(cmd: str, **kwargs: Any) -> None:
     commands.try_init()
     kwargs["executable"] = Executable(cmd)
     fuzz.run_fuzzing_for_command(**kwargs)
+
+
+@cli.command()
+@click.argument("cmd", nargs=1, required=True)
+@click.argument(
+    "input-sample",
+    nargs=1,
+    required=True,
+)
+@click.argument(
+    "output-dir",
+    nargs=1,
+    required=True,
+    type=click.Path(exists=True, writable=True),
+    metavar="<path>",
+)
+@click.option(
+    "--timeout",
+    "-t",
+    nargs=1,
+    required=False,
+    default=1.0,
+    type=click.FloatRange(0.001, None, False),
+    metavar="<float>",
+    help="Time limit for delta debugging (in seconds). Default value is 1s.",
+)
+def deltadebugging(cmd: str, input_sample: str, output_dir: str, **kwargs: Any) -> None:
+    """Performs delta debugging on this command."""
+    kwargs["executable"] = Executable(cmd)
+    kwargs["input_sample"] = input_sample
+    kwargs["output_dir"] = output_dir
+    delta.run_delta_debugging_for_command(**kwargs)
 
 
 def init_unit_commands(lazy_init: bool = True) -> None:
