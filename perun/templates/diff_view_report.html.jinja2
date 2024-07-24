@@ -175,13 +175,17 @@
 
 <div class="left column">
     <h2 class="column-head">{{ lhs_tag }}</h2>
-    {{ profile_overview.overview_table('toggleLeftCollapse', 'left-info', lhs_header, rhs_header) }}
+    {{ profile_overview.overview_table('toggleLeftCollapse', 'left-info', lhs_header, rhs_header, "Profile Specification") }}
+    <div style="margin: 0 10px;">&nbsp;</div>
+    {{ profile_overview.overview_table('toggleLeftProfileCollapse', 'left-profile-info', lhs_stats, rhs_stats, "Profile Stats") }}
     <div style="margin: 0 10px;">&nbsp;</div>
 </div>
 
 <div class="right column">
     <h2 class="column-head">{{ rhs_tag }}</h2>
-    {{ profile_overview.overview_table('toggleRightCollapse', 'right-info', rhs_header, lhs_header) }}
+    {{ profile_overview.overview_table('toggleRightCollapse', 'right-info', rhs_header, lhs_header, "Profile Specification") }}
+    <div style="margin: 0 10px;">&nbsp;</div>
+    {{ profile_overview.overview_table('toggleRightProfileCollapse', 'right-profile-info', rhs_stats, lhs_stats, "Profile Stats") }}
     <div style="margin: 0 10px;">&nbsp;</div>
 </div>
 
@@ -505,7 +509,9 @@
     });
 
     {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
+    {{ profile_overview.toggle_script('toggleLeftProfileCollapse', 'left-profile-info') }}
     {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
+    {{ profile_overview.toggle_script('toggleRightProfileCollapse', 'right-profile-info') }}
     {% for index in range(0, stat_list|length ) %}
     {{ widgets.toggle_help('toggleFlameHelp_' + index|string, 'flame-help-' + index|string) }}
     {% endfor %}
@@ -1299,7 +1305,9 @@
     toggleTableHelp();
     toggleSankeyHelp();
     toggleLeftCollapse();
+    toggleLeftProfileCollapse();
     toggleRightCollapse();
+    toggleRightProfileCollapse();
 </script>
 </body>
 </html>
