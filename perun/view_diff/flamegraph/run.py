@@ -213,9 +213,7 @@ def process_maxima(
                 counts[key] += amount
     for key in counts.keys():
         maxima_per_resources[key] = max(maxima_per_resources[key], counts[key])
-        stats[f"Overall {key};The overall value of the {key} for the root value"] = (
-            maxima_per_resources[key]
-        )
+        stats[f"Overall {key};The overall value of the {key} for the root value"] = counts[key]
     stats["Maximal Trace Length;Maximal lenght of the trace in the profile"] = max_trace
 
 
