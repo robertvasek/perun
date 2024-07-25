@@ -178,7 +178,22 @@ def generate_flamegraphs(
     return flamegraphs
 
 
-def process_maxima(maxima_per_resources: dict[str, float], profile: Profile) -> int:
+def generate_profile_stats(stats: dict[str, float]) -> list[tuple[str, Any, str]]:
+    """Generates stats for baseline or target profile
+
+    :param profile_type: type of the profile
+    :return: list of tuples containing stats as tuples key, value and tooltip
+    """
+    profile_stats = []
+    for key, value in stats.items():
+        stat_key, stat_tooltip = key.split(";")
+        profile_stats.append((stat_key, value, stat_tooltip))
+    return profile_stats
+
+
+def process_maxima(
+    maxima_per_resources: dict[str, float], stats: dict[str, float], profile: Profile
+) -> None:
     """Processes maxima for each profile
 
     :param maxima_per_resources: dictionary that maps resources to their maxima
@@ -198,7 +213,10 @@ def process_maxima(maxima_per_resources: dict[str, float], profile: Profile) -> 
                 counts[key] += amount
     for key in counts.keys():
         maxima_per_resources[key] = max(maxima_per_resources[key], counts[key])
-    return max_trace
+        stats[f"Overall {key};The overall value of the {key} for the root value"] = (
+            maxima_per_resources[key]
+        )
+    stats["Maximal Trace Length;Maximal lenght of the trace in the profile"] = max_trace
 
 
 def generate_flamegraph_difference(
@@ -211,12 +229,17 @@ def generate_flamegraph_difference(
     :param kwargs: additional arguments
     """
     maxima_per_resource: dict[str, float] = defaultdict(float)
+    lhs_stats: dict[str, float] = defaultdict(float)
+    rhs_stats: dict[str, float] = defaultdict(float)
     lhs_types = list(lhs_profile.all_resource_fields())
     rhs_types = list(rhs_profile.all_resource_fields())
     data_types = diff_kit.get_candidate_keys(set(lhs_types).union(set(rhs_types)))
     data_type = list(data_types)[0]
-    lhs_max_trace = process_maxima(maxima_per_resource, lhs_profile)
-    rhs_max_trace = process_maxima(maxima_per_resource, rhs_profile)
+    process_maxima(maxima_per_resource, lhs_stats, lhs_profile)
+    process_maxima(maxima_per_resource, rhs_stats, rhs_profile)
+    lhs_final_stats, rhs_final_stats = diff_kit.generate_diff_of_headers(
+        generate_profile_stats(lhs_stats), generate_profile_stats(rhs_stats)
+    )
 
     log.major_info("Generating Flamegraph Difference")
     flamegraphs = generate_flamegraphs(
@@ -224,7 +247,10 @@ def generate_flamegraph_difference(
         rhs_profile,
         data_types,
         max_per_resource=maxima_per_resource,
-        max_trace=max(lhs_max_trace, rhs_max_trace),
+        max_trace=max(
+            lhs_stats["Maximal Trace Length;Maximal lenght of the trace in the profile"],
+            rhs_stats["Maximal Trace Length;Maximal lenght of the trace in the profile"],
+        ),
     )
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
 
@@ -234,10 +260,12 @@ def generate_flamegraph_difference(
         lhs_header=lhs_header,
         lhs_tag="Baseline (base)",
         lhs_top=table_run.get_top_n_records(lhs_profile, top_n=10, aggregated_key=data_type),
+        lhs_stats=lhs_final_stats,
         lhs_uids=get_uids(lhs_profile),
         rhs_header=rhs_header,
         rhs_tag="Target (tgt)",
         rhs_top=table_run.get_top_n_records(rhs_profile, top_n=10, aggregated_key=data_type),
+        rhs_stats=rhs_final_stats,
         rhs_uids=get_uids(rhs_profile),
         title="Differences of profiles (with flamegraphs)",
         data_types=data_types,
