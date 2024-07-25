@@ -178,15 +178,18 @@ def generate_flamegraphs(
     return flamegraphs
 
 
-def process_maxima(maxima_per_resources: dict[str, float], profile: Profile) -> None:
+def process_maxima(maxima_per_resources: dict[str, float], profile: Profile) -> int:
     """Processes maxima for each profile
 
     :param maxima_per_resources: dictionary that maps resources to their maxima
     :param profile: input profile
+    :return: maximal trace
     """
     is_inclusive = profile.get("collector_info", {}).get("name") == "kperf"
     counts: dict[str, float] = defaultdict(float)
+    max_trace = 0
     for _, resource in progressbar.progressbar(profile.all_resources()):
+        max_trace = max(max_trace, len(resource["trace"]) + 1)
         if is_inclusive:
             for key in resource:
                 amount = common_kit.try_convert(resource[key], [float])
@@ -195,6 +198,7 @@ def process_maxima(maxima_per_resources: dict[str, float], profile: Profile) -> 
                 counts[key] += amount
     for key in counts.keys():
         maxima_per_resources[key] = max(maxima_per_resources[key], counts[key])
+    return max_trace
 
 
 def generate_flamegraph_difference(
@@ -211,16 +215,16 @@ def generate_flamegraph_difference(
     rhs_types = list(rhs_profile.all_resource_fields())
     data_types = diff_kit.get_candidate_keys(set(lhs_types).union(set(rhs_types)))
     data_type = list(data_types)[0]
-    process_maxima(maxima_per_resource, lhs_profile)
-    process_maxima(maxima_per_resource, rhs_profile)
+    lhs_max_trace = process_maxima(maxima_per_resource, lhs_profile)
+    rhs_max_trace = process_maxima(maxima_per_resource, rhs_profile)
 
     log.major_info("Generating Flamegraph Difference")
     flamegraphs = generate_flamegraphs(
         lhs_profile,
         rhs_profile,
         data_types,
-        kwargs.get("width", DEFAULT_WIDTH),
         max_per_resource=maxima_per_resource,
+        max_trace=max(lhs_max_trace, rhs_max_trace),
     )
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
 
