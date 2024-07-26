@@ -245,9 +245,11 @@ def generate_flamegraph_difference(
         rhs_profile,
         data_types,
         max_per_resource=maxima_per_resource,
-        max_trace=max(
-            lhs_stats["Maximal Trace Length;Maximal lenght of the trace in the profile"],
-            rhs_stats["Maximal Trace Length;Maximal lenght of the trace in the profile"],
+        max_trace=int(
+            max(
+                lhs_stats["Maximal Trace Length;Maximal lenght of the trace in the profile"],
+                rhs_stats["Maximal Trace Length;Maximal lenght of the trace in the profile"],
+            )
         ),
     )
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
