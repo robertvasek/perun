@@ -437,7 +437,7 @@ class Profile(MutableMapping[str, Any]):
         snapshot_map = collections.defaultdict(list)
         for number_of, res in itertools.groupby(all_resources, operator.itemgetter(0)):
             snapshot_map[number_of] = list(map(operator.itemgetter(1), res))
-        maximal_snapshot = max(snapshot_map.keys())
+        maximal_snapshot = max(snapshot_map.keys() or [0])
         for i in range(0, maximal_snapshot + 1):
             yield i, snapshot_map[i]
 

@@ -78,6 +78,7 @@ def generate_header(profile: Profile) -> list[tuple[str, Any, str]]:
     :return: list of tuples (key and value)
     """
     command = " ".join([profile["header"]["cmd"], profile["header"]["workload"]]).strip()
+    exitcode = profile["header"].get("exitcode", "?")
     machine_info = profile.get("machine", {})
     return [
         (
@@ -86,6 +87,7 @@ def generate_header(profile: Profile) -> list[tuple[str, Any, str]]:
             "The version control version, for which the profile was measured.",
         ),
         ("command", command, "The workload / command, for which the profile was measured."),
+        ("exitcode", exitcode, "The maximal exit code that was returned by underlying command."),
         (
             "collector command",
             log.collector_to_command(profile.get("collector_info", {})),
@@ -151,7 +153,7 @@ def generate_diff_of_headers(
             and f"Configuration keys in headers are wrongly order (expected {lhs_key}; got {rhs_key})"
         )
         if lhs_value != rhs_value:
-            diff = list(difflib.ndiff(lhs_value.split(), rhs_value.split()))
+            diff = list(difflib.ndiff(str(lhs_value).split(), str(rhs_value).split()))
             key = f'<span style="color: red; font-weight: bold">{lhs_key}</span>'
             lhs_diff.append((key, diff_to_html(diff, "-"), lhs_info))
             rhs_diff.append((key, diff_to_html(diff, "+"), lhs_info))

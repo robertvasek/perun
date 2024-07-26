@@ -44,15 +44,6 @@
             position: relative;
             width: 100%;
             vertical-align: top;
-            overflow: hidden;
-        }
-
-        div.column .svg-container {
-            padding-bottom: 84%;
-        }
-
-        div.middle .svg-container {
-            padding-bottom: 42%;
         }
 
         .svg-content {
@@ -108,12 +99,18 @@
 
 <div class="left column">
     <h2 class="column-head">{{ lhs_tag }}</h2>
-    {{ profile_overview.overview_table('toggleLeftCollapse', 'left-info', lhs_header, rhs_header) }}
+    {{ profile_overview.overview_table('toggleLeftCollapse', 'left-info', lhs_header, rhs_header, "Profile Specification") }}
+    <div style="margin: 0 10px;">&nbsp;</div>
+    {{ profile_overview.overview_table('toggleLeftProfileCollapse', 'left-profile-info', lhs_stats, rhs_stats, "Profile Stats") }}
+    <div style="margin: 0 10px;">&nbsp;</div>
 </div>
 
 <div class="right column">
     <h2 class="column-head">{{ rhs_tag }}</h2>
-    {{ profile_overview.overview_table('toggleRightCollapse', 'right-info', rhs_header, lhs_header) }}
+    {{ profile_overview.overview_table('toggleRightCollapse', 'right-info', rhs_header, lhs_header, "Profile Specification") }}
+    <div style="margin: 0 10px;">&nbsp;</div>
+    {{ profile_overview.overview_table('toggleRightProfileCollapse', 'right-profile-info', rhs_stats, lhs_stats, "Profile Stats") }}
+    <div style="margin: 0 10px;">&nbsp;</div>
 </div>
 
 <div class="tools">
@@ -169,7 +166,9 @@
 
 <script>
 {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
+{{ profile_overview.toggle_script('toggleLeftProfileCollapse', 'left-profile-info') }}
 {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
+{{ profile_overview.toggle_script('toggleRightProfileCollapse', 'right-profile-info') }}
 {{ accordion.script("table-row") }}
 
 function switch_type() {
@@ -184,14 +183,49 @@ function switch_type() {
     }
     selectedDiv.style.visibility = "visible";
     selectedDiv.style.display = "block";
+    resize();
 }
 document.querySelectorAll('select.filter').forEach((el) => {
     el.addEventListener('change', () => {
         switch_type()
     })
 });
+function resize() {
+    const selected_type = document.querySelector("#type_selector").value
+
+    var selectedDiv = document.getElementById(selected_type);
+    const svgContents = selectedDiv.getElementsByClassName('svg-content');
+    const lhs_svgContainer = selectedDiv.getElementsByClassName('svg-container')[0];
+    const rhs_svgContainer = selectedDiv.getElementsByClassName('svg-container')[1];
+    const diff_svgContainer = selectedDiv.getElementsByClassName('svg-container')[2];
+    if (lhs_svgContainer) {
+        let max_box = 0, max_height = 0;
+        for (let i = 0; i < svgContents.length; i++) {
+            const svgContent = svgContents[i];
+            const viewBox = svgContent.getAttribute('viewBox');
+            const svgHeight = svgContent.getBoundingClientRect().height;
+            const viewBoxValues = viewBox.split(' ');
+            const height = parseInt(viewBoxValues[3]);
+            if (svgHeight > max_height)
+                max_height = svgHeight;
+            if (height > max_box)
+                max_box = height;
+        };
+        lhs_svgContainer.style.height = `${max_box}px`;
+        rhs_svgContainer.style.height = `${max_box}px`;
+        diff_svgContainer.style.height = `${max_box}px`;
+        selectedDiv.style.height = `${max_height + max_height + 100}px`;
+    }
+}
+
+resize();
+window.addEventListener('resize', resize);
 
 switch_type()
+toggleLeftCollapse();
+toggleLeftProfileCollapse();
+toggleRightCollapse();
+toggleRightProfileCollapse();
 
 </script>
 

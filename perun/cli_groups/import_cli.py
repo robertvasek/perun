@@ -17,7 +17,7 @@ from perun.utils.common import cli_kit
 @click.group("import")
 @click.option(
     "--machine-info",
-    "-m",
+    "-i",
     type=click.Path(resolve_path=True, readable=True),
     help="Imports machine info from file in JSON format (by default, machine info is loaded from the current host)."
     "You can use `utils/generate_machine_info.sh` script to generate the machine info file.",
@@ -31,6 +31,15 @@ from perun.utils.common import cli_kit
     callback=cli_kit.minor_version_list_callback,
     default=["HEAD"],
     help="Specifies the head minor version, for which the profiles will be imported.",
+)
+@click.option(
+    "--exitcode",
+    "-e",
+    nargs=1,
+    required=False,
+    multiple=True,
+    default=["?"],
+    help=("Exit code of the command."),
 )
 @click.option(
     "--cmd",

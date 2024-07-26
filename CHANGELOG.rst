@@ -2,6 +2,7 @@ Changelog
 =========
 
 0.23.2 (2024-07-22)
+-------------------
 
   - Fix issues in logging (wrong counters, and add auto-generated directories)
   - Add perun import command for importing profiles from perf results
@@ -9,32 +10,38 @@ Changelog
   - Fix failing build of documentation
 
 0.23.1 (2024-07-15)
+-------------------
 
   - Improve logging with tags and verbosity
   - Improve the code climate (precommit hooks, formatting, etc.)
   - Fix some compatibility issues
 
 0.23 (2024-07-11)
+-----------------
 
   - Add SVS (single version system) as default VCS system (this enables gitless integration)
   - Update readme.
 
 0.22.5 (2024-06-29)
+-------------------
 
   - Add logging of subprocessor commands through (`--log` and `--log-dir`)
 
 
 0.22.4 (2024-06-23)
+-------------------
 
   - Hotfix issue with showdiff record
 
 0.22.3 (2024-06-23)
+-------------------
 
   - Softens some of the parameters
   - Fixes minor issues (in flamegraphs)
   - Add `-o` parameter to collect
 
 0.22.2 (2024-06-21)
+-------------------
 
   - Fixes issues with new visualizations (bad sizes)
   - Add option of minimization of reports (hide generics)
@@ -42,6 +49,7 @@ Changelog
   - Enhances the visualizations
 
 0.22 (2024-05-22)
+-----------------
 
   - Add support of Python 3.12
   - Fix incompatibilities with some distros (RHEL)

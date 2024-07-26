@@ -284,6 +284,7 @@ def generate_header_for_profile(job: Job) -> dict[str, Any]:
         "cmd": job.executable.cmd,
         "workload": job.executable.workload,
         "units": generate_units(collector),
+        "exitcode": config.runtime().safe_get("exitcode", "?"),
     }
 
 
