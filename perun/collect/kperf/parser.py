@@ -25,7 +25,7 @@ def parse_events(perf_events: list[str]) -> list[dict[str, Any]]:
     :return: list of resources
     """
     resources = []
-    for event in log.progress(perf_events):
+    for event in log.progress(perf_events, description="Parsing Events"):
         if event.strip():
             *record, samples = event.split(" ")
             parts = " ".join(record).split(";")

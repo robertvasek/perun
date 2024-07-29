@@ -1117,7 +1117,7 @@ def get_untracked_profiles() -> list[ProfileInfo]:
             f"{perun_log.highlight(str(len(untracked_list)))} files are not registered in pending index."
         )
         perun_log.minor_info("Refreshing pending index: this might take some time.")
-    for untracked_path in perun_log.progress(untracked_list):
+    for untracked_path in perun_log.progress(untracked_list, "Processing Untracked"):
         try:
             real_path = os.path.join(pcs.get_job_directory(), untracked_path)
             time = timestamps.timestamp_to_str(os.stat(real_path).st_mtime)

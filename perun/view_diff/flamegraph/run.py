@@ -203,7 +203,9 @@ def process_maxima(
     is_inclusive = profile.get("collector_info", {}).get("name") == "kperf"
     counts: dict[str, float] = defaultdict(float)
     max_trace = 0
-    for _, resource in log.progress(profile.all_resources()):
+    for _, resource in log.progress(
+        profile.all_resources(), description="Processing Resource Maxima"
+    ):
         max_trace = max(max_trace, len(resource["trace"]) + 1)
         if is_inclusive:
             for key in resource:
