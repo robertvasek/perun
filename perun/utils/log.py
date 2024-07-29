@@ -850,12 +850,27 @@ def collector_to_command(collector_info: dict[str, Any]) -> str:
     return f"{collector_info['name']} {params}"
 
 
-def progress(collection: Iterable[T]) -> Iterable[T]:
+def progress(
+    collection: Iterable[T], description: str = "", redirect_stdout: bool = False
+) -> Iterable[T]:
     """Wrapper for printing of any collection
 
     :param collection: any iterable
+    :param redirect_stdout: if set to true, then the output is controlled by progressbar and the bar
+        does not interleave the output.
+    :param description: tag on the left side of the output of the bar
     """
-    yield from progressbar.progressbar(collection)
+    widgets = [
+        (description + ": ") if description else "",
+        progressbar.Percentage(),
+        progressbar.Bar(),
+        " [",
+        progressbar.Timer(),
+        ", ",
+        progressbar.AdaptiveETA(),
+        "]",
+    ]
+    yield from progressbar.progressbar(collection, redirect_stdout=redirect_stdout, widgets=widgets)
 
 
 class History:
