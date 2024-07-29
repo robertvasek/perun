@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Standard Imports
-from typing import Any, Callable, TYPE_CHECKING, Iterable, Optional, TextIO, Type, NoReturn
+from typing import Any, Callable, TYPE_CHECKING, Iterable, Optional, TextIO, Type, NoReturn, TypeVar
 import builtins
 import collections
 import functools
@@ -18,6 +18,7 @@ import traceback
 
 # Third-Party Imports
 import numpy as np
+import progressbar
 import termcolor
 
 # Perun Imports
@@ -56,6 +57,8 @@ VERBOSE_RELEASE: int = 0
 
 SUPPRESS_WARNINGS: bool = False
 SUPPRESS_PAGING: bool = True
+
+T = TypeVar("T")
 
 
 def increase_indent() -> None:
@@ -845,6 +848,14 @@ def collector_to_command(collector_info: dict[str, Any]) -> str:
         if val
     )
     return f"{collector_info['name']} {params}"
+
+
+def progress(collection: Iterable[T]) -> Iterable[T]:
+    """Wrapper for printing of any collection
+
+    :param collection: any iterable
+    """
+    yield from progressbar.progressbar(collection)
 
 
 class History:

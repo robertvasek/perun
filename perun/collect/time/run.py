@@ -39,7 +39,7 @@ def collect(
     """
     log.major_info("Running time collector")
     log.minor_info("Warming up")
-    for _ in progressbar.progressbar(range(0, warmup)):
+    for _ in log.progress(range(0, warmup)):
         command = " ".join(["time -p", str(executable)]).split(" ")
         commands.get_stdout_from_external_command(
             command, log_tag="warmup", log_verbosity=log.VERBOSE_RELEASE
@@ -50,7 +50,7 @@ def collect(
     times = []
 
     before_timing = systime.time()
-    for timing in progressbar.progressbar(range(1, repeat + 1)):
+    for timing in log.progress(range(1, repeat + 1)):
         command = " ".join(["time -p", str(executable)]).split(" ")
         collected_data = commands.get_stdout_from_external_command(
             command, log_tag="main_run", log_verbosity=log.VERBOSE_RELEASE

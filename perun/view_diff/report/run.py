@@ -287,7 +287,7 @@ class Graph:
 
         output = ["{"]
         commas = [False, False, False]
-        for uid, nodes in progressbar.progressbar(self.uid_to_nodes.items()):
+        for uid, nodes in log.progress(self.uid_to_nodes.items()):
             output.extend([comma_control(commas, 0), f"{self.translate_node(uid)}:", "{"])
             commas[1] = False
             for node in nodes:
@@ -494,7 +494,7 @@ def process_traces(
     """
     max_trace = 0
     max_samples: dict[str, float] = defaultdict(float)
-    for _, resource in progressbar.progressbar(profile.all_resources()):
+    for _, resource in log.progress(profile.all_resources()):
         full_trace = [convert.to_uid(t, Config().minimize) for t in resource["trace"]]
         full_trace.append(convert.to_uid(resource["uid"], Config().minimize))
         trace_len = len(full_trace)
@@ -544,7 +544,7 @@ def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
     log.minor_info("Generating stats for traces")
     trace_cache: dict[str, TraceStat] = {}
     trace_counter: int = 0
-    for uid, traces in progressbar.progressbar(graph.uid_to_traces.items()):
+    for uid, traces in log.progress(graph.uid_to_traces.items()):
         processed = set()
         for trace in [trace for trace in traces if len(trace) > 1]:
             key = ",".join(trace)
@@ -604,7 +604,7 @@ def generate_selection(graph: Graph, trace_stats: dict[str, list[TraceStat]]) ->
     log.minor_info("Generating selection table")
     trace_stat_cache: dict[str, tuple[str, str, float, float, str]] = {}
     stat_len = len(Stats.all_stats())
-    for uid, nodes in progressbar.progressbar(graph.uid_to_nodes.items()):
+    for uid, nodes in log.progress(graph.uid_to_nodes.items()):
         baseline_overall: array.array[float] = array.array("d", [0.0] * stat_len)
         target_overall: array.array[float] = array.array("d", [0.0] * stat_len)
         stats: list[tuple[int, float, float]] = []

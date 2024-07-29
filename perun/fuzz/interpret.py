@@ -45,7 +45,7 @@ def save_anomalies(anomalies: list[Mutation], anomaly_type: str, file_handle: Te
     if anomalies:
         log.minor_info(f"Saving {log.highlight(anomaly_type + 's')}")
         file_handle.write(f"{anomaly_type.capitalize()}s:\n")
-        for anomaly in progressbar.progressbar(anomalies):
+        for anomaly in log.progress(anomalies):
             file_handle.write(anomaly.path + " " + str(anomaly.history) + "\n")
         log.newline()
 
@@ -76,7 +76,7 @@ def save_log_files(log_dir: str, fuzz_progress: FuzzingProgress) -> None:
     log.minor_success("Saving coverage time series")
 
     log.minor_info("Saving log files")
-    for mut in progressbar.progressbar(fuzz_progress.parents):
+    for mut in log.progress(fuzz_progress.parents):
         results_data_file.write(
             str(mut.fitness)
             + " "
@@ -270,7 +270,7 @@ def files_diff(fuzz_progress: FuzzingProgress, diffs_dir: str) -> None:
     ]:
         if mutations:
             log.minor_info(mutation_type)
-        for res in progressbar.progressbar(mutations):
+        for res in log.progress(mutations):
             if res.predecessor is not None:
                 pred = streams.safely_load_file(res.predecessor.path)
                 result = streams.safely_load_file(res.path)

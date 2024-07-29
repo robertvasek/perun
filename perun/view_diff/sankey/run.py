@@ -270,7 +270,7 @@ def process_traces(
     :param profile_type: type of the profile
     :param cfg: configuration of the generation
     """
-    for _, resource in progressbar.progressbar(profile.all_resources()):
+    for _, resource in log.progress(profile.all_resources()):
         trace_len = len(resource["trace"])
         full_trace = [convert.to_uid(t) for t in resource["trace"]] + [
             convert.to_uid(resource["uid"])
@@ -384,7 +384,7 @@ def minimize_sankey_maps(
     :param sankey_map: map of sankey graphs;
     """
     minimal_sankey_map = {}
-    for uid, sankey_points in progressbar.progressbar(sankey_map.items()):
+    for uid, sankey_points in log.progress(sankey_map.items()):
         id_to_point = {val.id: val for val in sankey_points.values()}
         minimal_sankey_points = {}
         for key in sankey_points.keys():
@@ -413,7 +413,7 @@ def extract_graphs_from_sankey_map(
     """
     sankey_graphs = []
 
-    for uid, sankey_points in progressbar.progressbar(sankey_map.items()):
+    for uid, sankey_points in log.progress(sankey_map.items()):
         graph = SankeyGraph(uid)
         positions = []
 
@@ -469,7 +469,7 @@ def compute_reachable(profile: Profile, reachability_map: dict[str, set[str]]) -
     :param profile: profile with data
     :param reachability_map: map of nodes to their backward or forward reachable nodes
     """
-    for _, resource in progressbar.progressbar(profile.all_resources()):
+    for _, resource in log.progress(profile.all_resources()):
         full_trace = [convert.to_uid(t) for t in resource["trace"]] + [
             convert.to_uid(resource["uid"])
         ]
