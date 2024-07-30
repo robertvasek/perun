@@ -39,7 +39,7 @@ def collect(
     """
     log.major_info("Running time collector")
     log.minor_info("Warming up")
-    for _ in log.progress(range(0, warmup), description="Warmup"):
+    for __ in log.progress(range(0, warmup), description="Warmup"):
         command = " ".join(["time -p", str(executable)]).split(" ")
         commands.get_stdout_from_external_command(
             command, log_tag="warmup", log_verbosity=log.VERBOSE_RELEASE

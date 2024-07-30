@@ -108,7 +108,7 @@ class Linkage:
     __slots__ = ["source", "target", "value", "color"]
     source: list[int]
     target: list[int]
-    value: list[int]
+    value: list[float]
     color: list[str]
 
     def __init__(self):
@@ -151,10 +151,10 @@ class SankeyGraph:
     linkage: dict[Literal["split", "merged"], Linkage]
     width: int
     height: int
-    min: int
-    max: int
-    diff: int
-    sum: int
+    min: float
+    max: float
+    diff: float
+    sum: float
 
     def __init__(self, uid: str):
         """Initializes the graph"""
@@ -323,7 +323,7 @@ def create_edge(
     edge_type: Literal["split", "merged"],
     src: int,
     tgt: int,
-    value: int,
+    value: float,
     color: str,
 ) -> None:
     """Creates single edge in the sankey graph
