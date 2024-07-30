@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Standard Imports
-from typing import Iterable, Callable
+from typing import Iterable, Callable, Optional
 import glob
 import os
 import shutil
@@ -180,7 +180,7 @@ def memory_profiles():
 
 
 def load_all_profiles_in(
-    directory: str, prof_filter: Callable[[str], bool] = None
+    directory: str, prof_filter: Optional[Callable[[str], bool]] = None
 ) -> Iterable[tuple[str, "Profile"]]:
     """Generates stream of loaded (i.e. dictionaries) profiles in the specified directory.
 

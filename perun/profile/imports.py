@@ -19,6 +19,7 @@ from perun.utils.common import script_kit
 from perun.utils.external import commands as external_commands, environment
 from perun.utils.structs import MinorVersion
 from perun.profile.factory import Profile
+from perun.vcs import vcs_kit
 
 
 def get_machine_info(machine_info: Optional[str] = None) -> dict[str, Any]:
@@ -34,26 +35,9 @@ def get_machine_info(machine_info: Optional[str] = None) -> dict[str, Any]:
         return environment.get_machine_specification()
 
 
-def get_param(cfg: dict[str, Any], param: str, index: int) -> Any:
-    """Helper function for retrieving parameter from the dictionary of lists.
-
-    This assumes, that dictionary contains list of parameters under certain keys.
-    It retrieves the list under the key and then returns the index. The function
-    fails, when the index is out of bounds.
-
-    :param l: list we are getting from
-    :param param: param which contains the list
-    :param index: index from which we are retrieving
-    :return: value of the param
-    """
-    assert index < len(cfg[param]), f"Not enough values set up for the '{param}' command."
-    return cfg[param][index]
-
-
 def import_from_string(
     out: str,
     minor_version: MinorVersion,
-    prof_index: int,
     machine_info: Optional[str] = None,
     with_sudo: bool = False,
     save_to_index: bool = False,
@@ -74,9 +58,9 @@ def import_from_string(
         {
             "header": {
                 "type": "time",
-                "cmd": get_param(kwargs, "cmd", prof_index),
-                "exitcode": get_param(kwargs, "exitcode", prof_index),
-                "workload": get_param(kwargs, "workload", prof_index),
+                "cmd": kwargs.get("cmd", ""),
+                "exitcode": kwargs.get("exitcode", "?"),
+                "workload": kwargs.get("workload", ""),
                 "units": {"time": "sample"},
             }
         }
@@ -87,8 +71,8 @@ def import_from_string(
                 "name": "kperf",
                 "params": {
                     "with_sudo": with_sudo,
-                    "warmup": get_param(kwargs, "warmup", prof_index),
-                    "repeat": get_param(kwargs, "repeat", prof_index),
+                    "warmup": kwargs.get("warmup", 0),
+                    "repeat": kwargs.get("repeat", 1),
                 },
             }
         }
@@ -111,23 +95,22 @@ def import_from_string(
         index.register_in_pending_index(full_profile_path, prof)
 
 
+@vcs_kit.lookup_minor_version
 def import_perf_from_record(
     imported: list[str],
     machine_info: Optional[str],
-    minor_version_list: list[MinorVersion],
+    minor_version: str,
     with_sudo: bool = False,
     save_to_index: bool = False,
     **kwargs: Any,
 ) -> None:
     """Imports profile collected by `perf record`"""
-    assert (
-        len(minor_version_list) == 1
-    ), f"One can import profile for single version only (got {len(minor_version_list)} instead)"
+    minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
 
     parse_script = script_kit.get_script("stackcollapse-perf.pl")
     out = b""
 
-    for i, imported_file in enumerate(imported):
+    for imported_file in imported:
         perf_script_command = (
             f"{'sudo ' if with_sudo else ''}perf script -i {imported_file} | {parse_script}"
         )
@@ -139,8 +122,7 @@ def import_perf_from_record(
             log.error(f"Cannot load data due to: {err}")
         import_from_string(
             out.decode("utf-8"),
-            minor_version_list[0],
-            i,
+            minor_version_info,
             machine_info,
             with_sudo=with_sudo,
             save_to_index=save_to_index,
@@ -149,29 +131,26 @@ def import_perf_from_record(
         log.minor_success(log.path_style(imported_file), "imported")
 
 
+@vcs_kit.lookup_minor_version
 def import_perf_from_script(
     imported: list[str],
     machine_info: Optional[str],
-    minor_version_list: list[MinorVersion],
+    minor_version: str,
     save_to_index: bool = False,
     **kwargs: Any,
 ) -> None:
     """Imports profile collected by `perf record; perf script`"""
-    assert (
-        len(minor_version_list) == 1
-    ), f"One can import profile for single version only (got {len(minor_version_list)} instead)"
-
     parse_script = script_kit.get_script("stackcollapse-perf.pl")
     out = b""
+    minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
 
-    for i, imported_file in enumerate(imported):
+    for imported_file in imported:
         perf_script_command = f"cat {imported_file} | {parse_script}"
         out, _ = external_commands.run_safely_external_command(perf_script_command)
         log.minor_success(f"Raw data from {log.path_style(imported_file)}", "collected")
         import_from_string(
             out.decode("utf-8"),
-            minor_version_list[0],
-            i,
+            minor_version_info,
             machine_info,
             save_to_index=save_to_index,
             **kwargs,
@@ -179,25 +158,23 @@ def import_perf_from_script(
         log.minor_success(log.path_style(imported_file), "imported")
 
 
+@vcs_kit.lookup_minor_version
 def import_perf_from_stack(
     imported: list[str],
     machine_info: Optional[str],
-    minor_version_list: list[MinorVersion],
+    minor_version: str,
     save_to_index: bool = False,
     **kwargs: Any,
 ) -> None:
     """Imports profile collected by `perf record; perf script | stackcollapse-perf.pl`"""
-    assert (
-        len(minor_version_list) == 1
-    ), f"One can import profile for single version only (got {len(minor_version_list)} instead)"
+    minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
 
-    for i, imported_file in enumerate(imported):
+    for imported_file in imported:
         with open(imported_file, "r", encoding="utf-8") as imported_handle:
             out = imported_handle.read()
         import_from_string(
             out,
-            minor_version_list[0],
-            i,
+            minor_version_info,
             machine_info,
             save_to_index=save_to_index,
             **kwargs,
