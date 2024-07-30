@@ -9,6 +9,7 @@ import os
 import subprocess
 
 # Third-Party Imports
+import gzip
 
 # Perun Imports
 from perun.collect.kperf import parser
@@ -20,6 +21,18 @@ from perun.utils.external import commands as external_commands, environment
 from perun.utils.structs import MinorVersion
 from perun.profile.factory import Profile
 from perun.vcs import vcs_kit
+
+
+def load_file(filename: str) -> str:
+    if filename.endswith(".gz"):
+        with open(filename, "rb") as f:
+            header = f.read(2)
+            f.seek(0)
+            assert header == b"\x1f\x8b"
+            with gzip.GzipFile(fileobj=f) as gz:
+                return gz.read().decode("utf-8")
+    with open(filename, "r", encoding="utf-8") as imported_handle:
+        return imported_handle.read()
 
 
 def get_machine_info(machine_info: Optional[str] = None) -> dict[str, Any]:
@@ -174,8 +187,7 @@ def import_perf_from_stack(
 
     resources = []
     for imported_file in imported:
-        with open(imported_file, "r", encoding="utf-8") as imported_handle:
-            out = imported_handle.read()
+        out = load_file(imported_file)
         resources.extend(parser.parse_events(out.split("\n")))
         log.minor_success(log.path_style(imported_file), "imported")
     import_from_string(

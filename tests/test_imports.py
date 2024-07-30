@@ -66,6 +66,7 @@ def test_imports(pcs_with_svs):
             "perf",
             "stack",
             os.path.join(pool_path, "import.stack"),
+            os.path.join(pool_path, "import.stack.gz"),
         ],
     )
     assert result.exit_code == 0
