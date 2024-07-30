@@ -16,7 +16,6 @@ import re
 import subprocess
 
 # Third-Party Imports
-import progressbar
 
 # Perun Imports
 from perun.logic import pcs, config as perun_config, store, index, temp, stats
@@ -269,7 +268,7 @@ def add(
     """
     perun_log.major_info("Adding profiles")
     added_profile_count = 0
-    for profile_name in profile_names:
+    for profile_name in perun_log.progress(profile_names, description="Adding Profiles"):
         # Test if the given profile exists (This should hold always, or not?)
         reg_rel_path = os.path.relpath(profile_name)
         if not os.path.exists(profile_name):
@@ -1117,7 +1116,7 @@ def get_untracked_profiles() -> list[ProfileInfo]:
             f"{perun_log.highlight(str(len(untracked_list)))} files are not registered in pending index."
         )
         perun_log.minor_info("Refreshing pending index: this might take some time.")
-    for untracked_path in progressbar.progressbar(untracked_list):
+    for untracked_path in perun_log.progress(untracked_list, "Processing Untracked"):
         try:
             real_path = os.path.join(pcs.get_job_directory(), untracked_path)
             time = timestamps.timestamp_to_str(os.stat(real_path).st_mtime)

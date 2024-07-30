@@ -8,8 +8,6 @@ from typing import Any
 
 # Third-Party Imports
 import click
-import jinja2
-import progressbar
 
 # Perun Imports
 from perun.templates import factory as templates
@@ -144,7 +142,7 @@ def profile_to_data(
 
     # Convert traces to some trace objects
     trace_info_map = {}
-    for trace in progressbar.progressbar(df["trace"].unique()):
+    for trace in log.progress(df["trace"].unique(), description="Converting Traces"):
         trace_as_list = trace.split(",")
         long_trace = ",".join(
             traces_kit.fold_recursive_calls_in_trace(trace_as_list, generalize=True)
@@ -169,7 +167,7 @@ def profile_to_data(
         grouped_df = df.groupby(["uid", "trace"]).agg({aggregation_key: "sum"}).reset_index()
         sorted_df = grouped_df.sort_values(by=aggregation_key, ascending=False)
         amount_sum = df[aggregation_key].sum()
-        for _, row in progressbar.progressbar(sorted_df.iterrows()):
+        for _, row in log.progress(sorted_df.iterrows(), description="Processing Traces"):
             data.append(
                 TableRecord(
                     row["uid"],

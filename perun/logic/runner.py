@@ -526,7 +526,7 @@ def generate_jobs_on_current_working_dir(
     log.major_info("Running Jobs")
     log.increase_indent()
     job_counter = 1
-    for job_cmd, workloads_per_cmd in job_matrix.items():
+    for job_cmd, workloads_per_cmd in log.progress(job_matrix.items(), "Running Jobs"):
         for workload, jobs_per_workload in workloads_per_cmd.items():
             # Prepare the specification
             generator_spec = workload_generators_specs.get(

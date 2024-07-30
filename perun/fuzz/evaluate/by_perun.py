@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Iterable, Any
 import perun.check.factory as check
 import perun.logic.runner as run
 from perun.utils.structs import PerformanceChange
+from perun.utils import log
 
 if TYPE_CHECKING:
     from perun.fuzz.structs import Mutation
@@ -58,7 +59,7 @@ def baseline_testing(
         )
     )
 
-    for file in seeds[1:]:
+    for file in log.progress(seeds[1:], description="Running Seeds"):
         # target profile
         target_pg = list(
             run.generate_profiles_for(

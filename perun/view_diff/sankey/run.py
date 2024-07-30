@@ -21,8 +21,6 @@ from typing import Any, Literal
 
 # Third-Party Imports
 import click
-import jinja2
-import progressbar
 
 # Perun Imports
 from perun.templates import factory as templates
@@ -108,7 +106,7 @@ class Linkage:
     __slots__ = ["source", "target", "value", "color"]
     source: list[int]
     target: list[int]
-    value: list[int]
+    value: list[float]
     color: list[str]
 
     def __init__(self):
@@ -151,10 +149,10 @@ class SankeyGraph:
     linkage: dict[Literal["split", "merged"], Linkage]
     width: int
     height: int
-    min: int
-    max: int
-    diff: int
-    sum: int
+    min: float
+    max: float
+    diff: float
+    sum: float
 
     def __init__(self, uid: str):
         """Initializes the graph"""
@@ -270,7 +268,7 @@ def process_traces(
     :param profile_type: type of the profile
     :param cfg: configuration of the generation
     """
-    for _, resource in progressbar.progressbar(profile.all_resources()):
+    for _, resource in log.progress(profile.all_resources(), description="Processing Traces"):
         trace_len = len(resource["trace"])
         full_trace = [convert.to_uid(t) for t in resource["trace"]] + [
             convert.to_uid(resource["uid"])
@@ -323,7 +321,7 @@ def create_edge(
     edge_type: Literal["split", "merged"],
     src: int,
     tgt: int,
-    value: int,
+    value: float,
     color: str,
 ) -> None:
     """Creates single edge in the sankey graph
@@ -384,7 +382,7 @@ def minimize_sankey_maps(
     :param sankey_map: map of sankey graphs;
     """
     minimal_sankey_map = {}
-    for uid, sankey_points in progressbar.progressbar(sankey_map.items()):
+    for uid, sankey_points in log.progress(sankey_map.items(), description="Minimizing Sankey Map"):
         id_to_point = {val.id: val for val in sankey_points.values()}
         minimal_sankey_points = {}
         for key in sankey_points.keys():
@@ -413,7 +411,7 @@ def extract_graphs_from_sankey_map(
     """
     sankey_graphs = []
 
-    for uid, sankey_points in progressbar.progressbar(sankey_map.items()):
+    for uid, sankey_points in log.progress(sankey_map.items(), description="Extracting Graphs"):
         graph = SankeyGraph(uid)
         positions = []
 
@@ -469,7 +467,9 @@ def compute_reachable(profile: Profile, reachability_map: dict[str, set[str]]) -
     :param profile: profile with data
     :param reachability_map: map of nodes to their backward or forward reachable nodes
     """
-    for _, resource in progressbar.progressbar(profile.all_resources()):
+    for _, resource in log.progress(
+        profile.all_resources(), description="Computing Reachable Nodes"
+    ):
         full_trace = [convert.to_uid(t) for t in resource["trace"]] + [
             convert.to_uid(resource["uid"])
         ]

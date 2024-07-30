@@ -80,7 +80,7 @@ def del_temp_files(
     :param output_dir: path to directory, where fuzzed files are stored
     """
     log.minor_info("Removing mutations")
-    for mutation in progressbar.progressbar(parents):
+    for mutation in log.progress(parents, description="Removing Mutations"):
         if (
             mutation not in fuzz_progress.final_results
             and mutation not in fuzz_progress.hangs

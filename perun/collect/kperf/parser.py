@@ -8,9 +8,9 @@ from __future__ import annotations
 from typing import Any
 
 # Third-Party Imports
-import progressbar
 
 # Perun Imports
+from perun.utils import log
 
 
 def parse_events(perf_events: list[str]) -> list[dict[str, Any]]:
@@ -24,7 +24,7 @@ def parse_events(perf_events: list[str]) -> list[dict[str, Any]]:
     :return: list of resources
     """
     resources = []
-    for event in progressbar.progressbar(perf_events):
+    for event in log.progress(perf_events, description="Parsing Events"):
         if event.strip():
             *record, samples = event.split(" ")
             parts = " ".join(record).split(";")

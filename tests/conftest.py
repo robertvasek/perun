@@ -547,6 +547,8 @@ def setup():
     log.LOGGING = False
     log.CURRENT_INDENT = 0
     log.SUPPRESS_PAGING = True
+    log.REDIRECT_STDOUT_IN_PROGRESS = False
+
     # We disable the metrics by default, since they might slow down tests
     metrics.Metrics.enabled = False
     report.Stats.KnownStatsSet.clear()

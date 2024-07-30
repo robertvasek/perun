@@ -10,7 +10,6 @@ import time
 
 # Third-Party Imports
 import click
-import progressbar
 
 # Perun Imports
 from perun.collect.kperf import parser
@@ -92,13 +91,13 @@ def collect(executable: Executable, **kwargs: Any) -> tuple[CollectStatus, str, 
     repeats = kwargs["repeat"]
 
     log.minor_info(f"Running {log.highlight(warmups)} warmup iterations")
-    for _ in progressbar.progressbar(range(0, warmups)):
+    for _ in log.progress(range(0, warmups), description="Warmup"):
         run_perf(executable, "warmup", kwargs.get("with_sudo", False))
 
     log.minor_info(f"Running {log.highlight(repeats)} iterations")
     before_time = time.time()
     kwargs["raw_data"] = []
-    for _ in progressbar.progressbar(range(0, repeats)):
+    for _ in log.progress(range(0, repeats), description="Main Run"):
         output = run_perf(executable, "main_run", kwargs.get("with_sudo", False))
         kwargs["raw_data"].extend(output.splitlines())
     kwargs["time"] = time.time() - before_time

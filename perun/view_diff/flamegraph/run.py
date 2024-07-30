@@ -10,7 +10,6 @@ import re
 
 # Third-Party Imports
 import click
-import progressbar
 
 # Perun Imports
 from perun.templates import factory as templates
@@ -132,7 +131,7 @@ def generate_flamegraphs(
     :param width: width of the flame graph
     """
     flamegraphs = []
-    for i, dtype in enumerate(data_types):
+    for i, dtype in log.progress(enumerate(data_types), description="Generating Flamegraphs"):
         try:
             data_type = mapping.from_readable_key(dtype)
             lhs_graph = flamegraph_factory.draw_flame_graph(
@@ -203,7 +202,9 @@ def process_maxima(
     is_inclusive = profile.get("collector_info", {}).get("name") == "kperf"
     counts: dict[str, float] = defaultdict(float)
     max_trace = 0
-    for _, resource in progressbar.progressbar(profile.all_resources()):
+    for _, resource in log.progress(
+        profile.all_resources(), description="Processing Resource Maxima"
+    ):
         max_trace = max(max_trace, len(resource["trace"]) + 1)
         if is_inclusive:
             for key in resource:

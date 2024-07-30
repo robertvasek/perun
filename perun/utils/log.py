@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # Standard Imports
-from typing import Any, Callable, TYPE_CHECKING, Iterable, Optional, TextIO, Type, NoReturn
+from typing import Any, Callable, TYPE_CHECKING, Iterable, Optional, TextIO, Type, NoReturn, TypeVar
 import builtins
 import collections
 import functools
@@ -18,6 +18,7 @@ import traceback
 
 # Third-Party Imports
 import numpy as np
+import progressbar
 import termcolor
 
 # Perun Imports
@@ -48,6 +49,9 @@ VERBOSITY: int = 0
 LOGGING: bool = False
 COLOR_OUTPUT: bool = True
 CURRENT_INDENT: int = 0
+# Note: We set this to False during testing, since it screws the tests, however,
+# in stdout and real usage we want this to not interleave the output
+REDIRECT_STDOUT_IN_PROGRESS: bool = True
 
 # Enum of verbosity levels
 VERBOSE_DEBUG: int = 2
@@ -56,6 +60,8 @@ VERBOSE_RELEASE: int = 0
 
 SUPPRESS_WARNINGS: bool = False
 SUPPRESS_PAGING: bool = True
+
+T = TypeVar("T")
 
 
 def increase_indent() -> None:
@@ -845,6 +851,28 @@ def collector_to_command(collector_info: dict[str, Any]) -> str:
         if val
     )
     return f"{collector_info['name']} {params}"
+
+
+def progress(collection: Iterable[T], description: str = "") -> Iterable[T]:
+    """Wrapper for printing of any collection
+
+    :param collection: any iterable
+    :param description: tag on the left side of the output of the bar
+    """
+    widgets = [
+        (description + ": ") if description else "",
+        progressbar.Percentage(),
+        " ",
+        progressbar.Bar(),
+        " [",
+        progressbar.Timer(),
+        ", ",
+        progressbar.AdaptiveETA(),
+        "]",
+    ]
+    yield from progressbar.progressbar(
+        collection, redirect_stdout=REDIRECT_STDOUT_IN_PROGRESS, widgets=widgets
+    )
 
 
 class History:

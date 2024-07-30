@@ -12,7 +12,6 @@ import time as systime
 
 # Third-Party Imports
 import click
-import progressbar
 
 # Perun Imports
 from perun.logic import runner
@@ -39,7 +38,7 @@ def collect(
     """
     log.major_info("Running time collector")
     log.minor_info("Warming up")
-    for _ in progressbar.progressbar(range(0, warmup)):
+    for __ in log.progress(range(0, warmup), description="Warmup"):
         command = " ".join(["time -p", str(executable)]).split(" ")
         commands.get_stdout_from_external_command(
             command, log_tag="warmup", log_verbosity=log.VERBOSE_RELEASE
@@ -50,7 +49,7 @@ def collect(
     times = []
 
     before_timing = systime.time()
-    for timing in progressbar.progressbar(range(1, repeat + 1)):
+    for timing in log.progress(range(1, repeat + 1), description="Main Run"):
         command = " ".join(["time -p", str(executable)]).split(" ")
         collected_data = commands.get_stdout_from_external_command(
             command, log_tag="main_run", log_verbosity=log.VERBOSE_RELEASE

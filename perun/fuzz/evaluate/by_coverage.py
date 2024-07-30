@@ -111,7 +111,7 @@ def get_initial_coverage(
     # run program with each seed
     log.minor_info("Running program with seeds")
     log.increase_indent()
-    for seed in seeds:
+    for seed in log.progress(seeds, description="Running Seeds"):
         prepare_workspace(fuzzing_config.coverage.gcno_path)
 
         command = " ".join([os.path.abspath(executable.cmd), seed.path])
