@@ -49,6 +49,9 @@ VERBOSITY: int = 0
 LOGGING: bool = False
 COLOR_OUTPUT: bool = True
 CURRENT_INDENT: int = 0
+# Note: We set this to False during testing, since it screws the tests, however,
+# in stdout and real usage we want this to not interleave the output
+REDIRECT_STDOUT_IN_PROGRESS: bool = True
 
 # Enum of verbosity levels
 VERBOSE_DEBUG: int = 2
@@ -850,19 +853,16 @@ def collector_to_command(collector_info: dict[str, Any]) -> str:
     return f"{collector_info['name']} {params}"
 
 
-def progress(
-    collection: Iterable[T], description: str = "", redirect_stdout: bool = False
-) -> Iterable[T]:
+def progress(collection: Iterable[T], description: str = "") -> Iterable[T]:
     """Wrapper for printing of any collection
 
     :param collection: any iterable
-    :param redirect_stdout: if set to true, then the output is controlled by progressbar and the bar
-        does not interleave the output.
     :param description: tag on the left side of the output of the bar
     """
     widgets = [
         (description + ": ") if description else "",
         progressbar.Percentage(),
+        " ",
         progressbar.Bar(),
         " [",
         progressbar.Timer(),
@@ -870,7 +870,9 @@ def progress(
         progressbar.AdaptiveETA(),
         "]",
     ]
-    yield from progressbar.progressbar(collection, redirect_stdout=redirect_stdout, widgets=widgets)
+    yield from progressbar.progressbar(
+        collection, redirect_stdout=REDIRECT_STDOUT_IN_PROGRESS, widgets=widgets
+    )
 
 
 class History:
