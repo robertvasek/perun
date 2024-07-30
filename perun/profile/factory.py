@@ -10,7 +10,7 @@ from __future__ import annotations
 
 # Standard Imports
 from collections.abc import MutableMapping
-from typing import Any, Iterator, Iterable, TYPE_CHECKING
+from typing import Any, Iterator, Iterable, TYPE_CHECKING, Literal
 import collections
 import itertools
 import operator
@@ -23,6 +23,7 @@ from perun.logic import config
 from perun.postprocess.regression_analysis import regression_models
 from perun.profile import convert, query
 from perun.utils import log
+from perun.utils.common import common_kit
 import perun.check.detection_kit as detection
 import perun.postprocess.regressogram.methods as nparam_methods
 
@@ -91,6 +92,15 @@ class Profile(MutableMapping[str, Any]):
             else:
                 self._storage[key] = value
         config.runtime().append("context.profiles", self)
+
+    def apply(self, agg: Literal["sum", "min", "max", "avg", "mean", "med", "median"]) -> None:
+        """Applies aggregation function to each counted resource
+
+        :param agg: name of the aggreagation function
+        """
+        for res in self._storage["resources"].values():
+            for item, val in res.items():
+                res[item] = [common_kit.aggregate_list(val, agg)]
 
     def update_resources(
         self,

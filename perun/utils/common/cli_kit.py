@@ -480,8 +480,11 @@ def lookup_list_of_profiles_callback(
     :return: list of profiles
     """
     profiles = []
+    aggregation_function = config.lookup_key_recursively("profile.aggregation", default="median")
     for profile in value:
-        profiles.append(lookup_any_profile_callback(ctx, arg, profile))
+        loaded_profile = lookup_any_profile_callback(ctx, arg, profile)
+        loaded_profile.apply(aggregation_function)
+        profiles.append(loaded_profile)
     return profiles
 
 
