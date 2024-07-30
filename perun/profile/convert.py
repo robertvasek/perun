@@ -27,6 +27,7 @@ import pandas
 # Perun Imports
 from perun.postprocess.regression_analysis import transform
 from perun.profile import query
+from perun.utils import log
 from perun.utils.common import common_kit
 
 if TYPE_CHECKING:
@@ -72,7 +73,9 @@ def resources_to_pandas_dataframe(profile: Profile) -> pandas.DataFrame:
     values["snapshots"] = array.array("I")
 
     # All resources at this point should be flat
-    for snapshot, resource in profile.all_resources(flatten_values=True):
+    for snapshot, resource in log.progress(
+        profile.all_resources(flatten_values=True), "Converting To Pandas"
+    ):
         values["snapshots"].append(snapshot)
         for resource_key in resource_keys:
             values[resource_key].append(resource.get(resource_key, numpy.nan))
@@ -95,7 +98,7 @@ def models_to_pandas_dataframe(profile: Profile) -> pandas.DataFrame:
     model_keys = list(query.all_model_fields_of(profile))
     values: dict[str, list[Any]] = {key: [] for key in model_keys}
 
-    for _, model in profile.all_models():
+    for _, model in log.progress(profile.all_models(), description="Converting To Pandas"):
         flattened_resources = dict(list(query.all_items_of(model)))
         for model_key in model_keys:
             values[model_key].append(flattened_resources.get(model_key, numpy.nan))

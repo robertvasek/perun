@@ -269,7 +269,7 @@ def add(
     """
     perun_log.major_info("Adding profiles")
     added_profile_count = 0
-    for profile_name in profile_names:
+    for profile_name in perun_log.progress(profile_names, description="Adding Profiles"):
         # Test if the given profile exists (This should hold always, or not?)
         reg_rel_path = os.path.relpath(profile_name)
         if not os.path.exists(profile_name):

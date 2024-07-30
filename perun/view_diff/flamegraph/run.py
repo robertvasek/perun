@@ -132,7 +132,7 @@ def generate_flamegraphs(
     :param width: width of the flame graph
     """
     flamegraphs = []
-    for i, dtype in enumerate(data_types):
+    for i, dtype in log.progress(enumerate(data_types), description="Generating Flamegraphs"):
         try:
             data_type = mapping.from_readable_key(dtype)
             lhs_graph = flamegraph_factory.draw_flame_graph(
