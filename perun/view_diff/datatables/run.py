@@ -8,8 +8,6 @@ from typing import Any
 
 # Third-Party Imports
 import click
-import jinja2
-import progressbar
 
 # Perun Imports
 from perun.templates import factory as templates

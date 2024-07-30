@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import Any
 
 # Third-Party Imports
-import progressbar
 
 # Perun Imports
 from perun.utils import log

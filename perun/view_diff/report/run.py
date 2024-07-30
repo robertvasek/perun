@@ -24,7 +24,6 @@ import sys
 
 # Third-Party Imports
 import click
-import progressbar
 
 # Perun Imports
 from perun.logic import config

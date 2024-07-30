@@ -8,7 +8,6 @@ import difflib
 import os
 
 # Third-Party Imports
-import progressbar
 from scipy.stats import mstats
 import matplotlib.pyplot as plt
 

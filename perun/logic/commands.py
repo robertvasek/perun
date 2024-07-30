@@ -16,7 +16,6 @@ import re
 import subprocess
 
 # Third-Party Imports
-import progressbar
 
 # Perun Imports
 from perun.logic import pcs, config as perun_config, store, index, temp, stats

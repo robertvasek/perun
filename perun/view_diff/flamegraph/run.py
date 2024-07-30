@@ -10,7 +10,6 @@ import re
 
 # Third-Party Imports
 import click
-import progressbar
 
 # Perun Imports
 from perun.templates import factory as templates

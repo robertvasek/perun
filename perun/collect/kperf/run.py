@@ -10,7 +10,6 @@ import time
 
 # Third-Party Imports
 import click
-import progressbar
 
 # Perun Imports
 from perun.collect.kperf import parser
