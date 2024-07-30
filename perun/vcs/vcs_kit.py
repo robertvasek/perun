@@ -27,8 +27,12 @@ def lookup_minor_version(func: Callable[..., Any]) -> Callable[..., Any]:
 
     def wrapper(*args: Any, **kwargs: Any) -> Callable[..., Any]:
         """Inner wrapper of the function"""
+        if "minor_version" in kwargs:
+            if kwargs["minor_version"] is None:
+                kwargs["minor_version"] = pcs.vcs().get_minor_head()
+            pcs.vcs().check_minor_version_validity(kwargs["minor_version"])
         # if the minor_version is None, then we obtain the minor head for the wrapped type
-        if minor_version_position < len(args) and args[minor_version_position] is None:
+        elif minor_version_position < len(args) and args[minor_version_position] is None:
             # note: since tuples are immutable we have to do this workaround
             arg_list = list(args)
             arg_list[minor_version_position] = pcs.vcs().get_minor_head()

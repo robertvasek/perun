@@ -22,7 +22,6 @@ def test_imports(pcs_with_svs):
         ["import", "-c", "ls", "-w", ".", "perf", "record", os.path.join(pool_path, "import.data")],
     )
     assert result.exit_code == 0
-    print(result.output)
     assert len(os.listdir(os.path.join(".perun", "jobs"))) == 2
 
     result = runner.invoke(
@@ -67,6 +66,7 @@ def test_imports(pcs_with_svs):
             "perf",
             "stack",
             os.path.join(pool_path, "import.stack"),
+            os.path.join(pool_path, "import.stack.gz"),
         ],
     )
     assert result.exit_code == 0

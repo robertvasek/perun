@@ -25,11 +25,9 @@ from perun.utils.common import cli_kit
 @click.option(
     "--minor-version",
     "-m",
-    "minor_version_list",
     nargs=1,
-    multiple=True,
-    callback=cli_kit.minor_version_list_callback,
-    default=["HEAD"],
+    default=None,
+    is_eager=True,
     help="Specifies the head minor version, for which the profiles will be imported.",
 )
 @click.option(
@@ -37,8 +35,7 @@ from perun.utils.common import cli_kit
     "-e",
     nargs=1,
     required=False,
-    multiple=True,
-    default=["?"],
+    default="?",
     help=("Exit code of the command."),
 )
 @click.option(
@@ -46,8 +43,7 @@ from perun.utils.common import cli_kit
     "-c",
     nargs=1,
     required=False,
-    multiple=True,
-    default=[""],
+    default="",
     help=(
         "Command that was being profiled. Either corresponds to some"
         " script, binary or command, e.g. ``./mybin`` or ``perun``."
@@ -58,8 +54,7 @@ from perun.utils.common import cli_kit
     "-w",
     nargs=1,
     required=False,
-    multiple=True,
-    default=[""],
+    default="",
     help="Inputs for <cmd>. E.g. ``./subdir`` is possible workload for ``ls`` command.",
 )
 @click.option(
@@ -80,16 +75,8 @@ def import_group(ctx: click.Context, **kwargs: Any) -> None:
 @click.option(
     "--warmup",
     "-w",
-    multiple=True,
-    default=[0],
+    default=0,
     help="Sets [INT] warm up iterations of ith profiled command.",
-)
-@click.option(
-    "--repeat",
-    "-r",
-    multiple=True,
-    default=[1],
-    help="Sets [INT] samplings of the ith profiled command.",
 )
 @click.pass_context
 def perf_group(ctx: click.Context, **kwargs: Any) -> None:
