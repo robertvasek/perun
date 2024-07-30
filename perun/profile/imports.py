@@ -36,14 +36,13 @@ def get_machine_info(machine_info: Optional[str] = None) -> dict[str, Any]:
 
 
 def import_from_string(
-    out: str,
+    resources: list[dict[str, Any]],
     minor_version: MinorVersion,
     machine_info: Optional[str] = None,
     with_sudo: bool = False,
     save_to_index: bool = False,
     **kwargs: Any,
 ) -> None:
-    resources = parser.parse_events(out.split("\n"))
     prof = Profile(
         {
             "global": {
@@ -110,6 +109,7 @@ def import_perf_from_record(
     parse_script = script_kit.get_script("stackcollapse-perf.pl")
     out = b""
 
+    resources = []
     for imported_file in imported:
         perf_script_command = (
             f"{'sudo ' if with_sudo else ''}perf script -i {imported_file} | {parse_script}"
@@ -120,15 +120,16 @@ def import_perf_from_record(
         except subprocess.CalledProcessError as err:
             log.minor_fail(f"Raw data from {log.path_style(imported_file)}", "not collected")
             log.error(f"Cannot load data due to: {err}")
-        import_from_string(
-            out.decode("utf-8"),
-            minor_version_info,
-            machine_info,
-            with_sudo=with_sudo,
-            save_to_index=save_to_index,
-            **kwargs,
-        )
+        resources.extend(parser.parse_events(out.decode("utf-8").split("\n")))
         log.minor_success(log.path_style(imported_file), "imported")
+    import_from_string(
+        resources,
+        minor_version_info,
+        machine_info,
+        with_sudo=with_sudo,
+        save_to_index=save_to_index,
+        **kwargs,
+    )
 
 
 @vcs_kit.lookup_minor_version
@@ -144,18 +145,20 @@ def import_perf_from_script(
     out = b""
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
 
+    resources = []
     for imported_file in imported:
         perf_script_command = f"cat {imported_file} | {parse_script}"
         out, _ = external_commands.run_safely_external_command(perf_script_command)
         log.minor_success(f"Raw data from {log.path_style(imported_file)}", "collected")
-        import_from_string(
-            out.decode("utf-8"),
-            minor_version_info,
-            machine_info,
-            save_to_index=save_to_index,
-            **kwargs,
-        )
+        resources.extend(parser.parse_events(out.decode("utf-8").split("\n")))
         log.minor_success(log.path_style(imported_file), "imported")
+    import_from_string(
+        resources,
+        minor_version_info,
+        machine_info,
+        save_to_index=save_to_index,
+        **kwargs,
+    )
 
 
 @vcs_kit.lookup_minor_version
@@ -169,14 +172,16 @@ def import_perf_from_stack(
     """Imports profile collected by `perf record; perf script | stackcollapse-perf.pl`"""
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
 
+    resources = []
     for imported_file in imported:
         with open(imported_file, "r", encoding="utf-8") as imported_handle:
             out = imported_handle.read()
-        import_from_string(
-            out,
-            minor_version_info,
-            machine_info,
-            save_to_index=save_to_index,
-            **kwargs,
-        )
+        resources.extend(parser.parse_events(out.split("\n")))
         log.minor_success(log.path_style(imported_file), "imported")
+    import_from_string(
+        resources,
+        minor_version_info,
+        machine_info,
+        save_to_index=save_to_index,
+        **kwargs,
+    )
