@@ -118,6 +118,7 @@ def import_perf_from_record(
 ) -> None:
     """Imports profile collected by `perf record`"""
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
+    kwargs["repeat"] = len(imported)
 
     parse_script = script_kit.get_script("stackcollapse-perf.pl")
     out = b""
@@ -157,6 +158,7 @@ def import_perf_from_script(
     parse_script = script_kit.get_script("stackcollapse-perf.pl")
     out = b""
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
+    kwargs["repeat"] = len(imported)
 
     resources = []
     for imported_file in imported:
@@ -184,6 +186,7 @@ def import_perf_from_stack(
 ) -> None:
     """Imports profile collected by `perf record; perf script | stackcollapse-perf.pl`"""
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
+    kwargs["repeat"] = len(imported)
 
     resources = []
     for imported_file in imported:

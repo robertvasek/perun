@@ -78,12 +78,6 @@ def import_group(ctx: click.Context, **kwargs: Any) -> None:
     default=0,
     help="Sets [INT] warm up iterations of ith profiled command.",
 )
-@click.option(
-    "--repeat",
-    "-r",
-    default=1,
-    help="Sets [INT] samplings of the ith profiled command.",
-)
 @click.pass_context
 def perf_group(ctx: click.Context, **kwargs: Any) -> None:
     """Imports Perun profiles from perf results
