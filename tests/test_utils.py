@@ -317,6 +317,14 @@ def test_common(capsys):
     p = {"type": "mixed", "units": {"mixed(time delta)": "s"}}
     assert view_kit.add_y_units(p, "min", "y") == "y [s]"
 
+    assert common_kit.aggregate_list([1, 2, 3], "min") == 1
+    assert common_kit.aggregate_list([1, 2, 3], "max") == 3
+    assert common_kit.aggregate_list([1, 2, 3], "med") == 2
+    assert common_kit.aggregate_list([2, 2, 5], "avg") == 3
+    assert common_kit.aggregate_list([2, 2, 5], "sum") == 9
+    with pytest.raises(AssertionError):
+        common_kit.aggregate_list([1, 2, 3], "sumvage")
+
 
 def test_predicates(capsys):
     """Test predicates used for testing"""
