@@ -16,7 +16,7 @@ from perun.logic import runner
 from perun.postprocess.moving_average import methods
 from perun.postprocess.regression_analysis import data_provider, tools
 from perun.utils.common import cli_kit
-from perun.utils.structs import PostprocessStatus
+from perun.utils.structs.common_structs import PostprocessStatus
 
 if TYPE_CHECKING:
     from perun.profile.factory import Profile

@@ -10,7 +10,7 @@ import signal
 from click.testing import CliRunner
 
 # Perun Imports
-from perun import cli
+from perun.cli_groups import collect_cli
 from perun.collect.complexity import makefiles, symbols, run as complexity, configurator
 from perun.logic import pcs, runner as run
 from perun.profile.factory import Profile
@@ -18,7 +18,7 @@ from perun.testing import asserts, utils as test_utils
 from perun.utils import log
 from perun.utils.common import common_kit
 from perun.utils.external import commands
-from perun.utils.structs import Unit, Executable, CollectStatus, RunnerReport, Job
+from perun.utils.structs.common_structs import Unit, Executable, CollectStatus, RunnerReport, Job
 from perun.workload.integer_generator import IntegerGenerator
 
 
@@ -99,7 +99,7 @@ def test_collect_complexity(monkeypatch, pcs_with_root, complexity_collect_job):
     )
     runner = CliRunner()
     result = runner.invoke(
-        cli.collect,
+        collect_cli.collect,
         [
             f"-c{job_params['target_dir']}",
             "-w input",
@@ -123,7 +123,7 @@ def test_collect_complexity(monkeypatch, pcs_with_root, complexity_collect_job):
     ]
     rules.extend([f"-r{rule}" for rule in more_rules])
     result = runner.invoke(
-        cli.collect,
+        collect_cli.collect,
         [f"-c{job_params['target_dir']}", "complexity", f"-t{job_params['target_dir']}"]
         + files
         + rules
@@ -161,17 +161,17 @@ def test_collect_complexity_errors(monkeypatch, pcs_with_root, complexity_collec
     runner = CliRunner()
 
     # Try missing parameters --target-dir and --files
-    result = runner.invoke(cli.collect, ["complexity"])
+    result = runner.invoke(collect_cli.collect, ["complexity"])
     asserts.predicate_from_cli(result, result.exit_code == 1)
     asserts.predicate_from_cli(result, "--target-dir parameter must be supplied" in result.output)
 
-    result = runner.invoke(cli.collect, ["complexity", f"-t{job_params['target_dir']}"])
+    result = runner.invoke(collect_cli.collect, ["complexity", f"-t{job_params['target_dir']}"])
     asserts.predicate_from_cli(result, result.exit_code == 1)
     asserts.predicate_from_cli(result, "--files parameter must be supplied" in result.output)
 
     # Try supplying invalid directory path, which is a file instead
     invalid_target = os.path.join(os.path.dirname(script_dir), "job.yml")
-    result = runner.invoke(cli.collect, ["complexity", f"-t{invalid_target}"])
+    result = runner.invoke(collect_cli.collect, ["complexity", f"-t{invalid_target}"])
     asserts.predicate_from_cli(result, result.exit_code == 1)
     asserts.predicate_from_cli(result, "already exists" in result.output)
 
@@ -189,12 +189,12 @@ def test_collect_complexity_errors(monkeypatch, pcs_with_root, complexity_collec
         + rules
         + samplings
     )
-    result = runner.invoke(cli.collect, command)
+    result = runner.invoke(collect_cli.collect, command)
     asserts.predicate_from_cli(
         result, "Command 'cmake' returned non-zero exit status 1" in result.output
     )
     monkeypatch.setattr(commands, "run_external_command", mocked_make)
-    result = runner.invoke(cli.collect, command)
+    result = runner.invoke(collect_cli.collect, command)
     asserts.predicate_from_cli(
         result, "Command 'make' returned non-zero exit status 1" in result.output
     )
@@ -203,12 +203,12 @@ def test_collect_complexity_errors(monkeypatch, pcs_with_root, complexity_collec
     # Simulate that some required library is missing
     old_libs_existence = makefiles._libraries_exist
     monkeypatch.setattr(makefiles, "_libraries_exist", _mocked_libs_existence_fails)
-    result = runner.invoke(cli.collect, command)
+    result = runner.invoke(collect_cli.collect, command)
     asserts.predicate_from_cli(result, "libraries are missing" in result.output)
 
     # Simulate that the libraries directory path cannot be found
     monkeypatch.setattr(makefiles, "_libraries_exist", _mocked_libs_existence_exception)
-    result = runner.invoke(cli.collect, command)
+    result = runner.invoke(collect_cli.collect, command)
     asserts.predicate_from_cli(result, "Unable to locate" in result.output)
     monkeypatch.setattr(makefiles, "_libraries_exist", old_libs_existence)
 
@@ -219,7 +219,7 @@ def test_collect_complexity_errors(monkeypatch, pcs_with_root, complexity_collec
         mock_handle.write("a b c d\na b c d")
     old_record_processing = complexity._process_file_record
     monkeypatch.setattr(complexity, "_process_file_record", _mocked_record_processing)
-    result = runner.invoke(cli.collect, command)
+    result = runner.invoke(collect_cli.collect, command)
     asserts.predicate_from_cli(result, "Call stack error" in result.output)
     monkeypatch.setattr(complexity, "_process_file_record", old_record_processing)
 
@@ -230,13 +230,13 @@ def test_collect_complexity_errors(monkeypatch, pcs_with_root, complexity_collec
         return [1] if b == "(" and e == ")" else old_find_braces(s, b, e)
 
     monkeypatch.setattr(symbols, "_find_all_braces", mock_find_all_braces)
-    result = runner.invoke(cli.collect, command)
+    result = runner.invoke(collect_cli.collect, command)
     asserts.predicate_from_cli(result, "wrong prototype of function" in result.output)
     monkeypatch.setattr(symbols, "_find_all_braces", old_find_braces)
 
     # Simulate missing dependencies
     monkeypatch.setattr("shutil.which", lambda *_: False)
-    result = runner.invoke(cli.collect, command)
+    result = runner.invoke(collect_cli.collect, command)
     asserts.predicate_from_cli(result, "Could not find 'make'" in result.output)
     asserts.predicate_from_cli(result, "Could not find 'cmake'" in result.output)
 
@@ -329,7 +329,7 @@ def test_collect_memory(capsys, pcs_with_root, memory_collect_job, memory_collec
 
     # Try running memory from CLI
     runner = CliRunner()
-    result = runner.invoke(cli.collect, [f"-c{job.executable.cmd}", "memory"])
+    result = runner.invoke(collect_cli.collect, [f"-c{job.executable.cmd}", "memory"])
     assert result.exit_code == 0
 
 
@@ -561,7 +561,9 @@ def test_collect_kperf(monkeypatch, pcs_with_root, capsys):
     before_object_count = test_utils.count_contents_on_path(pcs_with_root.get_path())[0]
 
     runner = CliRunner()
-    result = runner.invoke(cli.collect, ["-c", "ls", "-w", ".", "kperf", "-w", "1", "-r", "1"])
+    result = runner.invoke(
+        collect_cli.collect, ["-c", "ls", "-w", ".", "kperf", "-w", "1", "-r", "1"]
+    )
     assert result.exit_code == 0
     after_object_count = test_utils.count_contents_on_path(pcs_with_root.get_path())[0]
     assert before_object_count + 2 == after_object_count
@@ -573,7 +575,7 @@ def test_collect_kperf(monkeypatch, pcs_with_root, capsys):
     old_run = commands.run_external_command
     monkeypatch.setattr(commands, "run_safely_external_command", mocked_safe_external)
     result = runner.invoke(
-        cli.collect, ["-c", "ls", "-w", ".", "kperf", "-w", "1", "-r", "1", "--with-sudo"]
+        collect_cli.collect, ["-c", "ls", "-w", ".", "kperf", "-w", "1", "-r", "1", "--with-sudo"]
     )
     assert result.exit_code == 0
 
@@ -587,7 +589,7 @@ def test_collect_kperf(monkeypatch, pcs_with_root, capsys):
     monkeypatch.setattr(commands, "run_safely_external_command", mocked_fail_external)
     monkeypatch.setattr("perun.utils.external.commands.is_executable", lambda command: True)
     result = runner.invoke(
-        cli.collect, ["-c", "ls", "-w", ".", "kperf", "-w", "1", "-r", "1", "--with-sudo"]
+        collect_cli.collect, ["-c", "ls", "-w", ".", "kperf", "-w", "1", "-r", "1", "--with-sudo"]
     )
     assert result.exit_code == 0
     monkeypatch.setattr(commands, "run_safely_external_command", old_run)
@@ -600,7 +602,9 @@ def test_collect_kperf(monkeypatch, pcs_with_root, capsys):
             return True
 
     monkeypatch.setattr("perun.utils.external.commands.is_executable", mocked_is_executable_sc)
-    result = runner.invoke(cli.collect, ["-c", "ls", "-w", ".", "kperf", "-w", "0", "-r", "1"])
+    result = runner.invoke(
+        collect_cli.collect, ["-c", "ls", "-w", ".", "kperf", "-w", "0", "-r", "1"]
+    )
     assert result.exit_code != 0
     assert "not-executable" in result.output
 
@@ -611,6 +615,8 @@ def test_collect_kperf(monkeypatch, pcs_with_root, capsys):
             return True
 
     monkeypatch.setattr("perun.utils.external.commands.is_executable", mocked_is_executable_perf)
-    result = runner.invoke(cli.collect, ["-c", "ls", "-w", ".", "kperf", "-w", "0", "-r", "1"])
+    result = runner.invoke(
+        collect_cli.collect, ["-c", "ls", "-w", ".", "kperf", "-w", "0", "-r", "1"]
+    )
     assert result.exit_code != 0
     assert "not-executable" in result.output

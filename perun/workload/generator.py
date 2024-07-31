@@ -18,7 +18,7 @@ from typing import Any, Callable, Iterable, TYPE_CHECKING
 from perun.logic import config
 from perun.profile import helpers as profile_helpers, factory as profile_factory
 from perun.utils import log
-from perun.utils.structs import CollectStatus, Job, Unit
+from perun.utils.structs.common_structs import CollectStatus, Job, Unit
 from perun.utils.common import common_kit
 
 if TYPE_CHECKING:

@@ -4,7 +4,7 @@ rules such as function or USDT locations and sampling.
 
 from perun.collect.trace.watchdog import WATCH_DOG
 from perun.collect.trace.values import RecordType
-from perun.collect.trace.optimizations.structs import Optimizations, Parameters
+from perun.utils.structs.collect_public import Optimizations, Parameters
 
 
 # Names of the global arrays used throughout the script

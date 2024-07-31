@@ -16,7 +16,7 @@ from perun.profile import convert
 from perun.utils.common import common_kit
 
 if TYPE_CHECKING:
-    from perun.utils.structs import Executable
+    from perun.utils.structs.common_structs import Executable
 
 
 PATTERN_WORD: re.Pattern[str] = re.compile(r"(\w+|[?])")

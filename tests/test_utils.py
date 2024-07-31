@@ -29,7 +29,7 @@ from perun.utils.exceptions import (
     SystemTapStartupException,
     ResourceLockedException,
 )
-from perun.utils.structs import Unit, OrderedEnum, HandledSignals
+from perun.utils.structs.common_structs import Unit, OrderedEnum, HandledSignals
 from perun.utils.external import environment, commands as external_commands, processes, executable
 from perun.view_diff.datatables.run import TraceInfo
 
@@ -112,6 +112,7 @@ def test_get_supported_modules():
     """
     # Check that all of the CLI units (collectors, postprocessors and visualizations) are properly
     # registered.
+    collect.lazy_get_cli_commands()
     assert_all_registered_cli_units("collect", collect, ["collect"])
     assert_all_registered_cli_units("postprocess", postprocess, ["postprocess"])
     assert_all_registered_cli_units("view", view, [])

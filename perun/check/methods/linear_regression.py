@@ -18,7 +18,7 @@ from perun.check import detection_kit as detect
 from perun.check.methods import fast_check
 from perun.check.methods.abstract_base_checker import AbstractBaseChecker
 from perun.utils.common import common_kit
-from perun.utils.structs import DegradationInfo, ModelRecord, ClassificationMethod
+from perun.utils.structs.common_structs import DegradationInfo, ModelRecord, ClassificationMethod
 
 if TYPE_CHECKING:
     import numpy

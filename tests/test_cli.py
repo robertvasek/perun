@@ -19,14 +19,13 @@ import pytest
 
 # Perun Imports
 from perun import cli
-from perun.cli_groups import utils_cli, config_cli, run_cli, check_cli
+from perun.cli_groups import utils_cli, config_cli, run_cli, check_cli, collect_cli
 from perun.logic import config, pcs, stats, temp
 from perun.testing import asserts
 from perun.utils import exceptions, log
 from perun.utils.common import common_kit
-from perun.utils.exceptions import NotPerunRepositoryException
 from perun.utils.external import commands
-from perun.utils.structs import CollectStatus, RunnerReport
+from perun.utils.structs.common_structs import CollectStatus, RunnerReport
 import perun.check.factory as check
 import perun.testing.utils as test_utils
 
@@ -1401,7 +1400,8 @@ def test_collect_correct(pcs_with_root):
     """
     runner = CliRunner()
     result = runner.invoke(
-        cli.collect, ["-c echo", "-w hello", "-o", "prof.perf", "time", "--repeat=1", "--warmup=1"]
+        collect_cli.collect,
+        ["-c echo", "-w hello", "-o", "prof.perf", "time", "--repeat=1", "--warmup=1"],
     )
     asserts.predicate_from_cli(result, result.exit_code == 0)
     assert "prof.perf" in os.listdir(".")
@@ -1409,10 +1409,14 @@ def test_collect_correct(pcs_with_root):
     current_dir = os.path.split(__file__)[0]
     src_dir = os.path.join(current_dir, "sources", "collect_bounds")
     src_file = os.path.join(src_dir, "partitioning.c")
-    result = runner.invoke(cli.collect, ["-c echo", "-w hello", "bounds", "-d", f"{src_dir}"])
+    result = runner.invoke(
+        collect_cli.collect, ["-c echo", "-w hello", "bounds", "-d", f"{src_dir}"]
+    )
     asserts.predicate_from_cli(result, result.exit_code == 0)
 
-    result = runner.invoke(cli.collect, ["-c echo", "-w hello", "bounds", "-s", f"{src_file}"])
+    result = runner.invoke(
+        collect_cli.collect, ["-c echo", "-w hello", "bounds", "-s", f"{src_file}"]
+    )
     asserts.predicate_from_cli(result, result.exit_code == 0)
 
     assert len(os.listdir(os.path.join(".perun", "logs"))) == 0
@@ -2620,11 +2624,13 @@ def test_svs():
     result = runner.invoke(cli.init, [dst])
     asserts.predicate_from_cli(result, result.exit_code == 0)
 
-    result = runner.invoke(cli.collect, ["-c echo", "-w hello", "-o", "prof.perf", "kperf"])
+    result = runner.invoke(collect_cli.collect, ["-c echo", "-w hello", "-o", "prof.perf", "kperf"])
     asserts.predicate_from_cli(result, result.exit_code == 0)
     assert "prof.perf" in os.listdir(".")
 
-    result = runner.invoke(cli.collect, ["-c echo", "-w world", "-o", "prof2.perf", "kperf"])
+    result = runner.invoke(
+        collect_cli.collect, ["-c echo", "-w world", "-o", "prof2.perf", "kperf"]
+    )
     asserts.predicate_from_cli(result, result.exit_code == 0)
     assert "prof2.perf" in os.listdir(".")
 

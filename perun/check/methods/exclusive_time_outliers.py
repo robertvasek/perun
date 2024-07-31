@@ -79,7 +79,7 @@ from scipy import stats
 from perun.check.methods.abstract_base_checker import AbstractBaseChecker
 from perun.logic import config
 from perun.profile import convert
-from perun.utils.structs import DegradationInfo, PerformanceChange
+from perun.utils.structs.common_structs import DegradationInfo, PerformanceChange
 
 if TYPE_CHECKING:
     from perun.profile.factory import Profile

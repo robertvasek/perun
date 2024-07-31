@@ -10,7 +10,7 @@ import numpy as np
 # Perun Imports
 from perun.postprocess.regression_analysis import data_provider
 from perun.utils import log
-from perun.utils.structs import PerformanceChange, ModelRecord
+from perun.utils.structs.common_structs import PerformanceChange, ModelRecord
 import perun.check.detection_kit as methods
 import perun.postprocess.regressogram.methods as rg_methods
 

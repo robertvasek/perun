@@ -27,7 +27,7 @@ from perun.check.methods import (
     polynomial_regression,
 )
 from perun.utils import decorators, log
-from perun.utils.structs import (
+from perun.utils.structs.common_structs import (
     DetectionChangeResult,
     DegradationInfo,
     PerformanceChange,

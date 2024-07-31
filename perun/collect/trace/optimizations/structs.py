@@ -7,137 +7,10 @@ import math
 from functools import partial
 
 from enum import Enum
-from perun.utils.structs import OrderedEnum
+from perun.utils.structs.common_structs import OrderedEnum
 from perun.utils.common import common_kit
 import perun.utils.metrics as metrics
-
-
-class Optimizations(Enum):
-    """Enumeration of the implemented methods and their CLI name."""
-
-    BASELINE_STATIC = "baseline-static"
-    BASELINE_DYNAMIC = "baseline-dynamic"
-    CALL_GRAPH_SHAPING = "cg-shaping"
-    DYNAMIC_SAMPLING = "dynamic-sampling"
-    DIFF_TRACING = "diff-tracing"
-    DYNAMIC_PROBING = "dynamic-probing"
-    TIMED_SAMPLING = "timed-sampling"
-
-    @staticmethod
-    def supported():
-        """List the currently supported optimization methods.
-
-        :return: CLI names of the supported optimizations
-        """
-        return [optimization.value for optimization in Optimizations]
-
-
-class Pipeline(Enum):
-    """Enumeration of the implemented pipelines and their CLI name.
-    Custom represents a defualt pipeline that has no pre-configured methods or parameters
-    """
-
-    CUSTOM = "custom"
-    BASIC = "basic"
-    ADVANCED = "advanced"
-    FULL = "full"
-
-    @staticmethod
-    def supported():
-        """List the currently supported optimization pipelines.
-
-        :return: CLI names of the supported pipelines
-        """
-        return [pipeline.value for pipeline in Pipeline]
-
-    @staticmethod
-    def default():
-        """Name of the default pipeline.
-
-        :return: the CLI name of the default pipeline
-        """
-        return Pipeline.CUSTOM.value
-
-    def map_to_optimizations(self):
-        """Map the selected optimization pipeline to the set of employed optimization methods.
-
-        :return: list of the Optimizations enumeration objects
-        """
-        if self == Pipeline.BASIC:
-            return [Optimizations.CALL_GRAPH_SHAPING, Optimizations.BASELINE_DYNAMIC]
-        if self == Pipeline.ADVANCED:
-            return [
-                Optimizations.DIFF_TRACING,
-                Optimizations.CALL_GRAPH_SHAPING,
-                Optimizations.BASELINE_DYNAMIC,
-                Optimizations.DYNAMIC_SAMPLING,
-            ]
-        if self == Pipeline.FULL:
-            return [
-                Optimizations.DIFF_TRACING,
-                Optimizations.CALL_GRAPH_SHAPING,
-                Optimizations.BASELINE_STATIC,
-                Optimizations.BASELINE_DYNAMIC,
-                Optimizations.DYNAMIC_SAMPLING,
-                Optimizations.DYNAMIC_PROBING,
-            ]
-        return []
-
-
-class CallGraphTypes(Enum):
-    """Enumeration of the implemented call graph types and their CLI names."""
-
-    STATIC = "static"
-    DYNAMIC = "dynamic"
-    MIXED = "mixed"
-
-    @staticmethod
-    def supported():
-        """List the currently supported call graph types.
-
-        :return: CLI names of the supported cg types
-        """
-        return [cg.value for cg in CallGraphTypes]
-
-    @staticmethod
-    def default():
-        """Name of the default cg type.
-
-        :return: the CLI name of the default cg type
-        """
-        return CallGraphTypes.STATIC.value
-
-
-class Parameters(Enum):
-    """Enumeration of the currently supported CLI options for optimization methods and pipelines."""
-
-    DIFF_VERSION = "diff-version"
-    DIFF_KEEP_LEAF = "diff-keep-leaf"
-    DIFF_INSPECT_ALL = "diff-inspect-all"
-    DIFF_CG_MODE = "diff-cfg-mode"
-    SOURCE_FILES = "source-files"
-    SOURCE_DIRS = "source-dirs"
-    STATIC_COMPLEXITY = "static-complexity"
-    STATIC_KEEP_TOP = "static-keep-top"
-    CG_SHAPING_MODE = "cg-mode"
-    CG_PROJ_LEVELS = "cg-proj-levels"
-    CG_PROJ_KEEP_LEAF = "cg-proj-keep-leaf"
-    DYNSAMPLE_STEP = "dyn-sample-step"
-    DYNSAMPLE_THRESHOLD = "dyn-sample-threshold"
-    PROBING_THRESHOLD = "probing-threshold"
-    PROBING_REATTACH = "probing-reattach"
-    TIMEDSAMPLE_FREQ = "timed-sample-freq"
-    DYNBASE_SOFT_THRESHOLD = "dyn-base-soft-threshold"
-    DYNBASE_HARD_THRESHOLD = "dyn-base-hard-threshold"
-    THRESHOLD_MODE = "threshold-mode"
-
-    @staticmethod
-    def supported():
-        """List the currently supported optimization parameters.
-
-        :return: CLI names of the supported parameters
-        """
-        return [parameter.value for parameter in Parameters]
+from perun.utils.structs import collect_public
 
 
 class DiffCfgMode(Enum):
@@ -278,67 +151,70 @@ class ParametersManager:
         self.cli_params = []
         self.param_map = {
             # TODO: add proper check
-            Parameters.DIFF_VERSION: {"value": None, "validate": lambda x: x},
-            Parameters.DIFF_KEEP_LEAF: {
+            collect_public.Parameters.DIFF_VERSION: {"value": None, "validate": lambda x: x},
+            collect_public.Parameters.DIFF_KEEP_LEAF: {
                 "value": False,
                 "validate": self._validate_bool,
             },
-            Parameters.DIFF_INSPECT_ALL: {
+            collect_public.Parameters.DIFF_INSPECT_ALL: {
                 "value": True,
                 "validate": self._validate_bool,
             },
-            Parameters.DIFF_CG_MODE: {
+            collect_public.Parameters.DIFF_CG_MODE: {
                 "value": DiffCfgMode.SEMISTRICT,
                 "validate": partial(self._validate_enum, DiffCfgMode),
             },
-            Parameters.SOURCE_FILES: {"value": [], "validate": self._validate_path},
-            Parameters.SOURCE_DIRS: {"value": [], "validate": self._validate_path},
-            Parameters.STATIC_COMPLEXITY: {
+            collect_public.Parameters.SOURCE_FILES: {"value": [], "validate": self._validate_path},
+            collect_public.Parameters.SOURCE_DIRS: {"value": [], "validate": self._validate_path},
+            collect_public.Parameters.STATIC_COMPLEXITY: {
                 "value": Complexity.CONSTANT,
                 "validate": partial(self._validate_enum, Complexity),
             },
-            Parameters.STATIC_KEEP_TOP: {
+            collect_public.Parameters.STATIC_KEEP_TOP: {
                 "value": self._default_keep_top,
                 "validate": self._validate_uint,
             },
-            Parameters.CG_SHAPING_MODE: {
+            collect_public.Parameters.CG_SHAPING_MODE: {
                 "value": CGShapingMode.MATCH,
                 "validate": partial(self._validate_enum, CGShapingMode),
             },
-            Parameters.CG_PROJ_LEVELS: {
+            collect_public.Parameters.CG_PROJ_LEVELS: {
                 "value": self._default_chain_length,
                 "validate": self._validate_uint,
             },
-            Parameters.CG_PROJ_KEEP_LEAF: {
+            collect_public.Parameters.CG_PROJ_KEEP_LEAF: {
                 "value": False,
                 "validate": self._validate_bool,
             },
-            Parameters.DYNSAMPLE_STEP: {
+            collect_public.Parameters.DYNSAMPLE_STEP: {
                 "value": self._default_sampling_step,
                 "validate": self._validate_ufloat,
             },
-            Parameters.DYNSAMPLE_THRESHOLD: {
+            collect_public.Parameters.DYNSAMPLE_THRESHOLD: {
                 "value": self._threshold_soft_base,
                 "validate": self._validate_uint,
             },
-            Parameters.PROBING_THRESHOLD: {
+            collect_public.Parameters.PROBING_THRESHOLD: {
                 "value": self._probing_threshold,
                 "validate": self._validate_uint,
             },
-            Parameters.PROBING_REATTACH: {
+            collect_public.Parameters.PROBING_REATTACH: {
                 "value": False,
                 "validate": self._validate_bool,
             },
-            Parameters.TIMEDSAMPLE_FREQ: {"value": 1, "validate": self._validate_uint},
-            Parameters.DYNBASE_SOFT_THRESHOLD: {
+            collect_public.Parameters.TIMEDSAMPLE_FREQ: {
+                "value": 1,
+                "validate": self._validate_uint,
+            },
+            collect_public.Parameters.DYNBASE_SOFT_THRESHOLD: {
                 "value": self._threshold_soft_base,
                 "validate": self._validate_uint,
             },
-            Parameters.DYNBASE_HARD_THRESHOLD: {
+            collect_public.Parameters.DYNBASE_HARD_THRESHOLD: {
                 "value": self._threshold_soft_base * self._hard_threshold_coefficient,
                 "validate": self._validate_uint,
             },
-            Parameters.THRESHOLD_MODE: {
+            collect_public.Parameters.THRESHOLD_MODE: {
                 "value": ThresholdMode.SOFT,
                 "validate": partial(self._validate_enum, ThresholdMode),
             },
@@ -369,7 +245,7 @@ class ParametersManager:
 
         :return: the parameter value if the validation is successful, else None
         """
-        param = Parameters(name)
+        param = collect_public.Parameters(name)
         validated = self.param_map[param]["validate"](value)
         if validated is not None:
             self.cli_params.append((param, validated))
@@ -393,9 +269,9 @@ class ParametersManager:
             self._default_keep_top = call_graph.coverage_max_cut()[1] + 1
         # Extract the user-supplied modes and parameters
         modes = [
-            Parameters.DIFF_CG_MODE,
-            Parameters.CG_SHAPING_MODE,
-            Parameters.THRESHOLD_MODE,
+            collect_public.Parameters.DIFF_CG_MODE,
+            collect_public.Parameters.CG_SHAPING_MODE,
+            collect_public.Parameters.THRESHOLD_MODE,
         ]
         cli_modes, cli_params = common_kit.partition_list(
             self.cli_params, lambda param: param[0] in modes
@@ -433,11 +309,11 @@ class ParametersManager:
             return
         # Keep the leaf functions if the total number of profiled functions is low
         if func_count <= self._functions_keep_leaves:
-            self[Parameters.DIFF_KEEP_LEAF] = True
-            self[Parameters.CG_PROJ_KEEP_LEAF] = True
+            self[collect_public.Parameters.DIFF_KEEP_LEAF] = True
+            self[collect_public.Parameters.CG_PROJ_KEEP_LEAF] = True
         # Keep-top: 10% of levels, minimum is default
         keep_top = max(math.ceil(level_count * self._keep_top_ratio), self._default_keep_top)
-        self[Parameters.STATIC_KEEP_TOP] = keep_top
+        self[collect_public.Parameters.STATIC_KEEP_TOP] = keep_top
 
     def _infer_modes(self, selected_pipeline, user_modes):
         """Predicts the mode parameters based on the used pipeline.
@@ -445,13 +321,13 @@ class ParametersManager:
         :param selected_pipeline: the currently selected pipeline
         :param user_modes: list of pairs with user-specified modes
         """
-        self[Parameters.DIFF_CG_MODE] = DiffCfgMode.COLORING
-        self[Parameters.CG_SHAPING_MODE] = CGShapingMode.TOP_DOWN
+        self[collect_public.Parameters.DIFF_CG_MODE] = DiffCfgMode.COLORING
+        self[collect_public.Parameters.CG_SHAPING_MODE] = CGShapingMode.TOP_DOWN
         # The selected pipeline determines the used modes
-        if selected_pipeline == Pipeline.BASIC:
-            self[Parameters.THRESHOLD_MODE] = ThresholdMode.STRICT
+        if selected_pipeline == collect_public.Pipeline.BASIC:
+            self[collect_public.Parameters.THRESHOLD_MODE] = ThresholdMode.STRICT
         else:
-            self[Parameters.THRESHOLD_MODE] = ThresholdMode.SOFT
+            self[collect_public.Parameters.THRESHOLD_MODE] = ThresholdMode.SOFT
         # Apply the user-supplied modes
         for mode_type, mode_value in user_modes:
             self[mode_type] = mode_value
@@ -467,18 +343,20 @@ class ParametersManager:
         # Determine the number of trimmed levels
         trim_levels = round(level_count * self._levels_ratio)
         # Set the trim levels
-        self[Parameters.CG_PROJ_LEVELS] = max(trim_levels, self._default_min_levels)
+        self[collect_public.Parameters.CG_PROJ_LEVELS] = max(trim_levels, self._default_min_levels)
 
     def _infer_thresholds(self):
         """Infer the threshold values based on the selected modes."""
         # Determine the thresholds based on the mode
         base = self._threshold_soft_base
-        if self[Parameters.THRESHOLD_MODE] == ThresholdMode.STRICT:
+        if self[collect_public.Parameters.THRESHOLD_MODE] == ThresholdMode.STRICT:
             base = self._threshold_strict_base
         # Set the threshold
-        self[Parameters.DYNSAMPLE_THRESHOLD] = base
-        self[Parameters.DYNBASE_SOFT_THRESHOLD] = base
-        self[Parameters.DYNBASE_HARD_THRESHOLD] = base * self._hard_threshold_coefficient
+        self[collect_public.Parameters.DYNSAMPLE_THRESHOLD] = base
+        self[collect_public.Parameters.DYNBASE_SOFT_THRESHOLD] = base
+        self[collect_public.Parameters.DYNBASE_HARD_THRESHOLD] = (
+            base * self._hard_threshold_coefficient
+        )
 
     def _infer_dynamic_probing(self, cli_params):
         """Predict parameters and threshold values for Dynamic Probing .
@@ -486,17 +364,22 @@ class ParametersManager:
         :param cli_params: a collection of user-supplied parameters
         """
         # Update the probing threshold if reattach is enabled and probing threshold is not set
-        probing_threshold_set = Parameters.PROBING_THRESHOLD in [param for param, _ in cli_params]
-        if self[Parameters.PROBING_REATTACH] and not probing_threshold_set:
+        probing_threshold_set = collect_public.Parameters.PROBING_THRESHOLD in [
+            param for param, _ in cli_params
+        ]
+        if self[collect_public.Parameters.PROBING_REATTACH] and not probing_threshold_set:
             probing_threshold = self._probing_threshold * self._probing_reattach_coefficient
-            self[Parameters.PROBING_THRESHOLD] = probing_threshold
+            self[collect_public.Parameters.PROBING_THRESHOLD] = probing_threshold
 
     def _extract_sources(self, binary):
         """Search for source files of the project in the binary directory, if none are given.
 
         :param binary: path to the binary executable
         """
-        files, dirs = self[Parameters.SOURCE_FILES], self[Parameters.SOURCE_DIRS]
+        files, dirs = (
+            self[collect_public.Parameters.SOURCE_FILES],
+            self[collect_public.Parameters.SOURCE_DIRS],
+        )
         # No need to extract if only source files are supplied
         if files and not dirs:
             return
@@ -505,7 +388,7 @@ class ParametersManager:
             dirs.append(os.path.dirname(binary))
 
         # Save the sources
-        self[Parameters.SOURCE_FILES] = list(set(_get_source_files(dirs, files)))
+        self[collect_public.Parameters.SOURCE_FILES] = list(set(_get_source_files(dirs, files)))
 
     @staticmethod
     def _validate_bool(value):

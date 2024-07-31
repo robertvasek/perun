@@ -38,7 +38,7 @@ from perun.utils.exceptions import (
     MissingConfigSectionException,
     TagOutOfRangeException,
 )
-from perun.utils.structs import Unit, Executable, Job
+from perun.utils.structs.common_structs import Unit, Executable, Job
 from perun.vcs import vcs_kit
 
 if TYPE_CHECKING:

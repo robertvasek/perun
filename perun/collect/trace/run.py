@@ -25,7 +25,7 @@ import perun.logic.runner as runner
 import perun.utils.log as stdout
 import perun.utils.metrics as metrics
 from perun.profile.factory import Profile
-from perun.utils.structs import CollectStatus
+from perun.utils.structs.common_structs import CollectStatus
 
 
 def before(executable, **kwargs):

@@ -18,7 +18,7 @@ from __future__ import annotations
 from perun.logic import config
 from perun.utils import log, decorators
 from perun.utils.common import common_kit
-from perun.utils.structs import GeneratorSpec
+from perun.utils.structs.common_structs import GeneratorSpec
 
 
 @decorators.resetable_always_singleton

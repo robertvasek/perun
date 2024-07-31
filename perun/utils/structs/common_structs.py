@@ -24,6 +24,8 @@ if TYPE_CHECKING:
     import numpy.typing as npt
     import numpy
 
+# TODO: think about breaking this into more modules and/or renaming it to something better
+
 
 class SignalCallback(Protocol):
     def __call__(self, *args: Any, **kwargs: Any) -> Any: ...

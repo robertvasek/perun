@@ -24,8 +24,7 @@ import click
 import jinja2
 
 # Perun Imports
-from perun.collect.trace.optimizations.optimization import Optimization
-from perun.collect.trace.optimizations.structs import CallGraphTypes
+from perun.utils.structs import collect_public
 from perun.logic import commands, store, stats, config, pcs
 from perun.profile import helpers as profile_helpers, query
 from perun.profile.factory import Profile
@@ -40,7 +39,7 @@ from perun.utils.exceptions import (
 import perun
 
 if TYPE_CHECKING:
-    from perun.utils.structs import MinorVersion
+    from perun.utils.structs.common_structs import MinorVersion
 
 
 def print_version(_: click.Context, __: click.Option, value: bool) -> None:
@@ -832,6 +831,8 @@ def set_optimization(_: click.Context, param: click.Argument, value: str) -> str
     :param value: value of the parameter
     :return: the value
     """
+    from perun.collect.trace.optimizations.optimization import Optimization
+
     # Set the optimization pipeline
     if param.human_readable_name == "optimization_pipeline":
         Optimization.set_pipeline(value)
@@ -854,6 +855,8 @@ def set_optimization_param(_: click.Context, __: click.Argument, value: str) -> 
     :param value: value of the parameter
     :return: the value
     """
+    from perun.collect.trace.optimizations.optimization import Optimization
+
     for param in value:
         # Process all parameters as 'parameter: value' tuples
         opt_name, opt_value = param[0], param[1]
@@ -871,6 +874,8 @@ def set_optimization_cache(_: click.Context, __: click.Option, value: str) -> No
     :param __: the click parameter
     :param value: value of the parameter
     """
+    from perun.collect.trace.optimizations.optimization import Optimization
+
     Optimization.resource_cache = not value
 
 
@@ -882,6 +887,8 @@ def reset_optimization_cache(_: click.Context, __: click.Option, value: str) -> 
     :param __: the click parameter
     :param value: value of the parameter
     """
+    from perun.collect.trace.optimizations.optimization import Optimization
+
     Optimization.reset_cache = value
 
 
@@ -892,7 +899,9 @@ def set_call_graph_type(_: click.Context, __: click.Argument, value: str) -> Non
     :param __: the click parameter
     :param value: value of the parameter
     """
-    Optimization.call_graph_type = CallGraphTypes(value)
+    from perun.collect.trace.optimizations.optimization import Optimization
+
+    Optimization.call_graph_type = collect_public.CallGraphTypes(value)
 
 
 def configure_metrics(_: click.Context, __: click.Option, value: tuple[str, str]) -> None:

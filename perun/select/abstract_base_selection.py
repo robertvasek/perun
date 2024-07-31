@@ -21,7 +21,7 @@ import abc
 
 
 if TYPE_CHECKING:
-    from perun.utils.structs import MinorVersion
+    from perun.utils.structs.common_structs import MinorVersion
     from perun.profile.factory import Profile
     from perun.profile.helpers import ProfileInfo
 

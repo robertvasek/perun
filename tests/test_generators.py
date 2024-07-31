@@ -14,7 +14,7 @@ from perun import workload
 from perun.logic import config, runner
 from perun.utils import decorators
 from perun.utils.common import common_kit
-from perun.utils.structs import Unit, Executable, CollectStatus, Job
+from perun.utils.structs.common_structs import Unit, Executable, CollectStatus, Job
 from perun.workload.external_generator import ExternalGenerator
 from perun.workload.generator import WorkloadGenerator
 from perun.workload.integer_generator import IntegerGenerator

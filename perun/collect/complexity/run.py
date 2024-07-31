@@ -22,7 +22,7 @@ from perun.collect.complexity import configurator, makefiles, symbols
 from perun.logic import runner
 from perun.utils import exceptions, log
 from perun.utils.external import commands
-from perun.utils.structs import Executable, CollectStatus
+from perun.utils.structs.common_structs import Executable, CollectStatus
 
 
 # The profiling record template

@@ -28,7 +28,7 @@ import perun.check.detection_kit as detection
 import perun.postprocess.regressogram.methods as nparam_methods
 
 if TYPE_CHECKING:
-    from perun.utils.structs import ModelRecord
+    from perun.utils.structs.common_structs import ModelRecord
 
 
 class Profile(MutableMapping[str, Any]):

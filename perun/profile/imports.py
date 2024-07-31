@@ -23,7 +23,7 @@ from perun.profile.factory import Profile
 from perun.utils import log, streams
 from perun.utils.common import script_kit, common_kit
 from perun.utils.external import commands as external_commands, environment
-from perun.utils.structs import MinorVersion
+from perun.utils.structs.common_structs import MinorVersion
 from perun.vcs import vcs_kit
 
 

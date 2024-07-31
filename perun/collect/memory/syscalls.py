@@ -14,7 +14,7 @@ import subprocess
 from perun.utils.exceptions import SuppressedExceptions
 
 if TYPE_CHECKING:
-    from perun.utils.structs import Executable
+    from perun.utils.structs.common_structs import Executable
 
 PATTERN_WORD = re.compile(r"(\w+)|[?]")
 PATTERN_HEXADECIMAL = re.compile(r"0x[0-9a-fA-F]+")

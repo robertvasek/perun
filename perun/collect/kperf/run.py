@@ -16,7 +16,7 @@ from perun.collect.kperf import parser
 from perun.logic import runner
 from perun.utils import log
 from perun.utils.common import script_kit
-from perun.utils.structs import Executable, CollectStatus
+from perun.utils.structs.common_structs import Executable, CollectStatus
 from perun.utils.external import commands
 from perun.utils.exceptions import SuppressedExceptions
 

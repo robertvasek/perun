@@ -16,7 +16,7 @@ import os
 from perun.logic import store
 from perun.testing.mock_results import PARAM_EXPECTED_RESULTS, NONPARAM_EXPECTED_RESULTS
 from perun.utils.log import aggregate_intervals
-from perun.utils.structs import PerformanceChange
+from perun.utils.structs.common_structs import PerformanceChange
 import perun.check.factory as check_factory
 
 

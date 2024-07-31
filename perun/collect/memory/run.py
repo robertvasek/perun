@@ -13,7 +13,7 @@ import click
 from perun.collect.memory import filter as filters, parsing as parser, syscalls
 from perun.logic import runner
 from perun.utils import log
-from perun.utils.structs import CollectStatus, Executable
+from perun.utils.structs.common_structs import CollectStatus, Executable
 
 
 _lib_name: str = "malloc.so"

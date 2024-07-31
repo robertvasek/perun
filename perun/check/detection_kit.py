@@ -21,7 +21,7 @@ from perun.check.methods import linear_regression, polynomial_regression, fast_c
 from perun.postprocess.regression_analysis import regression_models
 from perun.profile import query
 from perun.utils.common import common_kit
-from perun.utils.structs import (
+from perun.utils.structs.common_structs import (
     PerformanceChange,
     DegradationInfo,
     ModelRecord,

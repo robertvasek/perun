@@ -14,7 +14,7 @@ from perun.postprocess.regression_analysis import data_provider, methods, regres
 from perun.profile.factory import pass_profile, Profile
 from perun.utils import metrics
 from perun.utils.common import cli_kit
-from perun.utils.structs import PostprocessStatus
+from perun.utils.structs.common_structs import PostprocessStatus
 
 
 _DEFAULT_STEPS = 3

@@ -17,7 +17,7 @@ from perun.profile import helpers as profile_helpers
 from perun.profile.factory import Profile
 from perun.profile.helpers import ProfileInfo
 from perun.select.abstract_base_selection import AbstractBaseSelection
-from perun.utils.structs import MinorVersion
+from perun.utils.structs.common_structs import MinorVersion
 
 
 class WholeRepositorySelection(AbstractBaseSelection):

@@ -5,8 +5,8 @@ from __future__ import annotations
 # Third-Party Imports
 
 # Perun Imports
-from perun.utils.structs import DegradationInfo
-from perun.utils.structs import PerformanceChange as pc
+from perun.utils.structs.common_structs import DegradationInfo
+from perun.utils.structs.common_structs import PerformanceChange as pc
 
 
 _PREG_EXPECTED_RESULTS = [

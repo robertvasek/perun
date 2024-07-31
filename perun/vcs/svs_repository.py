@@ -18,7 +18,7 @@ import time
 # Third-Party Imports
 
 # Perun Imports
-from perun.utils.structs import MajorVersion, MinorVersion
+from perun.utils.structs.common_structs import MajorVersion, MinorVersion
 from perun.vcs.abstract_repository import AbstractRepository
 
 SINGLE_VERSION_BRANCH: str = "master"

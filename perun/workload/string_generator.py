@@ -35,7 +35,7 @@ import string
 # Third-Party Imports
 
 # Perun Imports
-from perun.utils.structs import Job
+from perun.utils.structs.common_structs import Job
 from perun.workload.generator import WorkloadGenerator
 
 

@@ -23,7 +23,7 @@ from perun.profile.factory import Profile
 from perun.utils import log
 from perun.utils.common import common_kit
 from perun.utils.exceptions import IncorrectProfileFormatException
-from perun.utils.structs import PerformanceChange, DegradationInfo
+from perun.utils.structs.common_structs import PerformanceChange, DegradationInfo
 
 
 INDEX_TAG_REGEX = re.compile(r"^(\d+)@i$")

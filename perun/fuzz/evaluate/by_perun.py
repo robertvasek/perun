@@ -14,13 +14,13 @@ from typing import TYPE_CHECKING, Iterable, Any
 # Perun Imports
 import perun.check.factory as check
 import perun.logic.runner as run
-from perun.utils.structs import PerformanceChange
+from perun.utils.structs.common_structs import PerformanceChange
 from perun.utils import log
 
 if TYPE_CHECKING:
     from perun.fuzz.structs import Mutation
     from perun.profile.factory import Profile
-    from perun.utils.structs import Executable, MinorVersion, CollectStatus, Job
+    from perun.utils.structs.common_structs import Executable, MinorVersion, CollectStatus, Job
 
 
 DEGRADATION_RATIO_THRESHOLD = 0.0
