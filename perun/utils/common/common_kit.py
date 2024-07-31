@@ -21,6 +21,7 @@ import operator
 import os
 import re
 import signal
+import statistics
 
 # Third-Party Imports
 import click
@@ -622,6 +623,29 @@ def ensure_type(obj: Any, target_type: Type[T]) -> T:
     if isinstance(obj, target_type):
         return obj
     return target_type(obj)  # type: ignore
+
+
+def aggregate_list(
+    input_list: list[float],
+    aggregation: Literal["sum", "min", "max", "avg", "mean", "med", "median"],
+) -> float:
+    """Aggregates list of values according to the given function
+
+    :param input_list: list of input values
+    :param aggregation: named aggregation function
+    :return: aggregation of the function
+    """
+    if aggregation == "sum":
+        return sum(input_list)
+    elif aggregation == "min":
+        return min(input_list)
+    elif aggregation == "max":
+        return max(input_list)
+    elif aggregation in ("avg", "mean"):
+        return statistics.mean(input_list)
+    elif aggregation in ("med", "median"):
+        return statistics.median(input_list)
+    assert False, f"Unknown aggregation {aggregation}"
 
 
 MODULE_CACHE: dict[str, types.ModuleType] = {}

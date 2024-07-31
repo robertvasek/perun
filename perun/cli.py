@@ -692,6 +692,14 @@ def show(ctx: click.Context, profile: Profile, **_: Any) -> None:
     help="Finds the profiles in the index of minor version [HASH]",
 )
 @click.option(
+    "--aggregate-by",
+    "-a",
+    default="median",
+    type=click.Choice(["sum", "min", "max", "avg", "mean", "med", "median"]),
+    callback=cli_kit.set_config_option_from_flag(perun_config.runtime, "profile.aggregation"),
+    help="Aggregates the resources in profiles by given statistical function (default=median).",
+)
+@click.option(
     "--offline",
     "-o",
     callback=cli_kit.set_config_option_from_flag(perun_config.runtime, "showdiff.offline"),
