@@ -1,6 +1,17 @@
 Changelog
 =========
 
+0.23.3 (2024-07-31)
+-------------------
+
+  - Add support of aggregations to showdiff visualizations
+  - Improve the perun import (allow multiple runs, exit codes, etc.)
+  - Unify progressbars
+  - Polish showdiff visualizations (update flamegraphs, add statistics, add scaling, etc.)
+  - Add delta debugging standalone command
+  - Fix minor issues (issue in perun status)
+
+
 0.23.2 (2024-07-22)
 -------------------
 
