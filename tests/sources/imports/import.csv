@@ -1,0 +1,3 @@
+#Stackfile,Exit_code,bogo-ops-per-second-real-time|bogo-ops-per-second|higher_is_better,stat2|stat2_unit|stat2_direction
+import.stack.gz,0,18511.379883,956.36
+import.stack,0,17894.875698,897.01

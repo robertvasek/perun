@@ -79,6 +79,24 @@ def test_imports(pcs_with_svs):
             "-c",
             "ls",
             "-w",
+            "..",
+            "-d",
+            pool_path,
+            "perf",
+            "stack",
+            "import.csv",
+        ],
+    )
+    assert result.exit_code == 0
+    assert len(os.listdir(os.path.join(".perun", "jobs"))) == 5
+
+    result = runner.invoke(
+        cli.cli,
+        [
+            "import",
+            "-c",
+            "ls",
+            "-w",
             ".",
             "perf",
             "record",
@@ -86,4 +104,4 @@ def test_imports(pcs_with_svs):
         ],
     )
     assert result.exit_code == 1
-    assert len(os.listdir(os.path.join(".perun", "jobs"))) == 4
+    assert len(os.listdir(os.path.join(".perun", "jobs"))) == 5
