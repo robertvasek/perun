@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.23.4 (2024-08-08)
+-------------------
+
+  - Extend perun import CLI with import directory option
+  - Extend perun import with option to specify custom profile stats
+  - Add support for importing profiles using a CSV file
+
 0.23.3 (2024-07-31)
 -------------------
 
