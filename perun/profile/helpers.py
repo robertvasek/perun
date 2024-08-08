@@ -17,12 +17,13 @@ handle the JSON objects in Python refer to `Python JSON library`_.
 from __future__ import annotations
 
 # Standard Imports
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, ClassVar
 import json
 import operator
 import os
 import re
 import time
+from dataclasses import dataclass
 
 # Third-Party Imports
 
@@ -609,3 +610,51 @@ class ProfileInfo:
         "checksum",
         "source",
     ]
+
+
+@dataclass
+class ProfileStat:
+    ALLOWED_ORDERING: ClassVar[dict[str, bool]] = {
+        "higher_is_better": True,
+        "lower_is_better": False,
+    }
+
+    name: str
+    unit: str = "#"
+    ordering: bool = True
+    tooltip: str = ""
+    value: int | float = 0.0
+
+    @classmethod
+    def from_string(
+        cls,
+        name: str = "empty",
+        unit: str = "#",
+        ordering: str = "higher_is_better",
+        tooltip: str = "",
+        *_: Any,
+    ) -> ProfileStat:
+        if name == "empty":
+            # Invalid stat specification, warn
+            perun_log.warn("Empty profile stat specification. Creating a dummy 'empty' stat.")
+        if ordering not in cls.ALLOWED_ORDERING:
+            # Invalid stat ordering, warn
+            perun_log.warn(
+                f"Unknown stat ordering: {ordering}. Please choose one of "
+                f"({', '.join(cls.ALLOWED_ORDERING.keys())}). "
+                f"Using the default stat ordering value."
+            )
+            ordering_bool = ProfileStat.ordering
+        else:
+            ordering_bool = cls.ALLOWED_ORDERING[ordering]
+        return cls(name, unit, ordering_bool, tooltip)
+
+    def get_normalized_tooltip(self) -> str:
+        # Find the string representation of the ordering to use in the tooltip
+        ordering: str = ""
+        for str_desc, bool_repr in self.ALLOWED_ORDERING.items():
+            if bool_repr == self.ordering:
+                ordering = str_desc.replace("_", " ")
+        if self.tooltip:
+            return f"{self.tooltip} ({ordering})"
+        return ordering

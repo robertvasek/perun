@@ -27,7 +27,7 @@ import click
 
 # Perun Imports
 from perun.logic import config
-from perun.profile import convert
+from perun.profile import convert, helpers as profile_helpers
 from perun.profile.factory import Profile
 from perun.templates import filters, factory as templates
 from perun.utils import log, mapping
@@ -63,7 +63,7 @@ class Config:
     def __init__(self) -> None:
         """Initializes the config
 
-        By default we consider, that the traces are not inclusive
+        By default, we consider that the traces are not inclusive
         """
         self.trace_is_inclusive: bool = False
         self.top_n_traces: int = self.DefaultTopN
@@ -71,9 +71,9 @@ class Config:
         self.max_seen_trace: int = 0
         self.max_per_resource: dict[str, float] = defaultdict(float)
         self.minimize: bool = False
-        self.profile_stats: dict[str, dict[str, float]] = {
-            "baseline": defaultdict(float),
-            "target": defaultdict(float),
+        self.profile_stats: dict[str, list[profile_helpers.ProfileStat]] = {
+            "baseline": [],
+            "target": [],
         }
 
 
@@ -526,13 +526,31 @@ def process_traces(
     saved_maxima = Config().max_per_resource
     for key in max_samples.keys():
         saved_maxima[key] = max(saved_maxima[key], max_samples[key])
-        Config().profile_stats[profile_type][
-            f"Overall {key};The overall value of the {key} for the root value"
-        ] = max_samples[key]
-    Config().profile_stats[profile_type][
-        "Maximal Trace Length;Maximal lenght of the trace in the profile"
-    ] = max_trace
+        # TODO: This is a bit of a hack since the key already contains the unit
+        name, unit = key.split("[", maxsplit=1)
+        name.rstrip()
+        unit = unit.rsplit("]", maxsplit=1)[0]
+        Config().profile_stats[profile_type].append(
+            profile_helpers.ProfileStat(
+                f"Overall {name}",
+                unit,
+                False,
+                f"The overall value of the {name} for the root value",
+                max_samples[key],
+            )
+        )
+    Config().profile_stats[profile_type].append(
+        profile_helpers.ProfileStat(
+            "Maximum Trace Length",
+            "#",
+            False,
+            "Maximum length of the trace in the profile",
+            max_trace,
+        )
+    )
     Config().max_seen_trace = max(max_trace, Config().max_seen_trace)
+    for stat in profile.get("stats", []):
+        Config().profile_stats[profile_type].append(profile_helpers.ProfileStat(**stat))
 
 
 def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
@@ -683,21 +701,6 @@ def extract_stats_from_trace(
     return uid_trace_stats
 
 
-def generate_profile_stats(
-    profile_type: Literal["baseline", "target"]
-) -> list[tuple[str, Any, str]]:
-    """Generates stats for baseline or target profile
-
-    :param profile_type: type of the profile
-    :return: list of tuples containing stats as tuples key, value and tooltip
-    """
-    profile_stats = []
-    for key, value in Config().profile_stats[profile_type].items():
-        stat_key, stat_tooltip = key.split(";")
-        profile_stats.append((stat_key, value, stat_tooltip))
-    return profile_stats
-
-
 def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -> None:
     """Generates differences of two profiles as sankey diagram
 
@@ -736,8 +739,9 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
     )
     log.minor_success("Sankey graphs", "generated")
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
-    lhs_stats, rhs_stats = diff_kit.generate_diff_of_headers(
-        generate_profile_stats("baseline"), generate_profile_stats("target")
+    lhs_stats, rhs_stats = diff_kit.generate_diff_of_stats(
+        Config().profile_stats["baseline"],
+        Config().profile_stats["target"],
     )
 
     env_filters = {"sanitize_variable_name": filters.sanitize_variable_name}
