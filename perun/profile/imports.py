@@ -146,7 +146,7 @@ def get_machine_info(machine_info: Optional[str] = None) -> dict[str, Any]:
         return environment.get_machine_specification()
 
 
-def import_profile(
+def import_perf_profile(
     profiles: ImportedProfiles,
     resources: list[dict[str, Any]],
     minor_version: MinorVersion,
@@ -239,7 +239,7 @@ def import_perf_from_record(
             log.error(f"Cannot load data due to: {err}")
         resources.extend(parser.parse_events(out.decode("utf-8").split("\n")))
         log.minor_success(log.path_style(str(imported_file.path)), "imported")
-    import_profile(profiles, resources, minor_version_info, with_sudo=with_sudo, **kwargs)
+    import_perf_profile(profiles, resources, minor_version_info, with_sudo=with_sudo, **kwargs)
 
 
 @vcs_kit.lookup_minor_version
@@ -263,7 +263,7 @@ def import_perf_from_script(
         log.minor_success(f"Raw data from {log.path_style(str(imported_file.path))}", "collected")
         resources.extend(parser.parse_events(out.decode("utf-8").split("\n")))
         log.minor_success(log.path_style(str(imported_file.path)), "imported")
-    import_profile(profiles, resources, minor_version_info, **kwargs)
+    import_perf_profile(profiles, resources, minor_version_info, **kwargs)
 
 
 @vcs_kit.lookup_minor_version
@@ -284,7 +284,7 @@ def import_perf_from_stack(
         out = load_file(imported_profile.path)
         resources.extend(parser.parse_events(out.split("\n")))
         log.minor_success(log.path_style(str(imported_profile.path)), "imported")
-    import_profile(profiles, resources, minor_version_info, **kwargs)
+    import_perf_profile(profiles, resources, minor_version_info, **kwargs)
 
 
 @vcs_kit.lookup_minor_version
