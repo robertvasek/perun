@@ -285,3 +285,13 @@ def import_perf_from_stack(
         resources.extend(parser.parse_events(out.split("\n")))
         log.minor_success(log.path_style(str(imported_profile.path)), "imported")
     import_profile(profiles, resources, minor_version_info, **kwargs)
+
+
+@vcs_kit.lookup_minor_version
+def import_elk_from_json(
+    imported: list[str],
+    minor_version: str,
+    **kwargs: Any,
+) -> None:
+    """"""
+    minor_version_info = pcs.vcs().get_minor_version_info(minor_version)

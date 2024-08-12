@@ -130,3 +130,30 @@ def from_stacks(ctx: click.Context, imported: list[str], **kwargs: Any) -> None:
     """
     kwargs.update(ctx.obj)
     imports.import_perf_from_stack(imported, **kwargs)
+
+
+@import_group.group("elk")
+@click.pass_context
+def elk_group(ctx: click.Context, **kwargs: Any) -> None:
+    """Imports Perun profiles from elk results
+
+    By ELK we mean Elasticsearch Stack (Elasticsearch, Logstash, Kibana)
+
+    We assume the data are already flattened and are in form of:
+
+        [{key: value, ...}, ...]
+
+    The command supports profiles collected in:
+
+      1. JSON format: files, that are extracted from ELK or are stored using format compatible with ELK.
+    """
+    ctx.obj.update(kwargs)
+
+
+@perf_group.command("json")
+@click.argument("imported", nargs=-1, required=True)
+@click.pass_context
+def from_json(ctx: click.Context, imported: list[str], **kwargs: Any) -> None:
+    """Imports Perun profiles from json compatible with elk infrastructure"""
+    kwargs.update(ctx.obj)
+    imports.import_elk_from_json(imported, **kwargs)
