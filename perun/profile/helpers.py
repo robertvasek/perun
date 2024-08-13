@@ -620,23 +620,24 @@ class ProfileStat:
     }
 
     name: str
-    unit: str = "#"
     ordering: bool = True
+    unit: str = "#"
     tooltip: str = ""
     value: int | float = 0.0
 
     @classmethod
     def from_string(
         cls,
-        name: str = "empty",
-        unit: str = "#",
+        name: str = "<empty>",
         ordering: str = "higher_is_better",
+        unit: str = "#",
         tooltip: str = "",
         *_: Any,
     ) -> ProfileStat:
-        if name == "empty":
+        if name == "<empty>":
             # Invalid stat specification, warn
-            perun_log.warn("Empty profile stat specification. Creating a dummy 'empty' stat.")
+            perun_log.warn("Empty profile stat specification. Creating a dummy '<empty>' stat.")
+        ordering = ordering.strip()
         if ordering not in cls.ALLOWED_ORDERING:
             # Invalid stat ordering, warn
             perun_log.warn(
@@ -647,7 +648,7 @@ class ProfileStat:
             ordering_bool = ProfileStat.ordering
         else:
             ordering_bool = cls.ALLOWED_ORDERING[ordering]
-        return cls(name, unit, ordering_bool, tooltip)
+        return cls(name, ordering_bool, unit, tooltip)
 
     def get_normalized_tooltip(self) -> str:
         # Find the string representation of the ordering to use in the tooltip

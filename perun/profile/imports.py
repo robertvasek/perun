@@ -122,10 +122,11 @@ class ImportedProfiles:
             # Empty profile specification, warn
             log.warn("Empty import profile specification. Skipping.")
         else:
+            # Make sure we strip the leading and trailing whitespaces in each column value
             profile_info = ImportProfileSpec(
-                self.import_dir / target[0],
-                int(target[1]) if len(target) >= 2 else ImportProfileSpec.exit_code,
-                list(map(float, target[2:])),
+                self.import_dir / target[0].strip(),
+                int(target[1].strip()) if len(target) >= 2 else ImportProfileSpec.exit_code,
+                list(map(lambda stat_value: float(stat_value.strip()), target[2:])),
             )
             if profile_info.exit_code != 0:
                 log.warn("Importing a profile with non-zero exit code.")
