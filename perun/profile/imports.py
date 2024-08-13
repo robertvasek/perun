@@ -18,7 +18,7 @@ import gzip
 
 # Perun Imports
 from perun.collect.kperf import parser
-from perun.profile import helpers as p_helpers
+from perun.profile import helpers as profile_helpers
 from perun.logic import commands, index, pcs
 from perun.utils import log, streams
 from perun.utils.common import script_kit, common_kit
@@ -55,12 +55,12 @@ class ImportedProfiles:
     def __init__(self, targets: list[str], import_dir: str | None, stats_info: str | None) -> None:
         self.import_dir: Path = Path(import_dir) if import_dir is not None else Path.cwd()
         # Parse the CLI stats if available
-        self.stats: list[p_helpers.ProfileStat] = []
+        self.stats: list[profile_helpers.ProfileStat] = []
         self.profiles: list[ImportProfileSpec] = []
 
         if stats_info is not None:
             self.stats = [
-                p_helpers.ProfileStat.from_string(*stat.split("|"))
+                profile_helpers.ProfileStat.from_string(*stat.split("|"))
                 for stat in stats_info.split(",")
             ]
 
@@ -78,12 +78,12 @@ class ImportedProfiles:
     def __len__(self) -> int:
         return len(self.profiles)
 
-    def get_exit_codes(self) -> str:
-        return ", ".join(str(p.exit_code) for p in self.profiles)
+    def get_exit_codes(self) -> list[int]:
+        return [p.exit_code for p in self.profiles]
 
     def aggregate_stats(
         self, agg: Callable[[list[float | int]], float]
-    ) -> Iterator[p_helpers.ProfileStat]:
+    ) -> Iterator[profile_helpers.ProfileStat]:
         stat_value_lists: list[list[float | int]] = [[] for _ in range(len(self.stats))]
         for profile in self.profiles:
             value_list: list[float | int]
@@ -98,8 +98,8 @@ class ImportedProfiles:
         with open(self.import_dir / target, "r") as csvfile:
             csv_reader = csv.reader(csvfile, delimiter=",")
             header: list[str] = next(csv_reader)
-            stats: list[p_helpers.ProfileStat] = [
-                p_helpers.ProfileStat.from_string(*stat_definition.split("|"))
+            stats: list[profile_helpers.ProfileStat] = [
+                profile_helpers.ProfileStat.from_string(*stat_definition.split("|"))
                 for stat_definition in header[2:]
             ]
             # Parse the CSV stat definition and check that they are not in conflict with the CLI
@@ -122,13 +122,14 @@ class ImportedProfiles:
             # Empty profile specification, warn
             log.warn("Empty import profile specification. Skipping.")
         else:
-            self.profiles.append(
-                ImportProfileSpec(
-                    self.import_dir / target[0],
-                    int(target[1]) if len(target) >= 2 else ImportProfileSpec.exit_code,
-                    list(map(float, target[2:])),
-                )
+            profile_info = ImportProfileSpec(
+                self.import_dir / target[0],
+                int(target[1]) if len(target) >= 2 else ImportProfileSpec.exit_code,
+                list(map(float, target[2:])),
             )
+            if profile_info.exit_code != 0:
+                log.warn("Importing a profile with non-zero exit code.")
+            self.profiles.append(profile_info)
 
 
 def load_file(filepath: Path) -> str:
@@ -226,7 +227,7 @@ def save_imported_profile(prof: Profile, save_to_index: bool, minor_version: Min
     :param minor_version: minor version corresponding to the imported profiles
     :param save_to_index: indication whether we should save the imported profiles to index
     """
-    full_profile_name = p_helpers.generate_profile_name(prof)
+    full_profile_name = profile_helpers.generate_profile_name(prof)
     profile_directory = pcs.get_job_directory()
     full_profile_path = os.path.join(profile_directory, full_profile_name)
 

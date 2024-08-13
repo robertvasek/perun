@@ -79,7 +79,7 @@ def generate_header(profile: Profile) -> list[tuple[str, Any, str]]:
     :return: list of tuples (key and value)
     """
     command = " ".join([profile["header"]["cmd"], profile["header"]["workload"]]).strip()
-    exitcode = profile["header"].get("exitcode", "?")
+    exitcode = _format_exit_codes(profile["header"].get("exitcode", "?"))
     machine_info = profile.get("machine", {})
     return [
         (
@@ -88,7 +88,7 @@ def generate_header(profile: Profile) -> list[tuple[str, Any, str]]:
             "The version control version, for which the profile was measured.",
         ),
         ("command", command, "The workload / command, for which the profile was measured."),
-        ("exitcode", exitcode, "The maximal exit code that was returned by underlying command."),
+        ("exitcode", exitcode, "The exit code that was returned by the underlying command."),
         (
             "collector command",
             log.collector_to_command(profile.get("collector_info", {})),
@@ -175,6 +175,20 @@ def _color_stat_value_diff(
             f'font-weight: bold">{rhs_value}</span>'
         )
     return lhs_value, rhs_value
+
+
+def _format_exit_codes(exit_code: str | list[str] | list[int]) -> str:
+    # Unify the exit code types
+    exit_codes: list[str] = []
+    if isinstance(exit_code, str):
+        exit_codes.append(exit_code)
+    else:
+        exit_codes = list(map(str, exit_code))
+    # Color exit codes that are not zero
+    return ", ".join(
+        code if code == "0" else f'<span style="color: red; font-weight: bold">{code}</span>'
+        for code in exit_codes
+    )
 
 
 def generate_diff_of_stats(
