@@ -191,6 +191,10 @@ def import_perf_profile(
     )
     prof.update({"postprocessors": []})
 
+    save_imported_profile(prof, save_to_index, minor_version)
+
+
+def save_imported_profile(prof, save_to_index, minor_version):
     full_profile_name = p_helpers.generate_profile_name(prof)
     profile_directory = pcs.get_job_directory()
     full_profile_path = os.path.join(profile_directory, full_profile_name)
