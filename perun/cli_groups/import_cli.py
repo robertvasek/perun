@@ -150,7 +150,7 @@ def elk_group(ctx: click.Context, **kwargs: Any) -> None:
     ctx.obj.update(kwargs)
 
 
-@perf_group.command("json")
+@elk_group.command("json")
 @click.argument("imported", nargs=-1, required=True)
 @click.pass_context
 def from_json(ctx: click.Context, imported: list[str], **kwargs: Any) -> None:

@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 # Standard Imports
-from typing import Any, Optional, Iterator, Callable
-from pathlib import Path
-import json
-import csv
-import os
-import subprocess
-import statistics
+from collections import defaultdict
 from dataclasses import dataclass, field, asdict
+from pathlib import Path
+from typing import Any, Optional, Iterator, Callable
+import csv
+import json
+import os
+import statistics
+import subprocess
 
 # Third-Party Imports
 import gzip
@@ -20,7 +21,7 @@ from perun.collect.kperf import parser
 from perun.profile import helpers as p_helpers
 from perun.logic import commands, index, pcs
 from perun.utils import log, streams
-from perun.utils.common import script_kit
+from perun.utils.common import script_kit, common_kit
 from perun.utils.external import commands as external_commands, environment
 from perun.utils.structs import MinorVersion
 from perun.profile.factory import Profile
@@ -291,6 +292,102 @@ def import_perf_from_stack(
     import_perf_profile(profiles, resources, minor_version_info, **kwargs)
 
 
+def extract_machine_info_from_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
+    machine_info = {
+        "architecture": metadata.get("machine.arch", "?"),
+        "system": metadata.get("machine.os", "?").capitalize(),
+        "release": metadata.get("extra.machine.platform", "?"),
+        "host": metadata.get("machine.hostname", "?"),
+        "cpu": {
+            "physical": "?",
+            "total": metadata.get("machine.cpu-cores", "?"),
+            "frequency": "?",
+        },
+        "memory": {
+            "total_ram": metadata.get("machine.ram", "?"),
+            "swap": "?",
+        },
+    }
+
+    machine_info["boot_info"] = "?"
+    machine_info["mem_details"] = {}
+    machine_info["cpu_details"] = []
+    return machine_info
+
+
+def import_elk_profile(
+    resources: list[dict[str, Any]],
+    metadata: dict[str, Any],
+    minor_version: MinorVersion,
+    save_to_index: bool = False,
+    **kwargs: Any,
+) -> None:
+    prof = Profile(
+        {
+            "global": {
+                "time": "???",
+                "resources": resources,
+            }
+        }
+    )
+    prof.update({"origin": minor_version.checksum})
+    prof.update({"metadata": metadata})
+    prof.update({"machine": extract_machine_info_from_metadata(metadata)})
+    prof.update(
+        {
+            "header": {
+                "type": "time",
+                "cmd": kwargs.get("cmd", ""),
+                "exitcode": "?",
+                "workload": kwargs.get("workload", ""),
+                "units": {"time": "sample"},
+            }
+        }
+    )
+    prof.update(
+        {
+            "collector_info": {
+                "name": "???",
+                "params": {},
+            }
+        }
+    )
+    prof.update({"postprocessors": []})
+
+    save_imported_profile(prof, save_to_index, minor_version)
+
+
+def extract_from_elk(
+    elk_query: list[dict[str, Any]]
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    res_counter = defaultdict(set)
+    for res in elk_query:
+        for key, val in res.items():
+            res_counter[key].add(val)
+    metadata_keys = {
+        k
+        for (k, v) in res_counter.items()
+        if not k.startswith("metric") and not k.startswith("benchmarking") and len(v) == 1
+    }
+
+    metadata = {k: res_counter[k].pop() for k in metadata_keys}
+    resources = [
+        {
+            k: common_kit.try_convert(v, [int, float, str])
+            for k, v in res.items()
+            if k not in metadata_keys
+        }
+        for res in elk_query
+    ]
+    # We register uid
+    for res in resources:
+        res["uid"] = res["metric.name"]
+        res["benchmarking.time"] = res["benchmarking.end-ts"] - res["benchmarking.start-ts"]
+        res.pop("benchmarking.end-ts")
+        res.pop("benchmarking.start-ts")
+    return resources, metadata
+
+
 @vcs_kit.lookup_minor_version
 def import_elk_from_json(
     imported: list[str],
@@ -299,3 +396,17 @@ def import_elk_from_json(
 ) -> None:
     """"""
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
+
+    resources: list[dict[str, Any]] = []
+    metadata: dict[str, Any] = {}
+    for imported_file in imported:
+        with open(imported_file, "r") as imported_handle:
+            imported_json = json.load(imported_handle)
+            assert (
+                "queries" in imported_json.keys()
+            ), "expected the JSON to contain list of dictionaries in 'queries' key"
+            r, m = extract_from_elk(imported_json["queries"])
+        resources.extend(r)
+        metadata.update(m)
+        log.minor_success(log.path_style(str(imported_file)), "imported")
+    import_elk_profile(resources, metadata, minor_version_info, **kwargs)

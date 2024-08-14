@@ -54,6 +54,10 @@ class Profile(MutableMapping[str, Any]):
         "address",
         "timestamp",
         "exclusive",
+        "metric.iteration",
+        "metric.value",
+        "metric.score-value",
+        "metric.percentile",
     }
     persistent = {"trace", "type", "subtype", "uid", "location"}
 
