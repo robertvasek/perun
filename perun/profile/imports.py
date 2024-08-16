@@ -41,6 +41,12 @@ class ImportProfileSpec:
 
 
 class ImportedProfiles:
+    """
+    TODO: I am actually thinking, if this really had to be in class, it really obcures the functionality now
+    TODO: the import-dir could be removed by extracting this funcitonality to command-line callback and massage
+    the paths during the CLI parsing; hence assuming that the paths are correct when importing.
+    """
+
     __slots__ = "import_dir", "stats", "profiles"
 
     def __init__(self, targets: list[str], import_dir: str | None, stats_info: str | None) -> None:
@@ -123,6 +129,11 @@ class ImportedProfiles:
 
 
 def load_file(filepath: Path) -> str:
+    """Tests if the file is packed by gzip and unpacks it, otherwise reads it as a text file
+
+    :param filepath: path with source file
+    :return: the content of the file
+    """
     if filepath.suffix.lower() == ".gz":
         with open(filepath, "rb") as f:
             header = f.read(2)
@@ -156,6 +167,16 @@ def import_perf_profile(
     save_to_index: bool = False,
     **kwargs: Any,
 ) -> None:
+    """Constructs the profile for perf-collected data and saves them to jobs or index
+
+    :param profiles: list of to-be-imported profiles
+    :param resources: list of parsed resources
+    :param minor_version: minor version corresponding to the imported profiles
+    :param machine_info: additional dictionary with machine specification
+    :param with_sudo: indication whether the data were collected with sudo
+    :param save_to_index: indication whether we should save the imported profiles to index
+    :param kwargs: rest of the paramters
+    """
     prof = Profile(
         {
             "global": {
@@ -195,7 +216,13 @@ def import_perf_profile(
     save_imported_profile(prof, save_to_index, minor_version)
 
 
-def save_imported_profile(prof, save_to_index, minor_version):
+def save_imported_profile(prof: Profile, save_to_index: bool, minor_version: MinorVersion) -> None:
+    """Saves the imported profile either to index or to pending jobs
+
+    :param prof: imported profile
+    :param minor_version: minor version corresponding to the imported profiles
+    :param save_to_index: indication whether we should save the imported profiles to index
+    """
     full_profile_name = p_helpers.generate_profile_name(prof)
     profile_directory = pcs.get_job_directory()
     full_profile_path = os.path.join(profile_directory, full_profile_name)
@@ -221,7 +248,18 @@ def import_perf_from_record(
     with_sudo: bool = False,
     **kwargs: Any,
 ) -> None:
-    """Imports profile collected by `perf record`"""
+    """Imports profile collected by `perf record`
+
+    It does some black magic in ImportedProfiles probably, then for each filename it runs the
+    perf script + parser script to generate the profile.
+
+    :param imported: list of files with imported data
+    :param import_dir: different directory for importing the profiles
+    :param stats_info: additional statistics collected for the profile (i.e. non-resource types)
+    :param minor_version: minor version corresponding to the imported profiles
+    :param with_sudo: indication whether the data were collected with sudo
+    :param kwargs: rest of the paramters
+    """
     parse_script = script_kit.get_script("stackcollapse-perf.pl")
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
 
@@ -255,7 +293,17 @@ def import_perf_from_script(
     minor_version: str,
     **kwargs: Any,
 ) -> None:
-    """Imports profile collected by `perf record; perf script`"""
+    """Imports profile collected by `perf record | perf script`
+
+    It does some black magic in ImportedProfiles probably, then for each filename it runs the
+    parser script to generate the profile.
+
+    :param imported: list of files with imported data
+    :param import_dir: different directory for importing the profiles
+    :param stats_info: additional statistics collected for the profile (i.e. non-resource types)
+    :param minor_version: minor version corresponding to the imported profiles
+    :param kwargs: rest of the paramters
+    """
     parse_script = script_kit.get_script("stackcollapse-perf.pl")
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
 
@@ -279,7 +327,16 @@ def import_perf_from_stack(
     minor_version: str,
     **kwargs: Any,
 ) -> None:
-    """Imports profile collected by `perf record; perf script | stackcollapse-perf.pl`"""
+    """Imports profile collected by `perf record | perf script`
+
+    It does some black magic in ImportedProfiles probably, then for each filename parses the files.
+
+    :param imported: list of files with imported data
+    :param import_dir: different directory for importing the profiles
+    :param stats_info: additional statistics collected for the profile (i.e. non-resource types)
+    :param minor_version: minor version corresponding to the imported profiles
+    :param kwargs: rest of the paramters
+    """
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
     profiles = ImportedProfiles(imported, import_dir, stats_info)
 
@@ -293,6 +350,14 @@ def import_perf_from_stack(
 
 
 def extract_machine_info_from_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
+    """Extracts the parts of the profile, that corresponds to machine info
+
+    Note that not many is collected from the ELK formats and it can vary greatly,
+    hence, most of the machine specification and environment should be in metadata instead.
+
+    :param metadata: metadata extracted from the ELK profiles
+    :return: machine info extracted from the profiles
+    """
     machine_info = {
         "architecture": metadata.get("machine.arch", "?"),
         "system": metadata.get("machine.os", "?").capitalize(),
@@ -322,6 +387,14 @@ def import_elk_profile(
     save_to_index: bool = False,
     **kwargs: Any,
 ) -> None:
+    """Constructs the profile for elk-stored data and saves them to jobs or index
+
+    :param resources: list of parsed resources
+    :param metadata: parts of the profiles that will be stored as metadata in the profile
+    :param minor_version: minor version corresponding to the imported profiles
+    :param save_to_index: indication whether we should save the imported profiles to index
+    :param kwargs: rest of the paramters
+    """
     prof = Profile(
         {
             "global": {
@@ -360,6 +433,15 @@ def import_elk_profile(
 def extract_from_elk(
     elk_query: list[dict[str, Any]]
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """For the given elk query, extracts resources and metadata.
+
+    For metadata we consider any key that has only single value through the profile,
+    and is not linked to keywords `metric` or `benchmarking`.
+    For resources we consider anything that is not identified as metadata
+
+    :param elk_query: query from the elk in form of list of resource
+    :return: list of resources and metadata
+    """
     res_counter = defaultdict(set)
     for res in elk_query:
         for key, val in res.items():
@@ -394,7 +476,14 @@ def import_elk_from_json(
     minor_version: str,
     **kwargs: Any,
 ) -> None:
-    """"""
+    """Imports the ELK stored data from the json data.
+
+    The loading expects the json files to be in form of `{'queries': []}`.
+
+    :param imported: list of filenames with elk data.
+    :param minor_version: minor version corresponding to the imported profiles
+    :param kwargs: rest of the paramters
+    """
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
 
     resources: list[dict[str, Any]] = []
