@@ -496,7 +496,7 @@ def process_traces(
     max_trace = 0
     max_samples: dict[str, float] = defaultdict(float)
     for _, resource in log.progress(profile.all_resources(), description="Processing Traces"):
-        full_trace = [convert.to_uid(t, Config().minimize) for t in resource["trace"]]
+        full_trace = [convert.to_uid(t, Config().minimize) for t in resource.get("trace", {})]
         full_trace.append(convert.to_uid(resource["uid"], Config().minimize))
         trace_len = len(full_trace)
         max_trace = max(max_trace, trace_len)
@@ -743,6 +743,7 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
         Config().profile_stats["baseline"],
         Config().profile_stats["target"],
     )
+    lhs_meta, rhs_meta = diff_kit.generate_metadata(lhs_profile, rhs_profile)
 
     env_filters = {"sanitize_variable_name": filters.sanitize_variable_name}
     template = templates.get_template("diff_view_report.html.jinja2", filters=env_filters)
@@ -751,11 +752,11 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
         lhs_tag="Baseline (base)",
         lhs_header=lhs_header,
         lhs_stats=lhs_stats,
-        lhs_metadata=lhs_profile.get("metadata", {}),
+        lhs_metadata=lhs_meta,
         rhs_tag="Target (tgt)",
         rhs_header=rhs_header,
         rhs_stats=rhs_stats,
-        rhs_metadata=rhs_profile.get("metadata", {}),
+        rhs_metadata=rhs_meta,
         palette=WebColorPalette,
         callee_graph=graph.to_jinja_string("callees"),
         caller_graph=graph.to_jinja_string("callers"),

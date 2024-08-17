@@ -308,8 +308,9 @@ def test_common(capsys):
             raise Exception
 
     assert mapping.from_readable_key("Allocated Memory [B]") == "amount"
-    with pytest.raises(AssertionError):
-        mapping.get_unit("unsupported")
+    assert mapping.from_readable_key("Benchmarking Time [ms]") == "benchmarking.time"
+    assert mapping.get_readable_key("benchmarking.time") == "Benchmarking Time [ms]"
+    assert mapping.get_unit("unsupported") == "?"
 
     assert common_kit.hide_generics("std::vector<std::vector<std::string>>") == "std::vector<>"
     assert external_commands.is_executable("nonexisting") == False

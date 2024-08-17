@@ -12,6 +12,7 @@ import re
 
 # Perun Imports
 from perun.logic import config
+from perun.utils import log
 
 
 def get_readable_key(key: str) -> str:
@@ -20,7 +21,7 @@ def get_readable_key(key: str) -> str:
     :param key: transformed key
     :return: human readable key
     """
-    profiles = config.runtime().get("context.profiles")
+    profiles = config.runtime().safe_get("context.profiles", default=[])
     if key == "amount":
         if all(
             p.get("collector_info", {}).get("name") == "kperf"
@@ -36,6 +37,8 @@ def get_readable_key(key: str) -> str:
             return "Allocated Memory [B]"
     if key == "ncalls":
         return "Number of Calls [#]"
+    if key == "benchmarking.time":
+        return "Benchmarking Time [ms]"
     if key in ("I Mean", "I Max", "I Min"):
         return key.replace("I ", "Inclusive ") + " [ms]"
     if key in ("E Mean", "E Max", "E Min"):
@@ -55,6 +58,8 @@ def from_readable_key(key: str) -> str:
         return "amount"
     if key == "Number of Calls [#]":
         return "ncalls"
+    if key == "Benchmarking Time [ms]":
+        return "benchmarking.time"
     if key in ("Inclusive Mean [ms]", "Inclusive Max [ms]", "Inclusive Min [ms]"):
         return key.replace("Inclusive ", "I ").replace(" [ms]", "")
     if key in ("Exclusive Mean [ms]", "Exclusive Max [ms]", "Exclusive Min [ms]"):
@@ -70,4 +75,5 @@ def get_unit(key: str) -> str:
     if m := re.search(r"\[(?P<unit>[^]]+)\]", key):
         return m.group("unit")
     else:
-        assert False, f"Unsupported unit for '{key}'"
+        log.warn(f"Unregistered unit for '{key}'")
+        return "?"
