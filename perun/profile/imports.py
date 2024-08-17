@@ -42,9 +42,12 @@ class ImportProfileSpec:
 
 class ImportedProfiles:
     """
-    TODO: I am actually thinking, if this really had to be in class, it really obcures the functionality now
-    TODO: the import-dir could be removed by extracting this funcitonality to command-line callback and massage
-    the paths during the CLI parsing; hence assuming that the paths are correct when importing.
+    Note: I would reconsider this class or refactor it, removing the logical elements, it obfuscates the logic a little
+      and makes the functions less readable (there are not streams/pipes as is most of the logic/perun); I for one am
+      rather "fan" of generic functions that takes structures and returns structure than classes with methods/logic.
+    TODO: the import-dir could be removed by extracting this functionality to command-line callback and massage
+    the paths during the CLI parsing; hence assuming that the paths are correct when importing. I think the parameter
+    only complicates the code.
     """
 
     __slots__ = "import_dir", "stats", "profiles"
