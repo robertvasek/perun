@@ -258,3 +258,21 @@ def generate_headers(
     lhs_header = generate_header(lhs_profile)
     rhs_header = generate_header(rhs_profile)
     return generate_diff_of_headers(lhs_header, rhs_header)
+
+
+def generate_metadata(
+    lhs_profile: Profile, rhs_profile: Profile
+) -> tuple[list[tuple[str, Any, str]], list[tuple[str, Any, str]]]:
+    """Generates metadata for lhs and rhs profile
+
+    :param lhs_profile: profile for baseline
+    :param rhs_profile: profile for target
+    :return: pair of metadata for lhs (baseline) and rhs (target)
+    """
+    lhs_metadata = sorted(
+        [(k, v, "") for k, v in lhs_profile.get("metadata", {}).items()], key=lambda x: x[0]
+    )
+    rhs_metadata = sorted(
+        [(k, v, "") for k, v in rhs_profile.get("metadata", {}).items()], key=lambda x: x[0]
+    )
+    return generate_diff_of_headers(lhs_metadata, rhs_metadata)

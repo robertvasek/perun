@@ -103,6 +103,10 @@
     <div style="margin: 0 10px;">&nbsp;</div>
     {{ profile_overview.overview_table('toggleLeftProfileCollapse', 'left-profile-info', lhs_stats, rhs_stats, "Profile Stats") }}
     <div style="margin: 0 10px;">&nbsp;</div>
+    {%- if rhs_metadata%}
+    {{ profile_overview.overview_table('toggleLeftMetadataCollapse', 'left-metadata-info', lhs_metadata, rhs_metadata, "Profile Metadata") }}
+    <div style="margin: 0 10px;">&nbsp;</div>
+    {%- endif %}
 </div>
 
 <div class="right column">
@@ -111,6 +115,10 @@
     <div style="margin: 0 10px;">&nbsp;</div>
     {{ profile_overview.overview_table('toggleRightProfileCollapse', 'right-profile-info', rhs_stats, lhs_stats, "Profile Stats") }}
     <div style="margin: 0 10px;">&nbsp;</div>
+    {%- if rhs_metadata%}
+    {{ profile_overview.overview_table('toggleRightMetadata', 'right-metadata-info', rhs_metadata, lhs_metadata, "Profile Metadata") }}
+    <div style="margin: 0 10px;">&nbsp;</div>
+    {%- endif %}
 </div>
 
 <div class="tools">
@@ -167,8 +175,10 @@
 <script>
 {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
 {{ profile_overview.toggle_script('toggleLeftProfileCollapse', 'left-profile-info') }}
+{{ profile_overview.toggle_script('toggleLeftMetadataCollapse', 'left-metadata-info') }}
 {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
 {{ profile_overview.toggle_script('toggleRightProfileCollapse', 'right-profile-info') }}
+{{ profile_overview.toggle_script('toggleRightMetadataCollapse', 'right-metadata-info') }}
 {{ accordion.script("table-row") }}
 
 function switch_type() {
@@ -224,8 +234,10 @@ window.addEventListener('resize', resize);
 switch_type()
 toggleLeftCollapse();
 toggleLeftProfileCollapse();
+toggleLeftMetadataCollapse();
 toggleRightCollapse();
 toggleRightProfileCollapse();
+toggleRightMetadataCollapse();
 
 </script>
 

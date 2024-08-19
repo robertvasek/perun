@@ -105,3 +105,15 @@ def test_imports(pcs_with_svs):
     )
     assert result.exit_code == 1
     assert len(os.listdir(os.path.join(".perun", "jobs"))) == 5
+
+    result = runner.invoke(
+        cli.cli,
+        [
+            "import",
+            "elk",
+            "json",
+            os.path.join(pool_path, "import-elk.json"),
+        ],
+    )
+    assert result.exit_code == 0
+    assert len(os.listdir(os.path.join(".perun", "jobs"))) == 6

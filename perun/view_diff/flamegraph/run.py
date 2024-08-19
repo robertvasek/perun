@@ -254,6 +254,7 @@ def generate_flamegraph_difference(
         ),
     )
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
+    lhs_meta, rhs_meta = diff_kit.generate_metadata(lhs_profile, rhs_profile)
 
     template = templates.get_template("diff_view_flamegraph.html.jinja2")
     content = template.render(
@@ -262,11 +263,13 @@ def generate_flamegraph_difference(
         lhs_tag="Baseline (base)",
         lhs_top=table_run.get_top_n_records(lhs_profile, top_n=10, aggregated_key=data_type),
         lhs_stats=lhs_final_stats,
+        lhs_metadata=lhs_meta,
         lhs_uids=get_uids(lhs_profile),
         rhs_header=rhs_header,
         rhs_tag="Target (tgt)",
         rhs_top=table_run.get_top_n_records(rhs_profile, top_n=10, aggregated_key=data_type),
         rhs_stats=rhs_final_stats,
+        rhs_metadata=rhs_meta,
         rhs_uids=get_uids(rhs_profile),
         title="Differences of profiles (with flamegraphs)",
         data_types=data_types,
