@@ -4,27 +4,26 @@ from __future__ import annotations
 
 # Standard Imports
 from collections import defaultdict
-from dataclasses import dataclass, field, asdict
-from pathlib import Path
-from typing import Any, Optional, Iterator, Callable
 import csv
+from dataclasses import dataclass, field, asdict
+import gzip
 import json
 import os
-import statistics
+from pathlib import Path
 import subprocess
+from typing import Any, Optional, Iterator
 
 # Third-Party Imports
-import gzip
 
 # Perun Imports
 from perun.collect.kperf import parser
-from perun.profile import helpers as profile_helpers
 from perun.logic import commands, index, pcs
+from perun.profile import helpers as profile_helpers, stats as profile_stats
+from perun.profile.factory import Profile
 from perun.utils import log, streams
 from perun.utils.common import script_kit, common_kit
 from perun.utils.external import commands as external_commands, environment
 from perun.utils.structs import MinorVersion
-from perun.profile.factory import Profile
 from perun.vcs import vcs_kit
 
 
@@ -37,7 +36,7 @@ from perun.vcs import vcs_kit
 class ImportProfileSpec:
     path: Path
     exit_code: int = 0
-    values: list[float] = field(default_factory=list)
+    values: list[float | str] = field(default_factory=list)
 
 
 class ImportedProfiles:
@@ -55,12 +54,12 @@ class ImportedProfiles:
     def __init__(self, targets: list[str], import_dir: str | None, stats_info: str | None) -> None:
         self.import_dir: Path = Path(import_dir) if import_dir is not None else Path.cwd()
         # Parse the CLI stats if available
-        self.stats: list[profile_helpers.ProfileStat] = []
+        self.stats: list[profile_stats.ProfileStat] = []
         self.profiles: list[ImportProfileSpec] = []
 
         if stats_info is not None:
             self.stats = [
-                profile_helpers.ProfileStat.from_string(*stat.split("|"))
+                profile_stats.ProfileStat.from_string(*stat.split("|"))
                 for stat in stats_info.split(",")
             ]
 
@@ -81,25 +80,26 @@ class ImportedProfiles:
     def get_exit_codes(self) -> list[int]:
         return [p.exit_code for p in self.profiles]
 
-    def aggregate_stats(
-        self, agg: Callable[[list[float | int]], float]
-    ) -> Iterator[profile_helpers.ProfileStat]:
-        stat_value_lists: list[list[float | int]] = [[] for _ in range(len(self.stats))]
+    def aggregate_stats(self) -> Iterator[profile_stats.ProfileStat]:
+        stat_value_lists: list[list[float | str]] = [[] for _ in range(len(self.stats))]
         for profile in self.profiles:
-            value_list: list[float | int]
-            stat_value: float | int
+            value_list: list[float | str]
+            stat_value: float | str
             for value_list, stat_value in zip(stat_value_lists, profile.values):
                 value_list.append(stat_value)
         for value_list, stat_obj in zip(stat_value_lists, self.stats):
-            stat_obj.value = agg(value_list)
+            if len(value_list) == 1:
+                stat_obj.value = value_list[0]
+            else:
+                stat_obj.value = value_list
             yield stat_obj
 
     def _parse_import_csv(self, target: str) -> None:
         with open(self.import_dir / target, "r") as csvfile:
             csv_reader = csv.reader(csvfile, delimiter=",")
             header: list[str] = next(csv_reader)
-            stats: list[profile_helpers.ProfileStat] = [
-                profile_helpers.ProfileStat.from_string(*stat_definition.split("|"))
+            stats: list[profile_stats.ProfileStat] = [
+                profile_stats.ProfileStat.from_string(*stat_definition.split("|"))
                 for stat_definition in header[2:]
             ]
             # Parse the CSV stat definition and check that they are not in conflict with the CLI
@@ -192,7 +192,7 @@ def import_perf_profile(
     )
     prof.update({"origin": minor_version.checksum})
     prof.update({"machine": get_machine_info(machine_info)})
-    prof.update({"stats": [asdict(stat) for stat in profiles.aggregate_stats(statistics.median)]}),
+    prof.update({"stats": [asdict(stat) for stat in profiles.aggregate_stats()]}),
     prof.update(
         {
             "header": {

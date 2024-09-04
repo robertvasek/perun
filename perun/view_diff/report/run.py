@@ -15,19 +15,19 @@ collector | kernel
 from __future__ import annotations
 
 # Standard Imports
-from operator import itemgetter
-from typing import Any, Literal, Type, Callable
+import array
 from collections import defaultdict
 from dataclasses import dataclass
-import array
+from operator import itemgetter
 import sys
+from typing import Any, Literal, Type, Callable
 
 # Third-Party Imports
 import click
 
 # Perun Imports
 from perun.logic import config
-from perun.profile import convert, helpers as profile_helpers
+from perun.profile import convert, stats as profile_stats
 from perun.profile.factory import Profile
 from perun.templates import filters, factory as templates
 from perun.utils import log, mapping
@@ -71,7 +71,7 @@ class Config:
         self.max_seen_trace: int = 0
         self.max_per_resource: dict[str, float] = defaultdict(float)
         self.minimize: bool = False
-        self.profile_stats: dict[str, list[profile_helpers.ProfileStat]] = {
+        self.profile_stats: dict[str, list[profile_stats.ProfileStat]] = {
             "baseline": [],
             "target": [],
         }
@@ -531,18 +531,18 @@ def process_traces(
         name.rstrip()
         unit = unit.rsplit("]", maxsplit=1)[0]
         Config().profile_stats[profile_type].append(
-            profile_helpers.ProfileStat(
+            profile_stats.ProfileStat(
                 f"Overall {name}",
-                False,
+                profile_stats.ProfileStatOrdering.LOWER,
                 unit,
                 f"The overall value of the {name} for the root value",
                 max_samples[key],
             )
         )
     Config().profile_stats[profile_type].append(
-        profile_helpers.ProfileStat(
+        profile_stats.ProfileStat(
             "Maximum Trace Length",
-            False,
+            profile_stats.ProfileStatOrdering.LOWER,
             "#",
             "Maximum length of the trace in the profile",
             max_trace,
@@ -550,7 +550,7 @@ def process_traces(
     )
     Config().max_seen_trace = max(max_trace, Config().max_seen_trace)
     for stat in profile.get("stats", []):
-        Config().profile_stats[profile_type].append(profile_helpers.ProfileStat(**stat))
+        Config().profile_stats[profile_type].append(profile_stats.ProfileStat.from_profile(stat))
 
 
 def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:

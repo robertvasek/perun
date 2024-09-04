@@ -41,7 +41,7 @@ from perun.profile import imports
     "-t",
     nargs=1,
     default=None,
-    metavar="<stat1-description,...>",
+    metavar="[STAT]",
     help="Describes the stats associated with the imported profiles. Please see the import "
     "documentation for details regarding the stat description format.",
 )

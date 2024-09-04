@@ -7,6 +7,7 @@ perun_profile_files = files(
     'helpers.py',
     'imports.py',
     'query.py',
+    'stats.py',
 )
 
 py3.install_sources(

@@ -2,18 +2,19 @@
 
 from __future__ import annotations
 
-
 # Standard Imports
-from typing import Any, Optional, Iterable, Literal
 import difflib
 import os
+from typing import Any, Optional, Iterable, Literal
 
 # Third-Party Imports
 
 # Perun Imports
 from perun.profile import helpers
 from perun.profile.factory import Profile
+from perun.profile import stats as pstats
 from perun.utils import log
+from perun.utils.common.common_kit import ColorChoiceType
 
 
 def save_diff_view(
@@ -124,7 +125,7 @@ def diff_to_html(diff: list[str], start_tag: Literal["+", "-"]) -> str:
     :param diff: diff computed by difflib.ndiff
     :param start_tag: starting point of the tag
     """
-    tag_to_color = {
+    tag_to_color: dict[str, ColorChoiceType] = {
         "+": "green",
         "-": "red",
     }
@@ -133,15 +134,14 @@ def diff_to_html(diff: list[str], start_tag: Literal["+", "-"]) -> str:
         if chunk.startswith("  "):
             result.append(chunk[2:])
         if chunk.startswith(start_tag):
-            result.append(
-                f'<span style="color: {tag_to_color.get(start_tag, "grey")}; '
-                f'font-weight: bold">{chunk[2:]}</span>'
-            )
+            result.append(_emphasize(tag_to_color.get(start_tag, "grey"), chunk[2:]))
     return " ".join(result)
 
 
 def _color_stat_value_diff(
-    lhs_stat: helpers.ProfileStat, rhs_stat: helpers.ProfileStat
+    lhs_stat_agg: pstats.ProfileStatAggregation,
+    rhs_stat_agg: pstats.ProfileStatAggregation,
+    ordering: pstats.ProfileStatOrdering,
 ) -> tuple[str, str]:
     """Color the stat values on the LHS and RHS according to their difference.
 
@@ -151,30 +151,25 @@ def _color_stat_value_diff(
     :param rhs_stat: a stat from the target
     :return: colored LHS and RHS stat values
     """
-    # Map the colors based on the value ordering
-    color_map: dict[bool, str] = {
-        lhs_stat.ordering: "red",
-        not lhs_stat.ordering: "green",
+    comparison_result = pstats.compare_stats(
+        lhs_stat_agg, rhs_stat_agg, lhs_stat_agg._DEFAULT_KEY, ordering
+    )
+    color_map: dict[pstats.StatComparisonResult, tuple[ColorChoiceType, ColorChoiceType]] = {
+        pstats.StatComparisonResult.INVALID: ("red", "red"),
+        pstats.StatComparisonResult.UNEQUAL: ("red", "red"),
+        pstats.StatComparisonResult.EQUAL: ("black", "black"),
+        pstats.StatComparisonResult.BASELINE_BETTER: ("green", "red"),
+        pstats.StatComparisonResult.TARGET_BETTER: ("red", "green"),
     }
-    lhs_value, rhs_value = str(lhs_stat.value), str(rhs_stat.value)
-    if lhs_stat.ordering != rhs_stat.ordering:
-        # Conflicting ordering in baseline and target, do not compare
-        log.warn(
-            f"Profile stats '{lhs_stat.name}' have conflicting ordering in baseline and target."
-            f" The stats will not be compared."
+
+    baseline_color, target_color = color_map[comparison_result]
+    if comparison_result == pstats.StatComparisonResult.INVALID:
+        baseline_value, target_value = "<invalid comparison>", "<invalid comparison>"
+    else:
+        baseline_value, target_value = str(lhs_stat_agg.as_table()[0]), str(
+            rhs_stat_agg.as_table()[0]
         )
-    elif lhs_value != rhs_value:
-        # Different stat values, color them
-        is_lhs_lower = lhs_stat.value < rhs_stat.value
-        lhs_value = (
-            f'<span style="color: {color_map[is_lhs_lower]}; '
-            f'font-weight: bold">{lhs_value}</span>'
-        )
-        rhs_value = (
-            f'<span style="color: {color_map[not is_lhs_lower]}; '
-            f'font-weight: bold">{rhs_value}</span>'
-        )
-    return lhs_value, rhs_value
+    return _emphasize(baseline_color, baseline_value), _emphasize(target_color, target_value)
 
 
 def _format_exit_codes(exit_code: str | list[str] | list[int]) -> str:
@@ -185,14 +180,11 @@ def _format_exit_codes(exit_code: str | list[str] | list[int]) -> str:
     else:
         exit_codes = list(map(str, exit_code))
     # Color exit codes that are not zero
-    return ", ".join(
-        code if code == "0" else f'<span style="color: red; font-weight: bold">{code}</span>'
-        for code in exit_codes
-    )
+    return ", ".join(code if code == "0" else _emphasize("red", code) for code in exit_codes)
 
 
 def generate_diff_of_stats(
-    lhs_stats: list[helpers.ProfileStat], rhs_stats: list[helpers.ProfileStat]
+    lhs_stats: list[pstats.ProfileStat], rhs_stats: list[pstats.ProfileStat]
 ) -> tuple[list[tuple[str, str, str]], list[tuple[str, str, str]]]:
     """Re-generate the stats with CSS diff styles suitable for an output.
 
@@ -203,32 +195,48 @@ def generate_diff_of_stats(
     """
 
     # Get all the stats that occur in either lhs or rhs and match those that exist in both
-    stats_map: dict[str, dict[str, helpers.ProfileStat]] = {}
+    stats_map: dict[str, dict[str, pstats.ProfileStat]] = {}
     for stat_source, stat_list in [("lhs", lhs_stats), ("rhs", rhs_stats)]:
         for stat in stat_list:
             stats_map.setdefault(stat.name, {})[stat_source] = stat
     # Iterate the stats and format them according to their diffs
     lhs_diff, rhs_diff = [], []
     for stat_key in sorted(stats_map.keys()):
-        lhs_stat: helpers.ProfileStat | None = stats_map[stat_key].get("lhs", None)
-        rhs_stat: helpers.ProfileStat | None = stats_map[stat_key].get("rhs", None)
-        lhs_tooltip = lhs_stat.get_normalized_tooltip() if lhs_stat is not None else ""
-        rhs_tooltip = rhs_stat.get_normalized_tooltip() if rhs_stat is not None else ""
+        lhs_stat: pstats.ProfileStat | None = stats_map[stat_key].get("lhs", None)
+        rhs_stat: pstats.ProfileStat | None = stats_map[stat_key].get("rhs", None)
         if rhs_stat and lhs_stat is None:
             # There is no matching stat on the LHS
+            rhs_stat_agg = pstats.aggregate_stats(rhs_stat)
+            rhs_tooltip = normalize_stat_tooltip(
+                rhs_stat.tooltip, rhs_stat_agg.infer_auto_ordering(rhs_stat.ordering)
+            )
             lhs_diff.append((f"{rhs_stat.name} [{rhs_stat.unit}]", "-", rhs_tooltip))
             rhs_diff.append(
-                (f"{rhs_stat.name} [{rhs_stat.unit}]", str(rhs_stat.value), rhs_tooltip)
+                (f"{rhs_stat.name} [{rhs_stat.unit}]", str(rhs_stat_agg.as_table()[0]), rhs_tooltip)
             )
         elif lhs_stat and rhs_stat is None:
             # There is no matching stat on the RHS
+            lhs_stat_agg = pstats.aggregate_stats(lhs_stat)
+            lhs_tooltip = normalize_stat_tooltip(
+                lhs_stat.tooltip, lhs_stat_agg.infer_auto_ordering(lhs_stat.ordering)
+            )
             lhs_diff.append(
-                (f"{lhs_stat.name} [{lhs_stat.unit}]", str(lhs_stat.value), lhs_tooltip)
+                (f"{lhs_stat.name} [{lhs_stat.unit}]", str(lhs_stat_agg.as_table()[0]), lhs_tooltip)
             )
             rhs_diff.append((f"{lhs_stat.name} [{lhs_stat.unit}]", "-", lhs_tooltip))
         elif lhs_stat and rhs_stat:
             # The stat is present on both LHS and RHS
-            lhs_value, rhs_value = _color_stat_value_diff(lhs_stat, rhs_stat)
+            lhs_stat_agg = pstats.aggregate_stats(lhs_stat)
+            rhs_stat_agg = pstats.aggregate_stats(rhs_stat)
+            rhs_tooltip = normalize_stat_tooltip(
+                rhs_stat.tooltip, rhs_stat_agg.infer_auto_ordering(rhs_stat.ordering)
+            )
+            lhs_tooltip = normalize_stat_tooltip(
+                lhs_stat.tooltip, lhs_stat_agg.infer_auto_ordering(lhs_stat.ordering)
+            )
+            lhs_value, rhs_value = _color_stat_value_diff(
+                lhs_stat_agg, rhs_stat_agg, lhs_stat.ordering
+            )
             lhs_diff.append((f"{lhs_stat.name} [{lhs_stat.unit}]", lhs_value, lhs_tooltip))
             rhs_diff.append((f"{rhs_stat.name} [{rhs_stat.unit}]", rhs_value, rhs_tooltip))
     return lhs_diff, rhs_diff
@@ -251,7 +259,7 @@ def generate_diff_of_headers(
         )
         if lhs_value != rhs_value:
             diff = list(difflib.ndiff(str(lhs_value).split(), str(rhs_value).split()))
-            key = f'<span style="color: red; font-weight: bold">{lhs_key}</span>'
+            key = _emphasize("red", lhs_key)
             lhs_diff.append((key, diff_to_html(diff, "-"), lhs_info))
             rhs_diff.append((key, diff_to_html(diff, "+"), lhs_info))
         else:
@@ -290,3 +298,12 @@ def generate_metadata(
         [(k, v, "") for k, v in rhs_profile.get("metadata", {}).items()], key=lambda x: x[0]
     )
     return generate_diff_of_headers(lhs_metadata, rhs_metadata)
+
+
+def normalize_stat_tooltip(tooltip: str, ordering: pstats.ProfileStatOrdering) -> str:
+    ordering_str: str = f'[{ordering.value.replace("_", " ")}]'
+    return f"{tooltip} {ordering_str}"
+
+
+def _emphasize(color: ColorChoiceType, value: str) -> str:
+    return f'<span style="color: {color}; font-weight: bold">{value}</span>'
