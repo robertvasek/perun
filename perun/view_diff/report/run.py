@@ -535,8 +535,8 @@ def process_traces(
                 f"Overall {name}",
                 profile_stats.ProfileStatOrdering.LOWER,
                 unit,
-                f"The overall value of the {name} for the root value",
-                max_samples[key],
+                tooltip=f"The overall value of the {name} for the root value",
+                value=max_samples[key],
             )
         )
     Config().profile_stats[profile_type].append(
@@ -544,8 +544,8 @@ def process_traces(
             "Maximum Trace Length",
             profile_stats.ProfileStatOrdering.LOWER,
             "#",
-            "Maximum length of the trace in the profile",
-            max_trace,
+            tooltip="Maximum length of the trace in the profile",
+            value=max_trace,
         )
     )
     Config().max_seen_trace = max(max_trace, Config().max_seen_trace)

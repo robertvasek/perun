@@ -138,51 +138,6 @@ def diff_to_html(diff: list[str], start_tag: Literal["+", "-"]) -> str:
     return " ".join(result)
 
 
-def _color_stat_value_diff(
-    lhs_stat_agg: pstats.ProfileStatAggregation,
-    rhs_stat_agg: pstats.ProfileStatAggregation,
-    ordering: pstats.ProfileStatOrdering,
-) -> tuple[str, str]:
-    """Color the stat values on the LHS and RHS according to their difference.
-
-    The color is determined by the stat ordering and the result of the stat values comparison.
-
-    :param lhs_stat: a stat from the baseline
-    :param rhs_stat: a stat from the target
-    :return: colored LHS and RHS stat values
-    """
-    comparison_result = pstats.compare_stats(
-        lhs_stat_agg, rhs_stat_agg, lhs_stat_agg._DEFAULT_KEY, ordering
-    )
-    color_map: dict[pstats.StatComparisonResult, tuple[ColorChoiceType, ColorChoiceType]] = {
-        pstats.StatComparisonResult.INVALID: ("red", "red"),
-        pstats.StatComparisonResult.UNEQUAL: ("red", "red"),
-        pstats.StatComparisonResult.EQUAL: ("black", "black"),
-        pstats.StatComparisonResult.BASELINE_BETTER: ("green", "red"),
-        pstats.StatComparisonResult.TARGET_BETTER: ("red", "green"),
-    }
-
-    baseline_color, target_color = color_map[comparison_result]
-    if comparison_result == pstats.StatComparisonResult.INVALID:
-        baseline_value, target_value = "<invalid comparison>", "<invalid comparison>"
-    else:
-        baseline_value, target_value = str(lhs_stat_agg.as_table()[0]), str(
-            rhs_stat_agg.as_table()[0]
-        )
-    return _emphasize(baseline_color, baseline_value), _emphasize(target_color, target_value)
-
-
-def _format_exit_codes(exit_code: str | list[str] | list[int]) -> str:
-    # Unify the exit code types
-    exit_codes: list[str] = []
-    if isinstance(exit_code, str):
-        exit_codes.append(exit_code)
-    else:
-        exit_codes = list(map(str, exit_code))
-    # Color exit codes that are not zero
-    return ", ".join(code if code == "0" else _emphasize("red", code) for code in exit_codes)
-
-
 def generate_diff_of_stats(
     lhs_stats: list[pstats.ProfileStat], rhs_stats: list[pstats.ProfileStat]
 ) -> tuple[list[tuple[str, str, str]], list[tuple[str, str, str]]]:
@@ -193,7 +148,6 @@ def generate_diff_of_stats(
     :return: collection of LHS and RHS stats (stat-name [stat-unit], stat-value, stat-tooltip)
              with CSS styles that reflect the stat diffs.
     """
-
     # Get all the stats that occur in either lhs or rhs and match those that exist in both
     stats_map: dict[str, dict[str, pstats.ProfileStat]] = {}
     for stat_source, stat_list in [("lhs", lhs_stats), ("rhs", rhs_stats)]:
@@ -204,41 +158,8 @@ def generate_diff_of_stats(
     for stat_key in sorted(stats_map.keys()):
         lhs_stat: pstats.ProfileStat | None = stats_map[stat_key].get("lhs", None)
         rhs_stat: pstats.ProfileStat | None = stats_map[stat_key].get("rhs", None)
-        if rhs_stat and lhs_stat is None:
-            # There is no matching stat on the LHS
-            rhs_stat_agg = pstats.aggregate_stats(rhs_stat)
-            rhs_tooltip = normalize_stat_tooltip(
-                rhs_stat.tooltip, rhs_stat_agg.infer_auto_ordering(rhs_stat.ordering)
-            )
-            lhs_diff.append((f"{rhs_stat.name} [{rhs_stat.unit}]", "-", rhs_tooltip))
-            rhs_diff.append(
-                (f"{rhs_stat.name} [{rhs_stat.unit}]", str(rhs_stat_agg.as_table()[0]), rhs_tooltip)
-            )
-        elif lhs_stat and rhs_stat is None:
-            # There is no matching stat on the RHS
-            lhs_stat_agg = pstats.aggregate_stats(lhs_stat)
-            lhs_tooltip = normalize_stat_tooltip(
-                lhs_stat.tooltip, lhs_stat_agg.infer_auto_ordering(lhs_stat.ordering)
-            )
-            lhs_diff.append(
-                (f"{lhs_stat.name} [{lhs_stat.unit}]", str(lhs_stat_agg.as_table()[0]), lhs_tooltip)
-            )
-            rhs_diff.append((f"{lhs_stat.name} [{lhs_stat.unit}]", "-", lhs_tooltip))
-        elif lhs_stat and rhs_stat:
-            # The stat is present on both LHS and RHS
-            lhs_stat_agg = pstats.aggregate_stats(lhs_stat)
-            rhs_stat_agg = pstats.aggregate_stats(rhs_stat)
-            rhs_tooltip = normalize_stat_tooltip(
-                rhs_stat.tooltip, rhs_stat_agg.infer_auto_ordering(rhs_stat.ordering)
-            )
-            lhs_tooltip = normalize_stat_tooltip(
-                lhs_stat.tooltip, lhs_stat_agg.infer_auto_ordering(lhs_stat.ordering)
-            )
-            lhs_value, rhs_value = _color_stat_value_diff(
-                lhs_stat_agg, rhs_stat_agg, lhs_stat.ordering
-            )
-            lhs_diff.append((f"{lhs_stat.name} [{lhs_stat.unit}]", lhs_value, lhs_tooltip))
-            rhs_diff.append((f"{rhs_stat.name} [{rhs_stat.unit}]", rhs_value, rhs_tooltip))
+        lhs_diff.append(_generate_stat_diff_record(lhs_stat, rhs_stat))
+        rhs_diff.append(_generate_stat_diff_record(rhs_stat, lhs_stat))
     return lhs_diff, rhs_diff
 
 
@@ -307,3 +228,63 @@ def normalize_stat_tooltip(tooltip: str, ordering: pstats.ProfileStatOrdering) -
 
 def _emphasize(color: ColorChoiceType, value: str) -> str:
     return f'<span style="color: {color}; font-weight: bold">{value}</span>'
+
+
+def _format_exit_codes(exit_code: str | list[str] | list[int]) -> str:
+    # Unify the exit code types
+    exit_codes: list[str] = []
+    if isinstance(exit_code, str):
+        exit_codes.append(exit_code)
+    else:
+        exit_codes = list(map(str, exit_code))
+    # Color exit codes that are not zero
+    return ", ".join(code if code == "0" else _emphasize("red", code) for code in exit_codes)
+
+
+def _generate_stat_diff_record(
+    stat: pstats.ProfileStat | None, other_stat: pstats.ProfileStat | None
+) -> tuple[str, str, str]:
+    if stat is None:
+        # The stat is missing, use some info from the other stat
+        assert other_stat is not None
+        return f"{other_stat.name} [{other_stat.unit}]", "-", "missing stat info"
+    else:
+        stat_agg = pstats.aggregate_stats(stat)
+        tooltip = normalize_stat_tooltip(stat.tooltip, stat_agg.infer_auto_ordering(stat.ordering))
+        return (
+            f"{stat.name} [{stat.unit}] ({stat_agg.normalize_aggregate_key(stat.aggregate_by)})",
+            str(stat_agg.as_table()[0]),
+            tooltip,
+        )
+
+
+def _color_stat_value_diff(
+    lhs_stat_agg: pstats.ProfileStatAggregation,
+    rhs_stat_agg: pstats.ProfileStatAggregation,
+    aggregate_key: str,
+    ordering: pstats.ProfileStatOrdering,
+) -> tuple[str, str]:
+    """Color the stat values on the LHS and RHS according to their difference.
+
+    The color is determined by the stat ordering and the result of the stat values comparison.
+
+    :param lhs_stat: a stat from the baseline
+    :param rhs_stat: a stat from the target
+    :return: colored LHS and RHS stat values
+    """
+    comparison_result = pstats.compare_stats(lhs_stat_agg, rhs_stat_agg, aggregate_key, ordering)
+    color_map: dict[pstats.StatComparisonResult, tuple[ColorChoiceType, ColorChoiceType]] = {
+        pstats.StatComparisonResult.INVALID: ("red", "red"),
+        pstats.StatComparisonResult.UNEQUAL: ("red", "red"),
+        pstats.StatComparisonResult.EQUAL: ("black", "black"),
+        pstats.StatComparisonResult.BASELINE_BETTER: ("green", "red"),
+        pstats.StatComparisonResult.TARGET_BETTER: ("red", "green"),
+    }
+
+    baseline_color, target_color = color_map[comparison_result]
+    if comparison_result == pstats.StatComparisonResult.INVALID:
+        baseline_value, target_value = "<invalid comparison>", "<invalid comparison>"
+    else:
+        baseline_value = str(lhs_stat_agg.as_table()[0])
+        target_value = str(rhs_stat_agg.as_table()[0])
+    return _emphasize(baseline_color, baseline_value), _emphasize(target_color, target_value)

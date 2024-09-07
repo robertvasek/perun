@@ -39,27 +39,28 @@ class StatComparisonResult(enum.Enum):
 
 @dataclasses.dataclass
 class ProfileStat:
-    # TODO: add the aggregate key
     name: str
     ordering: ProfileStatOrdering = ProfileStatOrdering.default()
     unit: str = "#"
+    aggregate_by: str = ""
     tooltip: str = ""
     value: object = ""
 
     @classmethod
     def from_string(
         cls,
-        name: str = "<empty>",
+        name: str = "[empty]",
         ordering: str = "",
         unit: str = "#",
+        aggregate_by: str = "",
         tooltip: str = "",
         *_: Any,
     ) -> ProfileStat:
-        if name == "<empty>":
+        if name == "[empty]":
             # Invalid stat specification, warn
-            perun_log.warn("Empty profile stat specification. Creating a dummy '<empty>' stat.")
+            perun_log.warn("Empty profile stat specification. Creating a dummy '[empty]' stat.")
         ordering_enum = cls._convert_ordering(ordering)
-        return cls(name, ordering_enum, unit, tooltip)
+        return cls(name, ordering_enum, unit, aggregate_by, tooltip)
 
     @classmethod
     def from_profile(cls, stat: dict[str, Any]) -> ProfileStat:
@@ -85,14 +86,19 @@ class ProfileStatAggregation(Protocol):
     _SUPPORTED_KEYS: ClassVar[set[str]] = set()
     _DEFAULT_KEY: ClassVar[str] = ""
 
-    def get_value(self, key: str = _DEFAULT_KEY) -> Any:
+    def normalize_aggregate_key(self, key: str = _DEFAULT_KEY) -> str:
         if key not in self._SUPPORTED_KEYS:
-            perun_log.warn(
-                f"{self.__class__.__name__}: Unknown value key '{key}'. "
-                f"Using the default key '{self._DEFAULT_KEY}' instead."
-            )
-            return getattr(self, self._DEFAULT_KEY)
-        return getattr(self, key)
+            if key:
+                # A key was provided, but it is an invalid one
+                perun_log.warn(
+                    f"{self.__class__.__name__}: Invalid aggregate key '{key}'. "
+                    f"Using the default key '{self._DEFAULT_KEY}' instead."
+                )
+            key = self._DEFAULT_KEY
+        return key
+
+    def get_value(self, key: str = _DEFAULT_KEY) -> Any:
+        return getattr(self, self.normalize_aggregate_key(key))
 
     def infer_auto_ordering(self, ordering: ProfileStatOrdering) -> ProfileStatOrdering: ...
 
@@ -104,10 +110,10 @@ class ProfileStatAggregation(Protocol):
 
 @dataclasses.dataclass
 class SingleValue(ProfileStatAggregation):
-    value: str | float = "<missing>"
+    _SUPPORTED_KEYS: ClassVar[set[str]] = {"value"}
+    _DEFAULT_KEY = "value"
 
-    def get_value(self, _: str = "") -> str | float:
-        return self.value
+    value: str | float = "[missing]"
 
     def infer_auto_ordering(self, ordering: ProfileStatOrdering) -> ProfileStatOrdering:
         if ordering != ProfileStatOrdering.AUTO:
@@ -215,7 +221,7 @@ class StringCollection(ProfileStatAggregation):
         header: str | int | tuple[str, int]
         if key in ("counts", "sequence"):
             # The Counter and list objects are not suitable for direct printing in a table.
-            header = f"<{key}>"
+            header = f"[{key}]"
         else:
             # A little type hinting help. The list and Counter types have already been covered.
             header = cast(Union[str, int, tuple[str, int]], self.get_value(key))
