@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 # Standard Imports
+import dataclasses
 import difflib
 import os
-from typing import Any, Optional, Iterable, Literal
+from typing import Any, Optional, Iterable, Literal, cast
 
 # Third-Party Imports
 
@@ -212,11 +213,21 @@ def generate_metadata(
     :param rhs_profile: profile for target
     :return: pair of metadata for lhs (baseline) and rhs (target)
     """
+    data: dict[str, Any]
+
     lhs_metadata = sorted(
-        [(k, v, "") for k, v in lhs_profile.get("metadata", {}).items()], key=lambda x: x[0]
+        [
+            helpers.ProfileMetadata.from_profile(data).as_tuple()
+            for data in lhs_profile.get("metadata", [])
+        ],
+        key=lambda x: x[0],
     )
     rhs_metadata = sorted(
-        [(k, v, "") for k, v in rhs_profile.get("metadata", {}).items()], key=lambda x: x[0]
+        [
+            helpers.ProfileMetadata.from_profile(data).as_tuple()
+            for data in rhs_profile.get("metadata", [])
+        ],
+        key=lambda x: x[0],
     )
     return generate_diff_of_headers(lhs_metadata, rhs_metadata)
 

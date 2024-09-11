@@ -17,6 +17,7 @@ handle the JSON objects in Python refer to `Python JSON library`_.
 from __future__ import annotations
 
 # Standard Imports
+import dataclasses
 import json
 import operator
 import os
@@ -609,3 +610,44 @@ class ProfileInfo:
         "checksum",
         "source",
     ]
+
+
+@dataclasses.dataclass
+class ProfileMetadata:
+    """A representation of a single profile metadata entry.
+
+    :ivar name: the name (key) of the metadata entry
+    :ivar value: the value of the metadata entry
+    :ivar tooltip: detailed description of the metadata entry
+    """
+
+    name: str
+    value: str | float
+    tooltip: str = ""
+
+    @classmethod
+    def from_string(cls, metadata: str) -> ProfileMetadata:
+        """Constructs a ProfileMetadata object from a string representation.
+
+        :param metadata: the string representation of a metadata entry
+
+        :return: the constructed ProfileMetadata object
+        """
+        return cls(*metadata.split("|"))
+
+    @classmethod
+    def from_profile(cls, metadata: dict[str, Any]) -> ProfileMetadata:
+        """Constructs a ProfileMetadata object from a dictionary representation used in Profile.
+
+        :param metadata: the dictionary representation of a metadata entry
+
+        :return: the constructed ProfileMetadata object
+        """
+        return cls(**metadata)
+
+    def as_tuple(self) -> tuple[str, str | float, str]:
+        """Converts the metadata object into a tuple.
+
+        :return: the tuple representation of a metadata entry
+        """
+        return self.name, self.value, self.tooltip

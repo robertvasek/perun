@@ -168,6 +168,7 @@ def import_perf_profile(
     resources: list[dict[str, Any]],
     minor_version: MinorVersion,
     machine_info: Optional[str] = None,
+    metadata: list[profile_helpers.ProfileMetadata] | None = None,
     with_sudo: bool = False,
     save_to_index: bool = False,
     **kwargs: Any,
@@ -178,9 +179,10 @@ def import_perf_profile(
     :param resources: list of parsed resources
     :param minor_version: minor version corresponding to the imported profiles
     :param machine_info: additional dictionary with machine specification
+    :param metadata: additional metadata to associate with the profile
     :param with_sudo: indication whether the data were collected with sudo
     :param save_to_index: indication whether we should save the imported profiles to index
-    :param kwargs: rest of the paramters
+    :param kwargs: rest of the parameters
     """
     prof = Profile(
         {
@@ -192,6 +194,7 @@ def import_perf_profile(
     )
     prof.update({"origin": minor_version.checksum})
     prof.update({"machine": get_machine_info(machine_info)})
+    prof.update({"metadata": [asdict(data) for data in metadata] if metadata is not None else []}),
     prof.update({"stats": [asdict(stat) for stat in profiles.aggregate_stats()]}),
     prof.update(
         {
@@ -409,7 +412,13 @@ def import_elk_profile(
         }
     )
     prof.update({"origin": minor_version.checksum})
-    prof.update({"metadata": metadata})
+    prof.update(
+        {
+            "metadata": [
+                profile_helpers.ProfileMetadata(key, value) for key, value in metadata.items()
+            ]
+        }
+    )
     prof.update({"machine": extract_machine_info_from_metadata(metadata)})
     prof.update(
         {

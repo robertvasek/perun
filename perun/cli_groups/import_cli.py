@@ -11,6 +11,7 @@ import click
 # Perun Imports
 from perun.logic import commands
 from perun.profile import imports
+from perun.utils.common import cli_kit
 
 
 @click.group("import")
@@ -44,6 +45,16 @@ from perun.profile import imports
     metavar="[STAT]",
     help="Describes the stats associated with the imported profiles. Please see the import "
     "documentation for details regarding the stat description format.",
+)
+@click.option(
+    "--metadata",
+    "-md",
+    multiple=True,
+    default=None,
+    metavar="[KEY|VALUE|[TOOLTIP]]",
+    callback=cli_kit.process_metadata,
+    help="Describes the metadata associated with the imported profiles as key: value pairs with "
+    "an optional tooltip information.",
 )
 @click.option(
     "--cmd",
