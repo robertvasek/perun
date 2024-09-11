@@ -30,6 +30,7 @@ from perun.vcs import vcs_kit
 # TODO: add documentation
 # TODO: fix stats in other types of diffviews
 # TODO: refactor the perf import type commands: there is a lot of code duplication
+# TODO: unify handling of path open success / fail
 
 
 @dataclass
@@ -52,7 +53,7 @@ class ImportedProfiles:
     __slots__ = "import_dir", "stats", "profiles"
 
     def __init__(self, targets: list[str], import_dir: str | None, stats_info: str | None) -> None:
-        self.import_dir: Path = Path(import_dir) if import_dir is not None else Path.cwd()
+        self.import_dir: Path = Path(import_dir.strip()) if import_dir is not None else Path.cwd()
         # Parse the CLI stats if available
         self.stats: list[profile_stats.ProfileStat] = []
         self.profiles: list[ImportProfileSpec] = []
@@ -95,27 +96,33 @@ class ImportedProfiles:
             yield stat_obj
 
     def _parse_import_csv(self, target: str) -> None:
-        with open(self.import_dir / target, "r") as csvfile:
-            csv_reader = csv.reader(csvfile, delimiter=",")
-            header: list[str] = next(csv_reader)
-            stats: list[profile_stats.ProfileStat] = [
-                profile_stats.ProfileStat.from_string(*stat_definition.split("|"))
-                for stat_definition in header[2:]
-            ]
-            # Parse the CSV stat definition and check that they are not in conflict with the CLI
-            # stat definitions, if any
-            for idx, stat in enumerate(stats):
-                if idx >= len(self.stats):
-                    self.stats.append(stat)
-                elif stat != self.stats[idx]:
-                    log.warn(
-                        f"Mismatching profile stat definition from CLI and CSV: "
-                        f"cli.{self.stats[idx].name} != csv.{stat.name}. "
-                        f"Using the CLI stat definition."
-                    )
-            # Parse the remaining rows that should represent profile specifications
-            for row in csv_reader:
-                self._add_imported_profile(row)
+        csv_path = _massage_import_path(self.import_dir, target)
+        try:
+            with open(csv_path, "r") as csvfile:
+                log.minor_success(log.path_style(str(csv_path)), "found")
+                csv_reader = csv.reader(csvfile, delimiter=",")
+                header: list[str] = next(csv_reader)
+                stats: list[profile_stats.ProfileStat] = [
+                    profile_stats.ProfileStat.from_string(*stat_definition.split("|"))
+                    for stat_definition in header[2:]
+                ]
+                # Parse the CSV stat definition and check that they are not in conflict with the CLI
+                # stat definitions, if any
+                for idx, stat in enumerate(stats):
+                    if idx >= len(self.stats):
+                        self.stats.append(stat)
+                    elif stat != self.stats[idx]:
+                        log.warn(
+                            f"Mismatching profile stat definition from CLI and CSV: "
+                            f"cli.{self.stats[idx].name} != csv.{stat.name}. "
+                            f"Using the CLI stat definition."
+                        )
+                # Parse the remaining rows that should represent profile specifications
+                for row in csv_reader:
+                    self._add_imported_profile(row)
+        except OSError as exc:
+            log.minor_fail(log.path_style(str(csv_path)), "not found")
+            log.error(str(exc), exc)
 
     def _add_imported_profile(self, target: list[str]) -> None:
         if len(target) == 0:
@@ -124,7 +131,7 @@ class ImportedProfiles:
         else:
             # Make sure we strip the leading and trailing whitespaces in each column value
             profile_info = ImportProfileSpec(
-                self.import_dir / target[0].strip(),
+                _massage_import_path(self.import_dir, target[0]),
                 int(target[1].strip()) if len(target) >= 2 else ImportProfileSpec.exit_code,
                 list(map(lambda stat_value: float(stat_value.strip()), target[2:])),
             )
@@ -150,17 +157,22 @@ def load_file(filepath: Path) -> str:
         return imported_handle.read()
 
 
-def get_machine_info(machine_info: Optional[str] = None) -> dict[str, Any]:
+def get_machine_info(import_dir: Path, machine_info: Optional[str] = None) -> dict[str, Any]:
     """Returns machine info either from input file or constructs it from environment
 
+    :param import_dir: path to a directory where the machine info will be looked up
     :param machine_info: file in json format, which contains machine specification
     :return: parsed dictionary format of machine specification
     """
     if machine_info is not None:
-        with open(machine_info, "r") as machine_handle:
-            return json.load(machine_handle)
-    else:
-        return environment.get_machine_specification()
+        info_path = _massage_import_path(import_dir, machine_info)
+        try:
+            with open(info_path, "r") as machine_handle:
+                log.minor_success(log.path_style(str(info_path)), "found")
+                return json.load(machine_handle)
+        except OSError:
+            log.minor_fail(log.path_style(str(info_path)), "not found, generating info")
+    return environment.get_machine_specification()
 
 
 def import_perf_profile(
@@ -193,7 +205,7 @@ def import_perf_profile(
         }
     )
     prof.update({"origin": minor_version.checksum})
-    prof.update({"machine": get_machine_info(machine_info)})
+    prof.update({"machine": get_machine_info(profiles.import_dir, machine_info)})
     prof.update({"metadata": [asdict(data) for data in metadata] if metadata is not None else []}),
     prof.update({"stats": [asdict(stat) for stat in profiles.aggregate_stats()]}),
     prof.update(
@@ -513,3 +525,21 @@ def import_elk_from_json(
         metadata.update(m)
         log.minor_success(log.path_style(str(imported_file)), "imported")
     import_elk_profile(resources, metadata, minor_version_info, **kwargs)
+
+
+def _massage_import_path(import_dir: Path, path_str: str) -> Path:
+    """Massages path strings into unified path format.
+
+    First, the path string is stripped of leading and trailing whitespaces.
+    Next, absolute paths are kept as is, while relative paths are prepended with the
+    provided import directory.
+
+    :param import_dir: the import directory to use for relative paths
+    :param path_str: the path string to massage
+
+    :return: massaged path
+    """
+    path: Path = Path(path_str.strip())
+    if path.is_absolute():
+        return path
+    return import_dir / path

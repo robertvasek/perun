@@ -18,7 +18,7 @@ from perun.utils.common import cli_kit
 @click.option(
     "--machine-info",
     "-i",
-    type=click.Path(resolve_path=True, readable=True),
+    type=click.Path(),
     help="Imports machine info from file in JSON format (by default, machine info is loaded from "
     "the current host). You can use `utils/generate_machine_info.sh` script to generate the "
     "machine info file.",
