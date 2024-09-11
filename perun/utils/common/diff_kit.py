@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 # Standard Imports
-import dataclasses
 import difflib
 import os
-from typing import Any, Optional, Iterable, Literal, cast
+from typing import Any, Optional, Iterable, Literal
 
 # Third-Party Imports
 
@@ -159,8 +158,9 @@ def generate_diff_of_stats(
     for stat_key in sorted(stats_map.keys()):
         lhs_stat: pstats.ProfileStat | None = stats_map[stat_key].get("lhs", None)
         rhs_stat: pstats.ProfileStat | None = stats_map[stat_key].get("rhs", None)
-        lhs_diff.append(_generate_stat_diff_record(lhs_stat, rhs_stat))
-        rhs_diff.append(_generate_stat_diff_record(rhs_stat, lhs_stat))
+        lhs_info, rhs_info = _generate_stat_diff_record(lhs_stat, rhs_stat)
+        lhs_diff.append(lhs_info)
+        rhs_diff.append(rhs_info)
     return lhs_diff, rhs_diff
 
 
@@ -253,20 +253,49 @@ def _format_exit_codes(exit_code: str | list[str] | list[int]) -> str:
 
 
 def _generate_stat_diff_record(
-    stat: pstats.ProfileStat | None, other_stat: pstats.ProfileStat | None
-) -> tuple[str, str, str]:
-    if stat is None:
-        # The stat is missing, use some info from the other stat
-        assert other_stat is not None
-        return f"{other_stat.name} [{other_stat.unit}]", "-", "missing stat info"
-    else:
-        stat_agg = pstats.aggregate_stats(stat)
-        tooltip = normalize_stat_tooltip(stat.tooltip, stat_agg.infer_auto_ordering(stat.ordering))
-        return (
-            f"{stat.name} [{stat.unit}] ({stat_agg.normalize_aggregate_key(stat.aggregate_by)})",
-            str(stat_agg.as_table()[0]),
-            tooltip,
+    lhs_stat: pstats.ProfileStat | None, rhs_stat: pstats.ProfileStat | None
+) -> tuple[tuple[str, str, str], tuple[str, str, str]]:
+    lhs_stat_agg: pstats.ProfileStatAggregation | None = None
+    lhs_name: str = ""
+    lhs_value: str = "-"
+    lhs_tooltip: str = "missing stat info"
+    rhs_stat_agg: pstats.ProfileStatAggregation | None = None
+    rhs_name: str = ""
+    rhs_value: str = "-"
+    rhs_tooltip: str = "missing stat info"
+    if lhs_stat is not None:
+        lhs_stat_agg = pstats.aggregate_stats(lhs_stat)
+        unit = f" [{lhs_stat.unit}]" if lhs_stat.unit else ""
+        lhs_name = (
+            f"{lhs_stat.name}{unit} "
+            f"({lhs_stat_agg.normalize_aggregate_key(lhs_stat.aggregate_by)})"
         )
+        rhs_name = f"{lhs_stat.name}{unit}"
+        lhs_value = str(lhs_stat_agg.as_table()[0])
+        lhs_tooltip = normalize_stat_tooltip(
+            lhs_stat.tooltip, lhs_stat_agg.infer_auto_ordering(lhs_stat.ordering)
+        )
+    if rhs_stat is not None:
+        rhs_stat_agg = pstats.aggregate_stats(rhs_stat)
+        unit = f" [{rhs_stat.unit}]" if rhs_stat.unit else ""
+        rhs_name = (
+            f"{rhs_stat.name}{unit} "
+            f"({rhs_stat_agg.normalize_aggregate_key(rhs_stat.aggregate_by)})"
+        )
+        lhs_name = lhs_name if lhs_name else f"{rhs_stat.name}{unit}"
+        rhs_value = str(rhs_stat_agg.as_table()[0])
+        rhs_tooltip = normalize_stat_tooltip(
+            rhs_stat.tooltip, rhs_stat_agg.infer_auto_ordering(rhs_stat.ordering)
+        )
+    if lhs_stat_agg is not None and rhs_stat_agg is not None:
+        assert lhs_stat is not None
+        lhs_value, rhs_value = _color_stat_value_diff(
+            lhs_stat_agg,
+            rhs_stat_agg,
+            lhs_stat.aggregate_by,
+            lhs_stat_agg.infer_auto_ordering(lhs_stat.ordering),
+        )
+    return (lhs_name, lhs_value, lhs_tooltip), (rhs_name, rhs_value, rhs_tooltip)
 
 
 def _color_stat_value_diff(

@@ -133,11 +133,19 @@ class ImportedProfiles:
             profile_info = ImportProfileSpec(
                 _massage_import_path(self.import_dir, target[0]),
                 int(target[1].strip()) if len(target) >= 2 else ImportProfileSpec.exit_code,
-                list(map(lambda stat_value: float(stat_value.strip()), target[2:])),
+                list(map(ImportedProfiles._massage_stat_value, target[2:])),
             )
             if profile_info.exit_code != 0:
                 log.warn("Importing a profile with non-zero exit code.")
             self.profiles.append(profile_info)
+
+    @staticmethod
+    def _massage_stat_value(stat_value: str) -> str | float:
+        stat_value = stat_value.strip()
+        try:
+            return float(stat_value)
+        except ValueError:
+            return stat_value
 
 
 def load_file(filepath: Path) -> str:
