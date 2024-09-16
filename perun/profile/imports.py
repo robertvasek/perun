@@ -18,7 +18,7 @@ from typing import Any, Optional, Iterator
 # Perun Imports
 from perun.collect.kperf import parser
 from perun.logic import commands, index, pcs
-from perun.profile import helpers as profile_helpers, stats as profile_stats
+from perun.profile import query, helpers as profile_helpers, stats as profile_stats
 from perun.profile.factory import Profile
 from perun.utils import log, streams
 from perun.utils.common import script_kit, common_kit
@@ -188,7 +188,6 @@ def import_perf_profile(
     resources: list[dict[str, Any]],
     minor_version: MinorVersion,
     machine_info: Optional[str] = None,
-    metadata: list[profile_helpers.ProfileMetadata] | None = None,
     with_sudo: bool = False,
     save_to_index: bool = False,
     **kwargs: Any,
@@ -199,7 +198,6 @@ def import_perf_profile(
     :param resources: list of parsed resources
     :param minor_version: minor version corresponding to the imported profiles
     :param machine_info: additional dictionary with machine specification
-    :param metadata: additional metadata to associate with the profile
     :param with_sudo: indication whether the data were collected with sudo
     :param save_to_index: indication whether we should save the imported profiles to index
     :param kwargs: rest of the parameters
@@ -209,26 +207,21 @@ def import_perf_profile(
             "global": {
                 "time": "???",
                 "resources": resources,
-            }
-        }
-    )
-    prof.update({"origin": minor_version.checksum})
-    prof.update({"machine": get_machine_info(profiles.import_dir, machine_info)})
-    prof.update({"metadata": [asdict(data) for data in metadata] if metadata is not None else []}),
-    prof.update({"stats": [asdict(stat) for stat in profiles.aggregate_stats()]}),
-    prof.update(
-        {
+            },
+            "origin": minor_version.checksum,
+            "machine": get_machine_info(profiles.import_dir, machine_info),
+            "metadata": [
+                asdict(data)
+                for data in _import_metadata(profiles.import_dir, kwargs.get("metadata", tuple()))
+            ],
+            "stats": [asdict(stat) for stat in profiles.aggregate_stats()],
             "header": {
                 "type": "time",
                 "cmd": kwargs.get("cmd", ""),
                 "exitcode": profiles.get_exit_codes(),
                 "workload": kwargs.get("workload", ""),
                 "units": {"time": "sample"},
-            }
-        }
-    )
-    prof.update(
-        {
+            },
             "collector_info": {
                 "name": "kperf",
                 "params": {
@@ -236,10 +229,10 @@ def import_perf_profile(
                     "warmup": kwargs.get("warmup", 0),
                     "repeat": len(profiles),
                 },
-            }
+            },
+            "postprocessors": [],
         }
     )
-    prof.update({"postprocessors": []})
 
     save_imported_profile(prof, save_to_index, minor_version)
 
@@ -286,7 +279,7 @@ def import_perf_from_record(
     :param stats_info: additional statistics collected for the profile (i.e. non-resource types)
     :param minor_version: minor version corresponding to the imported profiles
     :param with_sudo: indication whether the data were collected with sudo
-    :param kwargs: rest of the paramters
+    :param kwargs: rest of the parameters
     """
     parse_script = script_kit.get_script("stackcollapse-perf.pl")
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
@@ -330,7 +323,7 @@ def import_perf_from_script(
     :param import_dir: different directory for importing the profiles
     :param stats_info: additional statistics collected for the profile (i.e. non-resource types)
     :param minor_version: minor version corresponding to the imported profiles
-    :param kwargs: rest of the paramters
+    :param kwargs: rest of the parameters
     """
     parse_script = script_kit.get_script("stackcollapse-perf.pl")
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
@@ -363,7 +356,7 @@ def import_perf_from_stack(
     :param import_dir: different directory for importing the profiles
     :param stats_info: additional statistics collected for the profile (i.e. non-resource types)
     :param minor_version: minor version corresponding to the imported profiles
-    :param kwargs: rest of the paramters
+    :param kwargs: rest of the parameters
     """
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
     profiles = ImportedProfiles(imported, import_dir, stats_info)
@@ -380,7 +373,7 @@ def import_perf_from_stack(
 def extract_machine_info_from_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
     """Extracts the parts of the profile, that corresponds to machine info
 
-    Note that not many is collected from the ELK formats and it can vary greatly,
+    Note that not many is collected from the ELK formats, and it can vary greatly,
     hence, most of the machine specification and environment should be in metadata instead.
 
     :param metadata: metadata extracted from the ELK profiles
@@ -400,11 +393,11 @@ def extract_machine_info_from_metadata(metadata: dict[str, Any]) -> dict[str, An
             "total_ram": metadata.get("machine.ram", "?"),
             "swap": "?",
         },
+        "boot_info": "?",
+        "mem_details": {},
+        "cpu_details": [],
     }
 
-    machine_info["boot_info"] = "?"
-    machine_info["mem_details"] = {}
-    machine_info["cpu_details"] = []
     return machine_info
 
 
@@ -421,46 +414,33 @@ def import_elk_profile(
     :param metadata: parts of the profiles that will be stored as metadata in the profile
     :param minor_version: minor version corresponding to the imported profiles
     :param save_to_index: indication whether we should save the imported profiles to index
-    :param kwargs: rest of the paramters
+    :param kwargs: rest of the parameters
     """
     prof = Profile(
         {
             "global": {
                 "time": "???",
                 "resources": resources,
-            }
-        }
-    )
-    prof.update({"origin": minor_version.checksum})
-    prof.update(
-        {
+            },
+            "origin": minor_version.checksum,
             "metadata": [
                 profile_helpers.ProfileMetadata(key, value) for key, value in metadata.items()
-            ]
-        }
-    )
-    prof.update({"machine": extract_machine_info_from_metadata(metadata)})
-    prof.update(
-        {
+            ],
+            "machine": extract_machine_info_from_metadata(metadata),
             "header": {
                 "type": "time",
                 "cmd": kwargs.get("cmd", ""),
                 "exitcode": "?",
                 "workload": kwargs.get("workload", ""),
                 "units": {"time": "sample"},
-            }
-        }
-    )
-    prof.update(
-        {
+            },
             "collector_info": {
                 "name": "???",
                 "params": {},
-            }
+            },
+            "postprocessors": [],
         }
     )
-    prof.update({"postprocessors": []})
-
     save_imported_profile(prof, save_to_index, minor_version)
 
 
@@ -469,9 +449,9 @@ def extract_from_elk(
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """For the given elk query, extracts resources and metadata.
 
-    For metadata we consider any key that has only single value through the profile,
+    For metadata, we consider any key that has only single value through the profile,
     and is not linked to keywords `metric` or `benchmarking`.
-    For resources we consider anything that is not identified as metadata
+    For resources, we consider anything that is not identified as metadata
 
     :param elk_query: query from the elk in form of list of resource
     :return: list of resources and metadata
@@ -516,7 +496,7 @@ def import_elk_from_json(
 
     :param imported: list of filenames with elk data.
     :param minor_version: minor version corresponding to the imported profiles
-    :param kwargs: rest of the paramters
+    :param kwargs: rest of the parameters
     """
     minor_version_info = pcs.vcs().get_minor_version_info(minor_version)
 
@@ -533,6 +513,53 @@ def import_elk_from_json(
         metadata.update(m)
         log.minor_success(log.path_style(str(imported_file)), "imported")
     import_elk_profile(resources, metadata, minor_version_info, **kwargs)
+
+
+def _import_metadata(
+    import_dir: Path, metadata: tuple[str, ...] | None
+) -> list[profile_helpers.ProfileMetadata]:
+    """Parse the metadata strings from CLI and convert them to our internal representation.
+
+    :param import_dir: the import directory to use for relative metadata file paths
+    :param metadata: a collection of metadata strings or files
+
+    :return: a collection of parsed and converted metadata objects
+    """
+    p_metadata: list[profile_helpers.ProfileMetadata] = []
+    if metadata is None:
+        return []
+    # Normalize the metadata string for parsing and/or opening the file
+    for metadata_str in map(str.strip, metadata):
+        if metadata_str.lower().endswith(".json"):
+            # Update the metadata collection with entries from the json file
+            p_metadata.extend(_parse_metadata_json(_massage_import_path(import_dir, metadata_str)))
+        else:
+            # Add a single metadata entry parsed from its string representation
+            try:
+                p_metadata.append(profile_helpers.ProfileMetadata.from_string(metadata_str))
+            except TypeError:
+                log.warn(f"Ignoring invalid profile metadata string '{metadata_str}'.")
+    return p_metadata
+
+
+def _parse_metadata_json(metadata_path: Path) -> list[profile_helpers.ProfileMetadata]:
+    """Parse a metadata JSON file into the metadata objects.
+
+    :param metadata_path: the path to the metadata JSON
+
+    :return: a collection of parsed metadata objects
+    """
+    try:
+        with open(metadata_path, "r") as metadata_handle:
+            log.minor_success(log.path_style(str(metadata_path)), "found")
+            metadata_dict: dict[str, Any] = json.load(metadata_handle)
+            # Make sure we flatten the input
+            return [
+                profile_helpers.ProfileMetadata(k, v) for k, v in query.all_items_of(metadata_dict)
+            ]
+    except OSError:
+        log.minor_fail(log.path_style(str(metadata_path)), "not found, skipping")
+        return []
 
 
 def _massage_import_path(import_dir: Path, path_str: str) -> Path:

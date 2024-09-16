@@ -906,28 +906,6 @@ def configure_metrics(_: click.Context, __: click.Option, value: tuple[str, str]
         metrics.Metrics.configure(value[0], value[1])
 
 
-def process_metadata(
-    _: click.Context, __: click.Option, value: tuple[str] | None
-) -> list[profile_helpers.ProfileMetadata]:
-    """Parse the metadata strings from CLI and convert them to our internal representation.
-
-    :param _: click context
-    :param __: the click parameter
-    :param value: metadata strings
-
-    :return: a collection of parsed and converted metadata objects
-    """
-    profile_metadata: list[profile_helpers.ProfileMetadata] = []
-    if value is None:
-        return profile_metadata
-    for metadata_str in value:
-        try:
-            profile_metadata.append(profile_helpers.ProfileMetadata.from_string(metadata_str))
-        except TypeError:
-            log.warn(f"Ignoring invalid profile metadata string '{metadata_str}'.")
-    return profile_metadata
-
-
 def get_supported_module_names(package: str) -> list[str]:
     """Obtains list of supported modules supported by the package.
 

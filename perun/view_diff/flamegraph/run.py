@@ -14,9 +14,9 @@ import click
 # Perun Imports
 from perun.templates import factory as templates
 from perun.utils import log, mapping
-from perun.utils.common import diff_kit, common_kit
+from perun.utils.common import common_kit, diff_kit
+from perun.profile import convert, stats as profile_stats
 from perun.profile.factory import Profile
-from perun.profile import convert
 from perun.view.flamegraph import flamegraph as flamegraph_factory
 from perun.view_diff.short import run as table_run
 
@@ -124,11 +124,12 @@ def generate_flamegraphs(
 
     :param lhs_profile: baseline profile
     :param rhs_profile: target profile
+    :param data_types: list of data types (resources)
+    :param width: width of the flame graph
+    :param skip_diff: whether the flamegraph diff should be skipped or not
     :param minimize: whether the flamegraph should be minimized or not
     :param max_trace: maximal size of the trace
     :param max_per_resource: maximal values for each resource
-    :param data_types: list of data types (resources)
-    :param width: width of the flame graph
     """
     flamegraphs = []
     for i, dtype in log.progress(enumerate(data_types), description="Generating Flamegraphs"):
@@ -177,27 +178,16 @@ def generate_flamegraphs(
     return flamegraphs
 
 
-def generate_profile_stats(stats: dict[str, float]) -> list[tuple[str, Any, str]]:
-    """Generates stats for baseline or target profile
-
-    :param profile_type: type of the profile
-    :return: list of tuples containing stats as tuples key, value and tooltip
-    """
-    profile_stats = []
-    for key, value in stats.items():
-        stat_key, stat_tooltip = key.split(";")
-        profile_stats.append((stat_key, value, stat_tooltip))
-    return profile_stats
-
-
 def process_maxima(
-    maxima_per_resources: dict[str, float], stats: dict[str, float], profile: Profile
-) -> None:
+    maxima_per_resources: dict[str, float], stats: list[profile_stats.ProfileStat], profile: Profile
+) -> int:
     """Processes maxima for each profile
 
     :param maxima_per_resources: dictionary that maps resources to their maxima
+    :param stats: list of profile stats to extend
     :param profile: input profile
-    :return: maximal trace
+
+    :return: the length of the maximum trace
     """
     is_inclusive = profile.get("collector_info", {}).get("name") == "kperf"
     counts: dict[str, float] = defaultdict(float)
@@ -214,8 +204,23 @@ def process_maxima(
                 counts[key] += amount
     for key in counts.keys():
         maxima_per_resources[key] = max(maxima_per_resources[key], counts[key])
-        stats[f"Overall {key};The overall value of the {key} for the root value"] = counts[key]
-    stats["Maximal Trace Length;Maximal lenght of the trace in the profile"] = max_trace
+        stats.append(
+            profile_stats.ProfileStat(
+                f"Overall {key}",
+                profile_stats.ProfileStatOrdering.LOWER,
+                tooltip=f"The overall value of the {key} for the root value",
+                value=counts[key],
+            )
+        )
+    stats.append(
+        profile_stats.ProfileStat(
+            "Maximum Trace Length",
+            profile_stats.ProfileStatOrdering.LOWER,
+            tooltip="Maximum length of the trace in the profile",
+            value=max_trace,
+        )
+    )
+    return max_trace
 
 
 def generate_flamegraph_difference(
@@ -228,17 +233,17 @@ def generate_flamegraph_difference(
     :param kwargs: additional arguments
     """
     maxima_per_resource: dict[str, float] = defaultdict(float)
-    lhs_stats: dict[str, float] = defaultdict(float)
-    rhs_stats: dict[str, float] = defaultdict(float)
+    lhs_stats: list[profile_stats.ProfileStat] = []
+    rhs_stats: list[profile_stats.ProfileStat] = []
     lhs_types = list(lhs_profile.all_resource_fields())
     rhs_types = list(rhs_profile.all_resource_fields())
     data_types = diff_kit.get_candidate_keys(set(lhs_types).union(set(rhs_types)))
     data_type = list(data_types)[0]
-    process_maxima(maxima_per_resource, lhs_stats, lhs_profile)
-    process_maxima(maxima_per_resource, rhs_stats, rhs_profile)
-    lhs_final_stats, rhs_final_stats = diff_kit.generate_diff_of_headers(
-        generate_profile_stats(lhs_stats), generate_profile_stats(rhs_stats)
-    )
+    lhs_max_trace = process_maxima(maxima_per_resource, lhs_stats, lhs_profile)
+    rhs_max_trace = process_maxima(maxima_per_resource, rhs_stats, rhs_profile)
+    lhs_stats += list(lhs_profile.all_stats())
+    rhs_stats += list(rhs_profile.all_stats())
+    lhs_final_stats, rhs_final_stats = diff_kit.generate_diff_of_stats(lhs_stats, rhs_stats)
 
     log.major_info("Generating Flamegraph Difference")
     flamegraphs = generate_flamegraphs(
@@ -246,15 +251,12 @@ def generate_flamegraph_difference(
         rhs_profile,
         data_types,
         max_per_resource=maxima_per_resource,
-        max_trace=int(
-            max(
-                lhs_stats["Maximal Trace Length;Maximal lenght of the trace in the profile"],
-                rhs_stats["Maximal Trace Length;Maximal lenght of the trace in the profile"],
-            )
-        ),
+        max_trace=max(lhs_max_trace, rhs_max_trace),
     )
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
-    lhs_meta, rhs_meta = diff_kit.generate_metadata(lhs_profile, rhs_profile)
+    lhs_meta, rhs_meta = diff_kit.generate_diff_of_metadata(
+        lhs_profile.all_metadata(), rhs_profile.all_metadata(), kwargs["metadata_display"]
+    )
 
     template = templates.get_template("diff_view_flamegraph.html.jinja2")
     content = template.render(
@@ -284,13 +286,22 @@ def generate_flamegraph_difference(
 @click.command()
 @click.pass_context
 @click.option(
-    "-w",
     "--width",
+    "-w",
     type=click.INT,
     default=DEFAULT_WIDTH,
     help="Sets the width of the flamegraph (default=600px).",
 )
-@click.option("-o", "--output-file", help="Sets the output file (default=automatically generated).")
+@click.option("--output-file", "-o", help="Sets the output file (default=automatically generated).")
+@click.option(
+    "--metadata-display",
+    type=click.Choice(diff_kit.MetadataDisplayStyle.supported()),
+    default=diff_kit.MetadataDisplayStyle.default(),
+    callback=lambda _, __, ds: diff_kit.MetadataDisplayStyle(ds),
+    help="Selects the display style of profile metadata. The 'full' option displays all provided "
+    "metadata, while the 'diff' option shows only metadata with different values "
+    f"(default={diff_kit.MetadataDisplayStyle.default()}).",
+)
 def flamegraph(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
     """ """
     assert ctx.parent is not None and f"impossible happened: {ctx} has no parent"

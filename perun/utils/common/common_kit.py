@@ -4,14 +4,14 @@ from __future__ import annotations
 
 # Standard Imports
 from typing import (
-    Optional,
     Any,
-    Iterable,
     Callable,
+    Iterable,
     Literal,
-    TYPE_CHECKING,
+    Optional,
     Type,
     TypeVar,
+    TYPE_CHECKING,
 )
 import array
 import contextlib
@@ -29,8 +29,8 @@ import click
 # Perun Imports
 from perun.postprocess.regression_analysis import tools
 from perun.utils.exceptions import (
-    SignalReceivedException,
     NotPerunRepositoryException,
+    SignalReceivedException,
     SuppressedExceptions,
 )
 
@@ -38,6 +38,8 @@ if TYPE_CHECKING:
     import types
 
 T = TypeVar("T")
+KT = TypeVar("KT")
+VT = TypeVar("VT")
 
 # Types
 ColorChoiceType = Literal[
@@ -456,6 +458,28 @@ def merge_dictionaries(*args: dict[Any, Any]) -> dict[Any, Any]:
     for dictionary in args:
         res.update(dictionary)
     return res
+
+
+def match_dicts_by_keys(
+    lhs: dict[KT, VT], rhs: dict[KT, VT]
+) -> dict[KT, tuple[VT, VT | None] | tuple[VT | None, VT]]:
+    """Match and merge the keys and values from two dictionaries into a single one.
+
+    Keys that are in both dictionaries will store a tuple of the lhs and rhs values. Keys that are
+    in either but not both dictionaries will store a tuple of the lhs or rhs value and a None.
+
+    :param lhs: the first dictionary
+    :param rhs: the second dictionary
+
+    :return: the merged dictionary with matched keys and values
+    """
+    match_map: dict[KT, tuple[VT, VT | None] | tuple[VT | None, VT]] = {}
+    for lhs_key, lhs_item in lhs.items():
+        match_map[lhs_key] = (lhs_item, rhs.get(lhs_key, None))
+    for rhs_key, rhs_item in rhs.items():
+        if rhs_key not in match_map:
+            match_map[rhs_key] = (None, rhs_item)
+    return match_map
 
 
 def partition_list(

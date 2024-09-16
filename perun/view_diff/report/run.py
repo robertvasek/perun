@@ -321,6 +321,7 @@ class Node:
     :ivar uid: unique identifier of the node (the label)
     :ivar callees: map of positions to edge relation for callees
     :ivar callers: map of positions to edge relation for callers
+    :ivar stats: statistics for the given node
     """
 
     __slots__ = ["uid", "callees", "callers", "stats"]
@@ -370,7 +371,7 @@ class Link:
 
 
 class Stats:
-    """Statistics for a given edge
+    """Statistics for a given edge or node
 
     :ivar baseline: baseline stats
     :ivar target: target stats
@@ -444,8 +445,7 @@ def process_node(
     :param graph: sankey graph
     :param profile_type: type of the profile
     :param resource: consumed resources
-    :param src: callee
-    :param tgt: caller
+    :param uid: the node uid
     """
     node = graph.get_node(uid)
     for key in resource:
@@ -549,8 +549,6 @@ def process_traces(
         )
     )
     Config().max_seen_trace = max(max_trace, Config().max_seen_trace)
-    for stat in profile.get("stats", []):
-        Config().profile_stats[profile_type].append(profile_stats.ProfileStat.from_profile(stat))
 
 
 def generate_trace_stats(graph: Graph) -> dict[str, list[TraceStat]]:
@@ -725,6 +723,8 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
 
     process_traces(lhs_profile, "baseline", graph)
     process_traces(rhs_profile, "target", graph)
+    lhs_stats = Config().profile_stats["baseline"] + list(lhs_profile.all_stats())
+    rhs_stats = Config().profile_stats["target"] + list(rhs_profile.all_stats())
 
     trace_stats = generate_trace_stats(graph)
     selection_table = generate_selection(graph, trace_stats)
@@ -739,11 +739,10 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
     )
     log.minor_success("Sankey graphs", "generated")
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
-    lhs_stats, rhs_stats = diff_kit.generate_diff_of_stats(
-        Config().profile_stats["baseline"],
-        Config().profile_stats["target"],
+    lhs_diff_stats, rhs_diff_stats = diff_kit.generate_diff_of_stats(lhs_stats, rhs_stats)
+    lhs_meta, rhs_meta = diff_kit.generate_diff_of_metadata(
+        lhs_profile.all_metadata(), rhs_profile.all_metadata(), kwargs["metadata_display"]
     )
-    lhs_meta, rhs_meta = diff_kit.generate_metadata(lhs_profile, rhs_profile)
 
     env_filters = {"sanitize_variable_name": filters.sanitize_variable_name}
     template = templates.get_template("diff_view_report.html.jinja2", filters=env_filters)
@@ -751,11 +750,11 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
         title="Differences of profiles (with sankey)",
         lhs_tag="Baseline (base)",
         lhs_header=lhs_header,
-        lhs_stats=lhs_stats,
+        lhs_stats=lhs_diff_stats,
         lhs_metadata=lhs_meta,
         rhs_tag="Target (tgt)",
         rhs_header=rhs_header,
-        rhs_stats=rhs_stats,
+        rhs_stats=rhs_diff_stats,
         rhs_metadata=rhs_meta,
         palette=WebColorPalette,
         callee_graph=graph.to_jinja_string("callees"),
@@ -789,29 +788,38 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
 
 
 @click.command()
-@click.option("-o", "--output-file", help="Sets the output file (default=automatically generated).")
+@click.option("--output-file", "-o", help="Sets the output file (default=automatically generated).")
 @click.option(
-    "-fr",
     "--filter-by-relative",
+    "-fr",
     nargs=1,
-    help="Filters records based on the relative increase wrt the target. "
-    f"It filters values that are lesser or equal than [FLOAT] (default={Config().DefaultRelativeThreshold}).",
     type=click.FLOAT,
     default=Config().DefaultRelativeThreshold,
+    help="Filters records based on the relative increase wrt the target. It filters values that "
+    f"are lesser or equal than [FLOAT] (default={Config().DefaultRelativeThreshold}).",
 )
 @click.option(
-    "-tn",
     "--top-n",
+    "-tn",
     nargs=1,
-    help=f"Filters how many top traces will be recorded per uid (default={Config().DefaultTopN}). ",
     type=click.INT,
     default=Config().DefaultTopN,
+    help=f"Filters how many top traces will be recorded per uid (default={Config().DefaultTopN}). ",
 )
 @click.option(
-    "-m",
     "--minimize",
+    "-m",
     is_flag=True,
-    help="Minimizes the traces, folds the recursive calls, hids the generic types.",
+    help="Minimizes the traces, folds the recursive calls, hides the generic types.",
+)
+@click.option(
+    "--metadata-display",
+    type=click.Choice(diff_kit.MetadataDisplayStyle.supported()),
+    default=diff_kit.MetadataDisplayStyle.default(),
+    callback=lambda _, __, ds: diff_kit.MetadataDisplayStyle(ds),
+    help="Selects the display style of profile metadata. The 'full' option displays all provided "
+    "metadata, while the 'diff' option shows only metadata with different values "
+    f"(default={diff_kit.MetadataDisplayStyle.default()}).",
 )
 @click.pass_context
 def report(ctx: click.Context, *_: Any, **kwargs: Any) -> None:
