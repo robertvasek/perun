@@ -43,16 +43,16 @@ from perun.profile import imports
     default=None,
     metavar="[STAT_HEADER+]",
     help="Describes the stats headers associated with the imported profiles. Each stats header is "
-    "in the form of 'NAME[|ORDERING[|UNIT[|AGGREGATE_BY[|TOOLTIP]]]]'.",
+    "in the form of 'NAME[|COMPARISON_TYPE[|UNIT[|AGGREGATE_BY[|DESCRIPTION]]]]'.",
 )
 @click.option(
     "--metadata",
     "-md",
     multiple=True,
     default=None,
-    metavar="['KEY|VALUE|[TOOLTIP]'] or [FILE.json]",
+    metavar="['KEY|VALUE|[DESCRIPTION]'] or [FILE.json]",
     help="Describes a single metadata entry associated with the imported profiles as a "
-    "'key|value[|tooltip]' string or multiple entries in a JSON file that will be flattened if"
+    "'key|value[|description]' string or multiple entries in a JSON file that will be flattened if"
     "needed. The --metadata option may be specified multiple times.",
 )
 @click.option(

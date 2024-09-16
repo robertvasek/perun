@@ -225,7 +225,7 @@ def generate_diff_of_stats(
 
     :param lhs_stats: stats from the baseline
     :param rhs_stats: stats from the target
-    :return: collection of LHS and RHS stats (stat-description, stat-value, stat-tooltip)
+    :return: collection of LHS and RHS stats (stat-description, stat-value, stat-description)
              with HTML styles that reflect the stat diffs.
     """
     # Get all the stats that occur in either lhs or rhs and match those that exist in both
@@ -289,7 +289,7 @@ def generate_diff_of_stats_record(
             lhs_diff.stat_agg,
             rhs_diff.stat_agg,
             lhs_stat.aggregate_by,
-            lhs_diff.stat_agg.infer_auto_ordering(lhs_stat.ordering),
+            lhs_diff.stat_agg.infer_auto_comparison(lhs_stat.cmp),
         )
     return lhs_diff.to_tuple(), rhs_diff.to_tuple()
 
@@ -313,16 +313,16 @@ def diff_to_html(diff: list[str], start_tag: Literal["+", "-"]) -> str:
     return " ".join(result)
 
 
-def normalize_stat_tooltip(tooltip: str, ordering: pstats.ProfileStatOrdering) -> str:
-    """Normalize a stat tooltip by including the ordering type as well.
+def stat_description_to_tooltip(description: str, comparison: pstats.ProfileStatComparison) -> str:
+    """Transform a stat description into a tooltip by including the comparison type as well.
 
-    :param tooltip: the original stat tooltip
-    :param ordering: the ordering type of the stat
+    :param description: the original stat description
+    :param comparison: the comparison type of the stat
 
-    :return: the normalized tooltip
+    :return: the generated tooltip
     """
-    ordering_str: str = f'[{ordering.value.replace("_", " ")}]'
-    return f"{tooltip} {ordering_str}"
+    comparison_str: str = f'[{comparison.value.replace("_", " ")}]'
+    return f"{description} {comparison_str}"
 
 
 def _emphasize(value: str, color: ColorChoiceType) -> str:
@@ -359,16 +359,16 @@ def _color_stat_record_diff(
     lhs_stat_agg: pstats.ProfileStatAggregation,
     rhs_stat_agg: pstats.ProfileStatAggregation,
     compare_key: str,
-    ordering: pstats.ProfileStatOrdering,
+    comparison: pstats.ProfileStatComparison,
 ) -> tuple[str, str]:
     """Color the stats values on the LHS and RHS according to their difference.
 
-    The color is determined by the stat ordering and the result of the stat values comparison.
+    The color is determined by the stat comparison type and the comparison result.
 
     :param lhs_stat_agg: a baseline stat aggregation
     :param rhs_stat_agg: a target stat aggregation
     :param compare_key: the key by which to compare the stats
-    :param ordering: the ordering type of the stat
+    :param comparison: the comparison type of the stat
 
     :return: colored LHS and RHS stat values
     """
@@ -381,7 +381,7 @@ def _color_stat_record_diff(
         pstats.StatComparisonResult.TARGET_BETTER: ("red", "green"),
     }
     # Compare and color the stat entry
-    comparison_result = pstats.compare_stats(lhs_stat_agg, rhs_stat_agg, compare_key, ordering)
+    comparison_result = pstats.compare_stats(lhs_stat_agg, rhs_stat_agg, compare_key, comparison)
     baseline_color, target_color = color_map[comparison_result]
     if comparison_result == pstats.StatComparisonResult.INVALID:
         baseline_value, target_value = "invalid comparison", "invalid comparison"
@@ -430,7 +430,9 @@ class _StatsDiffRecord:
         unit = f" [{stat.unit}]" if stat.unit else ""
         name = f"{stat.name}{unit} " f"({stat_agg.normalize_aggregate_key(stat.aggregate_by)})"
         value = str(stat_agg.as_table()[0])
-        tooltip = normalize_stat_tooltip(stat.tooltip, stat_agg.infer_auto_ordering(stat.ordering))
+        tooltip = stat_description_to_tooltip(
+            stat.description, stat_agg.infer_auto_comparison(stat.cmp)
+        )
         return cls(name, value, tooltip, stat_agg)
 
     def to_tuple(self) -> tuple[str, str, str]:

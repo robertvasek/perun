@@ -207,16 +207,16 @@ def process_maxima(
         stats.append(
             profile_stats.ProfileStat(
                 f"Overall {key}",
-                profile_stats.ProfileStatOrdering.LOWER,
-                tooltip=f"The overall value of the {key} for the root value",
+                profile_stats.ProfileStatComparison.LOWER,
+                description=f"The overall value of the {key} for the root value",
                 value=counts[key],
             )
         )
     stats.append(
         profile_stats.ProfileStat(
             "Maximum Trace Length",
-            profile_stats.ProfileStatOrdering.LOWER,
-            tooltip="Maximum length of the trace in the profile",
+            profile_stats.ProfileStatComparison.LOWER,
+            description="Maximum length of the trace in the profile",
             value=max_trace,
         )
     )

@@ -1,3 +1,20 @@
+"""Profile Stats are additional metrics or statistics associated with a Profile.
+
+Profile stats are identified by a name and include additional information about the metrics unit,
+description and value(s). When the stat value is a collection, the values may be aggregated into
+a single representative value and a collection of other descriptive values or statistics.
+
+For example, if a stat contains a collection of float values, the aggregation creates a statistical
+description of the values (i.e., min, max, mean, median, first and last decile, and first and third
+quartile) and selects a representative value out of these using the aggregate-by key. A collection
+of strings is aggregated into a histogram, where each value is a bin.
+
+When comparing the representative value, the stat value comparison type defines the type of
+comparison operator to use (e.g., lower than, higher than, equal, etc.) on the representative value.
+Note that using equality for float values will not work properly. The AUTO comparison type
+automatically selects a sane default comparison operator based on the aggregation type.
+"""
+
 from __future__ import annotations
 
 # Standard Imports
@@ -13,8 +30,15 @@ from typing import Any, Protocol, Iterable, ClassVar, Union, cast
 from perun.utils import log as perun_log
 
 
-class ProfileStatOrdering(str, enum.Enum):
-    # The class is derived from str so that ProfileStat serialization using asdict() works properly
+class ProfileStatComparison(str, enum.Enum):
+    """The profile stat comparison types.
+
+    The auto comparison type selects a sane default comparison operator based on the aggregation
+    type.
+
+    Note: the enum derives from str so that ProfileStat serialization using asdict() works properly.
+    """
+
     AUTO = "auto"
     HIGHER = "higher_is_better"
     LOWER = "lower_is_better"
@@ -22,14 +46,28 @@ class ProfileStatOrdering(str, enum.Enum):
 
     @staticmethod
     def supported() -> set[str]:
-        return {ordering.value for ordering in ProfileStatOrdering}
+        """Provides the set of supported comparison tupes.
+
+        :return: The set of supported comparison types.
+        """
+        return {comparison.value for comparison in ProfileStatComparison}
 
     @staticmethod
-    def default() -> ProfileStatOrdering:
-        return ProfileStatOrdering.AUTO
+    def default() -> ProfileStatComparison:
+        """Provides the default comparison type.
+
+        :return: The default comparison type.
+        """
+        return ProfileStatComparison.AUTO
 
 
 class StatComparisonResult(enum.Enum):
+    """The result of stat representative value comparison.
+
+    Since the comparison is determined by the comparison operator and the type of the representative
+    key, there is a number of valid comparison results that need to be represented.
+    """
+
     EQUAL = 1
     UNEQUAL = 2
     BASELINE_BETTER = 3
@@ -39,54 +77,107 @@ class StatComparisonResult(enum.Enum):
 
 @dataclasses.dataclass
 class ProfileStat:
+    """An internal representation of a profile stat.
+
+    :ivar name: The name of the stat.
+    :ivar cmp: The comparison type of the stat values.
+    :ivar unit: The unit of the stat value(s).
+    :ivar aggregate_by: The aggregation (representative value) key.
+    :ivar description: A detailed description of the stat.
+    :ivar value: The value of the stat.
+    """
+
     name: str
-    ordering: ProfileStatOrdering = ProfileStatOrdering.default()
+    cmp: ProfileStatComparison = ProfileStatComparison.default()
     unit: str = "#"
     aggregate_by: str = ""
-    tooltip: str = ""
+    description: str = ""
     value: object = ""
 
     @classmethod
     def from_string(
         cls,
         name: str = "[empty]",
-        ordering: str = "",
+        cmp: str = "",
         unit: str = "#",
         aggregate_by: str = "",
-        tooltip: str = "",
+        description: str = "",
         *_: Any,
     ) -> ProfileStat:
+        """Constructs a ProfileStat object from a string describing a stat header.
+
+        The value of the stat is ignored when parsing from a string, as string representation is
+        used solely for specifying the stat header.
+
+        :param name: The name of the stat.
+        :param cmp: The comparison type of the stat values.
+        :param unit: The unit of the stat value(s).
+        :param aggregate_by: The aggregation (representative value) key.
+        :param description: A detailed description of the stat.
+
+        :return: A constructed ProfileStat object.
+        """
         if name == "[empty]":
             # Invalid stat specification, warn
             perun_log.warn("Empty profile stat specification. Creating a dummy '[empty]' stat.")
-        ordering_enum = cls._convert_ordering(ordering)
-        return cls(name, ordering_enum, unit, aggregate_by, tooltip)
+        comparison_enum = cls._convert_comparison(cmp)
+        return cls(name, comparison_enum, unit, aggregate_by, description)
 
     @classmethod
     def from_profile(cls, stat: dict[str, Any]) -> ProfileStat:
-        stat["ordering"] = cls._convert_ordering(stat.get("ordering", ""))
+        """Constructs a ProfileStat object from a Perun profile.
+
+        :param stat: The stat dictionary from a Perun profile.
+
+        :return: A constructed ProfileStat object.
+        """
+        stat["cmp"] = cls._convert_comparison(stat.get("cmp", ""))
         return cls(**stat)
 
     @staticmethod
-    def _convert_ordering(ordering: str) -> ProfileStatOrdering:
-        if not ordering:
-            return ProfileStatOrdering.default()
+    def _convert_comparison(comparison: str) -> ProfileStatComparison:
+        """Convert a comparison type string into a ProfileStatComparison enum value.
+
+        If an invalid comparison type is provided, the default type will be used.
+
+        :param comparison: The comparison type as a string.
+
+        :return: The comparison type as an enum value.
+        """
+        if not comparison:
+            return ProfileStatComparison.default()
         try:
-            return ProfileStatOrdering(ordering.strip())
+            return ProfileStatComparison(comparison.strip())
         except ValueError:
-            # Invalid stat ordering, warn
+            # Invalid stat comparison, warn
             perun_log.warn(
-                f"Unknown stat ordering: {ordering}. Using the default stat ordering value instead."
-                f" Please choose one of ({', '.join(ProfileStatOrdering.supported())})."
+                f"Unknown stat comparison: {comparison}. Using the default stat comparison value "
+                f"instead. Please choose one of ({', '.join(ProfileStatComparison.supported())})."
             )
-            return ProfileStatOrdering.default()
+            return ProfileStatComparison.default()
 
 
 class ProfileStatAggregation(Protocol):
+    """A protocol for profile stat aggregation objects.
+
+    Since individual aggregation types may differ in a lot of ways (e.g., the supported
+    representative/aggregation keys, table representation, auto comparison type, ...), we provide
+    an abstract protocol for all aggregation objects.
+    """
+
     _SUPPORTED_KEYS: ClassVar[set[str]] = set()
     _DEFAULT_KEY: ClassVar[str] = ""
 
     def normalize_aggregate_key(self, key: str = _DEFAULT_KEY) -> str:
+        """Check and normalize the aggregation/representative key.
+
+        If no key is provided, or the key is invalid or unsupported by the aggregation type, the
+        default key is used instead.
+
+        :param key: The key to check.
+
+        :return: The checked (and possibly normalized) key.
+        """
         if key not in self._SUPPORTED_KEYS:
             if key:
                 # A key was provided, but it is an invalid one
@@ -98,29 +189,60 @@ class ProfileStatAggregation(Protocol):
         return key
 
     def get_value(self, key: str = _DEFAULT_KEY) -> Any:
+        """Obtain a value associated with the key from the aggregation / statistic description.
+
+        If no key is provided, or the key is invalid, the value associated with the default key is
+        returned.
+
+        :param key: The key of the value to obtain.
+
+        :return: The value associated with the key.
+        """
         return getattr(self, self.normalize_aggregate_key(key))
 
-    def infer_auto_ordering(self, ordering: ProfileStatOrdering) -> ProfileStatOrdering: ...
+    def infer_auto_comparison(self, comparison: ProfileStatComparison) -> ProfileStatComparison:
+        """Selects the correct auto comparison type for the aggregation type.
 
-    # header, table
+        :param comparison: May be auto or any other valid comparison type. For the auto comparison
+               type, another non-auto comparison type is returned. For the other comparison types,
+               the method works as an identity function.
+
+        :return: A non-auto comparison type.
+        """
+
     def as_table(
         self, key: str = _DEFAULT_KEY
-    ) -> tuple[str | float | tuple[str, int], dict[str, Any]]: ...
+    ) -> tuple[str | float | tuple[str, int], dict[str, Any]]:
+        """Transforms the aggregation object into the representative value and a table of the
+        aggregation / statistic description values.
+
+        :param key: The key of the aggregation / statistic description.
+
+        :return: The representative value and a table representation of the aggregation.
+        """
 
 
 @dataclasses.dataclass
 class SingleValue(ProfileStatAggregation):
+    """A single value "aggregation".
+
+    Used for single value profile stats that need to adhere to the same interface as the "proper"
+    aggregations.
+
+    :ivar value: The value of the stat.
+    """
+
     _SUPPORTED_KEYS: ClassVar[set[str]] = {"value"}
     _DEFAULT_KEY = "value"
 
     value: str | float = "[missing]"
 
-    def infer_auto_ordering(self, ordering: ProfileStatOrdering) -> ProfileStatOrdering:
-        if ordering != ProfileStatOrdering.AUTO:
-            return ordering
+    def infer_auto_comparison(self, comparison: ProfileStatComparison) -> ProfileStatComparison:
+        if comparison != ProfileStatComparison.AUTO:
+            return comparison
         if isinstance(self.value, str):
-            return ProfileStatOrdering.EQUALITY
-        return ProfileStatOrdering.HIGHER
+            return ProfileStatComparison.EQUALITY
+        return ProfileStatComparison.HIGHER
 
     def as_table(self, _: str = "") -> tuple[str | float, dict[str, str | float]]:
         # There are no details of a single value to generate into a table
@@ -129,6 +251,20 @@ class SingleValue(ProfileStatAggregation):
 
 @dataclasses.dataclass
 class StatisticalSummary(ProfileStatAggregation):
+    """A statistical description / summary aggregation type.
+
+    Used for collections of floats.
+
+    :ivar min: The minimum value in the collection.
+    :ivar p10: The first decile value.
+    :ivar p25: The first quartile value.
+    :ivar median: The median value of the entire collection.
+    :ivar p75: The third quartile value.
+    :ivar p90: The last decile value.
+    :ivar max: The maximum value in the collection.
+    :ivar mean: The mean value of the entire collection.
+    """
+
     _SUPPORTED_KEYS: ClassVar[set[str]] = {
         "min",
         "p10",
@@ -152,6 +288,12 @@ class StatisticalSummary(ProfileStatAggregation):
 
     @classmethod
     def from_values(cls, values: Iterable[float]) -> StatisticalSummary:
+        """Constructs a StatisticalSummary object from a collection of values.
+
+        :param values: The collection of values to construct from.
+
+        :return: The constructed StatisticalSummary object.
+        """
         # We assume there aren't too many values so that multiple passes of the list don't matter
         # too much. If this becomes a bottleneck, we can use pandas describe() instead.
         values = list(values)
@@ -167,10 +309,10 @@ class StatisticalSummary(ProfileStatAggregation):
             statistics.mean(values),
         )
 
-    def infer_auto_ordering(self, ordering: ProfileStatOrdering) -> ProfileStatOrdering:
-        if ordering != ProfileStatOrdering.AUTO:
-            return ordering
-        return ProfileStatOrdering.HIGHER
+    def infer_auto_comparison(self, comparison: ProfileStatComparison) -> ProfileStatComparison:
+        if comparison != ProfileStatComparison.AUTO:
+            return comparison
+        return ProfileStatComparison.HIGHER
 
     def as_table(self, key: str = _DEFAULT_KEY) -> tuple[float, dict[str, float]]:
         return self.get_value(key), dataclasses.asdict(self)
@@ -178,6 +320,15 @@ class StatisticalSummary(ProfileStatAggregation):
 
 @dataclasses.dataclass
 class StringCollection(ProfileStatAggregation):
+    """An aggregation type for a collection of strings.
+
+    Supports numerous keys that attempt to aggregate and describe the string values. Also allows
+    to compare the entire sequence of values for equality if needed.
+
+    :ivar sequence: The sequence of strings.
+    :ivar counts: A histogram where each string has a separate bin.
+    """
+
     _SUPPORTED_KEYS: ClassVar[set[str]] = {
         "total",
         "unique",
@@ -192,28 +343,45 @@ class StringCollection(ProfileStatAggregation):
     counts: Counter[str] = dataclasses.field(init=False)
 
     def __post_init__(self) -> None:
+        """Computes the histogram from the sequence."""
         self.counts = Counter(self.sequence)
 
     @property
     def unique(self) -> int:
+        """Get the number of unique strings in the collection.
+
+        :return: The number of unique strings.
+        """
         return len(self.counts)
 
     @property
     def total(self) -> int:
+        """Get the total number of strings in the collection.
+
+        :return: The total number of strings.
+        """
         return len(self.sequence)
 
     @property
     def min_count(self) -> tuple[str, int]:
+        """Get the string with the least number of occurrences in the collection.
+
+        :return: The string with the least number of occurrences.
+        """
         return self.counts.most_common()[-1]
 
     @property
     def max_count(self) -> tuple[str, int]:
+        """Get the string with the most number of occurrences in the collection.
+
+        :return: The string with the most number of occurrences.
+        """
         return self.counts.most_common()[0]
 
-    def infer_auto_ordering(self, ordering: ProfileStatOrdering) -> ProfileStatOrdering:
-        if ordering != ProfileStatOrdering.AUTO:
-            return ordering
-        return ProfileStatOrdering.EQUALITY
+    def infer_auto_comparison(self, comparison: ProfileStatComparison) -> ProfileStatComparison:
+        if comparison != ProfileStatComparison.AUTO:
+            return comparison
+        return ProfileStatComparison.EQUALITY
 
     def as_table(
         self, key: str = _DEFAULT_KEY
@@ -232,6 +400,12 @@ class StringCollection(ProfileStatAggregation):
 
 
 def aggregate_stats(stat: ProfileStat) -> ProfileStatAggregation:
+    """A factory that constructs the proper aggregation object based on the stat value(s) type.
+
+    :param stat: The stat to create the aggregate object from.
+
+    :return: The constructed aggregation object.
+    """
     if isinstance(stat.value, (str, float, int)):
         return SingleValue(stat.value)
     if isinstance(stat.value, Iterable):
@@ -258,11 +432,20 @@ def compare_stats(
     stat: ProfileStatAggregation,
     other_stat: ProfileStatAggregation,
     key: str,
-    ordering: ProfileStatOrdering,
+    comparison: ProfileStatComparison,
 ) -> StatComparisonResult:
+    """Compares two aggregated stats using the representative key and comparison type.
+
+    :param stat: The first aggregate stat to compare.
+    :param other_stat: The second aggregate stat to compare.
+    :param key: The representative key from the aggregates to compare.
+    :param comparison: The comparison type.
+
+    :return: The comparison result.
+    """
     value, other_value = stat.get_value(key), other_stat.get_value(key)
-    # Handle auto ordering according to the aggregation type
-    ordering = stat.infer_auto_ordering(ordering)
+    # Handle auto comparison according to the aggregation type
+    comparison = stat.infer_auto_comparison(comparison)
     if type(stat) is not type(other_stat):
         # Invalid comparison attempt
         perun_log.warn(
@@ -270,21 +453,21 @@ def compare_stats(
         )
         return StatComparisonResult.INVALID
     if value == other_value:
-        # The values are the same, the result is the same regardless of the ordering used
+        # The values are the same, the result is the same regardless of the comparison used
         return StatComparisonResult.EQUAL
-    if ordering == ProfileStatOrdering.EQUALITY:
+    if comparison == ProfileStatComparison.EQUALITY:
         # The values are different and we compare for equality
         return StatComparisonResult.UNEQUAL
     elif value > other_value:
         return (
             StatComparisonResult.BASELINE_BETTER
-            if ordering == ProfileStatOrdering.HIGHER
+            if comparison == ProfileStatComparison.HIGHER
             else StatComparisonResult.TARGET_BETTER
         )
     elif value < other_value:
         return (
             StatComparisonResult.BASELINE_BETTER
-            if ordering == ProfileStatOrdering.LOWER
+            if comparison == ProfileStatComparison.LOWER
             else StatComparisonResult.TARGET_BETTER
         )
     return StatComparisonResult.UNEQUAL

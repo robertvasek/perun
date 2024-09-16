@@ -618,12 +618,12 @@ class ProfileMetadata:
 
     :ivar name: the name (key) of the metadata entry
     :ivar value: the value of the metadata entry
-    :ivar tooltip: detailed description of the metadata entry
+    :ivar description: detailed description of the metadata entry
     """
 
     name: str
     value: str | float
-    tooltip: str = ""
+    description: str = ""
 
     @classmethod
     def from_string(cls, metadata: str) -> ProfileMetadata:
@@ -650,4 +650,4 @@ class ProfileMetadata:
 
         :return: the tuple representation of a metadata entry
         """
-        return self.name, self.value, self.tooltip
+        return self.name, self.value, self.description
