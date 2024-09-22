@@ -60,6 +60,28 @@ class ProfileStatComparison(str, enum.Enum):
         """
         return ProfileStatComparison.AUTO
 
+    @classmethod
+    def str_to_comparison(cls, comparison: str) -> ProfileStatComparison:
+        """Convert a comparison type string into a ProfileStatComparison enum value.
+
+        If an invalid comparison type is provided, the default type will be used.
+
+        :param comparison: The comparison type as a string.
+
+        :return: The comparison type as an enum value.
+        """
+        if not comparison:
+            return cls.default()
+        try:
+            return cls(comparison.strip())
+        except ValueError:
+            # Invalid stat comparison, warn
+            perun_log.warn(
+                f"Unknown stat comparison: {comparison}. Using the default stat comparison value "
+                f"instead. Please choose one of ({', '.join(cls.supported())})."
+            )
+            return cls.default()
+
 
 class StatComparisonResult(enum.Enum):
     """The result of stat representative value comparison.
@@ -84,7 +106,7 @@ class ProfileStat:
     :ivar unit: The unit of the stat value(s).
     :ivar aggregate_by: The aggregation (representative value) key.
     :ivar description: A detailed description of the stat.
-    :ivar value: The value of the stat.
+    :ivar value: The value(s) of the stat.
     """
 
     name: str
@@ -92,7 +114,7 @@ class ProfileStat:
     unit: str = "#"
     aggregate_by: str = ""
     description: str = ""
-    value: object = ""
+    value: list[str | float] = dataclasses.field(default_factory=list)
 
     @classmethod
     def from_string(
@@ -120,7 +142,7 @@ class ProfileStat:
         if name == "[empty]":
             # Invalid stat specification, warn
             perun_log.warn("Empty profile stat specification. Creating a dummy '[empty]' stat.")
-        comparison_enum = cls._convert_comparison(cmp)
+        comparison_enum = ProfileStatComparison.str_to_comparison(cmp)
         return cls(name, comparison_enum, unit, aggregate_by, description)
 
     @classmethod
@@ -131,30 +153,32 @@ class ProfileStat:
 
         :return: A constructed ProfileStat object.
         """
-        stat["cmp"] = cls._convert_comparison(stat.get("cmp", ""))
+        stat["cmp"] = ProfileStatComparison.str_to_comparison(stat.get("cmp", ""))
         return cls(**stat)
 
-    @staticmethod
-    def _convert_comparison(comparison: str) -> ProfileStatComparison:
-        """Convert a comparison type string into a ProfileStatComparison enum value.
+    def merge_with(self, other: ProfileStat) -> ProfileStat:
+        """Merges value(s) from another ProfileStat object to this one.
 
-        If an invalid comparison type is provided, the default type will be used.
+        In case of mismatching headers, this ProfileStat header is used over the other one.
 
-        :param comparison: The comparison type as a string.
+        :param other: The other ProfileStat object to merge with.
 
-        :return: The comparison type as an enum value.
+        :return: This ProfileStat object with merged values.
         """
-        if not comparison:
-            return ProfileStatComparison.default()
-        try:
-            return ProfileStatComparison(comparison.strip())
-        except ValueError:
-            # Invalid stat comparison, warn
+        if self.get_header() != other.get_header():
             perun_log.warn(
-                f"Unknown stat comparison: {comparison}. Using the default stat comparison value "
-                f"instead. Please choose one of ({', '.join(ProfileStatComparison.supported())})."
+                f"Merged ProfileStats '{self.name}' have mismatching headers, using the current "
+                f"header {self.get_header()}"
             )
-            return ProfileStatComparison.default()
+        self.value += other.value
+        return self
+
+    def get_header(self) -> tuple[str, str, str, str, str]:
+        """Obtains the ProfileStat header, i.e., all attributes except the values.
+
+        :return: the ProfileStat header.
+        """
+        return self.name, self.cmp, self.unit, self.aggregate_by, self.description
 
 
 class ProfileStatAggregation(Protocol):
@@ -386,17 +410,17 @@ class StringCollection(ProfileStatAggregation):
     def as_table(
         self, key: str = _DEFAULT_KEY
     ) -> tuple[int | str | tuple[str, int], dict[str, int] | dict[str, str]]:
-        header: str | int | tuple[str, int]
+        representative_val: str | int | tuple[str, int]
         if key in ("counts", "sequence"):
             # The Counter and list objects are not suitable for direct printing in a table.
-            header = f"[{key}]"
+            representative_val = f"[{key}]"
         else:
             # A little type hinting help. The list and Counter types have already been covered.
-            header = cast(Union[str, int, tuple[str, int]], self.get_value(key))
+            representative_val = cast(Union[str, int, tuple[str, int]], self.get_value(key))
         if key == "sequence":
             # The 'sequence' key table format is a bit different from the rest.
-            return header, {f"{idx}.": value for idx, value in enumerate(self.sequence)}
-        return header, self.counts
+            return representative_val, {f"{idx}.": value for idx, value in enumerate(self.sequence)}
+        return representative_val, self.counts
 
 
 def aggregate_stats(stat: ProfileStat) -> ProfileStatAggregation:
@@ -406,26 +430,17 @@ def aggregate_stats(stat: ProfileStat) -> ProfileStatAggregation:
 
     :return: The constructed aggregation object.
     """
-    if isinstance(stat.value, (str, float, int)):
-        return SingleValue(stat.value)
-    if isinstance(stat.value, Iterable):
-        # Iterable types are converted to a list
-        values = list(stat.value)
-        if len(values) == 0:
-            perun_log.warn(f"ProfileStat aggregation: Missing value of stat '{stat.name}'")
-            return SingleValue()
-        elif len(values) == 1:
-            return SingleValue(values[0])
-        elif all(isinstance(value, (int, float)) for value in values):
-            # All values are integers or floats
-            return StatisticalSummary.from_values(map(float, values))
-        else:
-            # Even heterogeneous lists will be aggregated as lists of strings
-            return StringCollection(list(map(str, values)))
-    perun_log.warn(
-        f"ProfileStat aggregation: Unknown type '{type(stat.value)}' of stat '{stat.name}'"
-    )
-    return SingleValue()
+    if len(stat.value) == 0:
+        perun_log.warn(f"ProfileStat aggregation: Missing value of stat '{stat.name}'")
+        return SingleValue()
+    elif len(stat.value) == 1:
+        return SingleValue(stat.value[0])
+    elif all(isinstance(value, (int, float)) for value in stat.value):
+        # All values are integers or floats
+        return StatisticalSummary.from_values(map(float, stat.value))
+    else:
+        # Even heterogeneous lists will be aggregated as lists of strings
+        return StringCollection(list(map(str, stat.value)))
 
 
 def compare_stats(
