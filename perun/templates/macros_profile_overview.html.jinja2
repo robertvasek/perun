@@ -100,8 +100,14 @@
 </table>
 {%- endmacro %}
 
-{% macro toggle_script(function_name, element_name) -%}
+{% macro toggle_script(function_name, element_name_left, element_name_right) -%}
 function {{ function_name }}() {
+    {{ toggle_one_side(element_name_left) }}
+    {{ toggle_one_side(element_name_right) }}
+}
+{%- endmacro %}
+
+{% macro toggle_one_side(element_name) -%}
     var tableBody = document.getElementById("{{ element_name }}").getElementsByTagName("tbody")[0];
     var plus_l = document.getElementById("{{ element_name }}-plus-left");
     var minus_l= document.getElementById("{{ element_name }}-minus-left");
@@ -121,5 +127,4 @@ function {{ function_name }}() {
         plus_l.style.display = "block";
         plus_r.style.display = "block";
     }
-}
 {%- endmacro %}

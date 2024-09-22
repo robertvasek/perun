@@ -83,13 +83,13 @@
 
 <div class="left column">
     <h2 class="column-head">{{ lhs_tag }}</h2>
-    {{ profile_overview.overview_table('toggleLeftCollapse', 'left-info', lhs_header, rhs_header, "Profile Specification") }}
+    {{ profile_overview.overview_table('toggleSpecificationCollapse', 'left-specification-info', lhs_header, rhs_header, "Profile Specification") }}
     <div style="margin: 0 10px;">&nbsp;</div>
 </div>
 
 <div class="right column">
     <h2 class="column-head">{{ rhs_tag }}</h2>
-    {{ profile_overview.overview_table('toggleRightCollapse', 'right-info', rhs_header, lhs_header, "Profile Specification") }}
+    {{ profile_overview.overview_table('toggleSpecificationCollapse', 'right-specification-info', rhs_header, lhs_header, "Profile Specification") }}
     <div style="margin: 0 10px;">&nbsp;</div>
 </div>
 
@@ -238,8 +238,8 @@
             },
         {%- endfor %}
     ]
-    {{ profile_overview.toggle_script('toggleLeftCollapse', 'left-info') }}
-    {{ profile_overview.toggle_script('toggleRightCollapse', 'right-info') }}
+    {{ profile_overview.toggle_script('toggleSpecificationCollapse', 'left-specification-info') }}
+    {{ profile_overview.toggle_script('toggleSpecificationCollapse', 'right-specification-info') }}
     {{ widgets.add_to_chip_list() }}
     {{ widgets.checkbox_handler() }}
     {{ widgets.get_radio_handler('getPosition', 'positions') }}
