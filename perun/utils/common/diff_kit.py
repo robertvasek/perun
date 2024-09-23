@@ -220,7 +220,7 @@ def generate_diff_of_metadata(
 
 def generate_diff_of_stats(
     lhs_stats: Iterable[pstats.ProfileStat], rhs_stats: Iterable[pstats.ProfileStat]
-) -> tuple[list[tuple[str, str, str]], list[tuple[str, str, str]]]:
+) -> tuple[list[tuple[str, str, str, dict[str, Any]]], list[tuple[str, str, str, dict[str, Any]]]]:
     """Generates the profile stats with HTML diff styles suitable for an output.
 
     :param lhs_stats: stats from the baseline
@@ -273,7 +273,7 @@ def generate_diff_of_header_record(
 
 def generate_diff_of_stats_record(
     lhs_stat: pstats.ProfileStat | None, rhs_stat: pstats.ProfileStat | None
-) -> tuple[tuple[str, str, str], tuple[str, str, str]]:
+) -> tuple[tuple[str, str, str, dict[str, Any]], tuple[str, str, str, dict[str, Any]]]:
     """Generates a single diffed LHS and RHS profile stats entry.
 
     :param lhs_stat: the LHS (baseline) stats entry
@@ -386,9 +386,23 @@ def _color_stat_record_diff(
     if comparison_result == pstats.StatComparisonResult.INVALID:
         baseline_value, target_value = "invalid comparison", "invalid comparison"
     else:
-        baseline_value = str(lhs_stat_agg.as_table()[0])
-        target_value = str(rhs_stat_agg.as_table()[0])
+        baseline_value = _format_stat_value(lhs_stat_agg.as_table()[0])
+        target_value = _format_stat_value(rhs_stat_agg.as_table()[0])
     return _emphasize(baseline_value, baseline_color), _emphasize(target_value, target_color)
+
+
+def _format_stat_value(value: str | float | tuple[str, int]) -> str:
+    """Formats float stat values to have a fixed number of decimal digits.
+
+    Non-float stat values are kept as is.
+
+    :param value: the value to format.
+
+    :return: the formatted value.
+    """
+    if isinstance(value, float):
+        return f"{value:.4f}"
+    return str(value)
 
 
 @dataclasses.dataclass
@@ -405,6 +419,7 @@ class _StatsDiffRecord:
     value: str = "-"
     tooltip: str = "missing stat info"
     stat_agg: pstats.ProfileStatAggregation | None = None
+    details: dict[str, Any] = dataclasses.field(default_factory=dict)
 
     @classmethod
     def from_stat(
@@ -429,15 +444,15 @@ class _StatsDiffRecord:
         stat_agg = pstats.aggregate_stats(stat)
         unit = f" [{stat.unit}]" if stat.unit else ""
         name = f"{stat.name}{unit} " f"({stat_agg.normalize_aggregate_key(stat.aggregate_by)})"
-        value = str(stat_agg.as_table()[0])
+        value, details = stat_agg.as_table()
         tooltip = stat_description_to_tooltip(
             stat.description, stat_agg.infer_auto_comparison(stat.cmp)
         )
-        return cls(name, value, tooltip, stat_agg)
+        return cls(name, str(value), tooltip, stat_agg, details)
 
-    def to_tuple(self) -> tuple[str, str, str]:
+    def to_tuple(self) -> tuple[str, str, str, dict[str, Any]]:
         """Convert the difference record to a tuple.
 
         :return: the tuple representation of the difference record
         """
-        return self.name, self.value, self.tooltip
+        return self.name, self.value, self.tooltip, self.details

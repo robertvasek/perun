@@ -536,7 +536,7 @@ def process_traces(
                 profile_stats.ProfileStatComparison.LOWER,
                 unit,
                 description=f"The overall value of the {name} for the root value",
-                value=[max_samples[key]],
+                value=[int(max_samples[key])],
             )
         )
     Config().profile_stats[profile_type].append(

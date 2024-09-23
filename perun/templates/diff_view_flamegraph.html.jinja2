@@ -99,24 +99,24 @@
 
 <div class="left column">
     <h2 class="column-head">{{ lhs_tag }}</h2>
-    {{ profile_overview.overview_table('toggleSpecificationCollapse', 'left-specification-info', lhs_header, rhs_header, "Profile Specification") }}
+    {{ profile_overview.overview_table('toggleSpecificationCollapse', 'left-specification-info', lhs_header, "Profile Specification") }}
     <div style="margin: 0 10px;">&nbsp;</div>
-    {{ profile_overview.overview_table('toggleStatsCollapse', 'left-stats-info', lhs_stats, rhs_stats, "Profile Stats") }}
+    {{ profile_overview.nested_overview_table('toggleStatsCollapse', 'left-stats-info', lhs_stats, "Profile Stats") }}
     <div style="margin: 0 10px;">&nbsp;</div>
     {%- if rhs_metadata%}
-    {{ profile_overview.overview_table('toggleMetadataCollapse', 'left-metadata-info', lhs_metadata, rhs_metadata, "Profile Metadata") }}
+    {{ profile_overview.overview_table('toggleMetadataCollapse', 'left-metadata-info', lhs_metadata, "Profile Metadata") }}
     <div style="margin: 0 10px;">&nbsp;</div>
     {%- endif %}
 </div>
 
 <div class="right column">
     <h2 class="column-head">{{ rhs_tag }}</h2>
-    {{ profile_overview.overview_table('toggleSpecificationCollapse', 'right-specification-info', rhs_header, lhs_header, "Profile Specification") }}
+    {{ profile_overview.overview_table('toggleSpecificationCollapse', 'right-specification-info', rhs_header, "Profile Specification") }}
     <div style="margin: 0 10px;">&nbsp;</div>
-    {{ profile_overview.overview_table('toggleStatsCollapse', 'right-stats-info', rhs_stats, lhs_stats, "Profile Stats") }}
+    {{ profile_overview.nested_overview_table('toggleStatsCollapse', 'right-stats-info', rhs_stats, "Profile Stats") }}
     <div style="margin: 0 10px;">&nbsp;</div>
     {%- if rhs_metadata%}
-    {{ profile_overview.overview_table('toggleMetadataCollapse', 'right-metadata-info', rhs_metadata, lhs_metadata, "Profile Metadata") }}
+    {{ profile_overview.overview_table('toggleMetadataCollapse', 'right-metadata-info', rhs_metadata, "Profile Metadata") }}
     <div style="margin: 0 10px;">&nbsp;</div>
     {%- endif %}
 </div>
@@ -176,6 +176,11 @@
 {{ profile_overview.toggle_script('toggleSpecificationCollapse', 'left-specification-info', 'right-specification-info') }}
 {{ profile_overview.toggle_script('toggleStatsCollapse', 'left-stats-info', 'right-stats-info') }}
 {{ profile_overview.toggle_script('toggleMetadataCollapse', 'left-metadata-info', 'right-metadata-info') }}
+{% for (key, value, title, nested_values) in lhs_stats %}
+{% if nested_values %}
+{{ profile_overview.toggle_nested_table('toggleStatsCollapse' ~ loop.index0, 'left-stats-info' ~ loop.index0, 'right-stats-info' ~ loop.index0) }}
+{% endif %}
+{% endfor %}
 {{ accordion.script("table-row") }}
 
 function switch_type() {

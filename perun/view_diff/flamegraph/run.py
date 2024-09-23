@@ -209,7 +209,7 @@ def process_maxima(
                 f"Overall {key}",
                 profile_stats.ProfileStatComparison.LOWER,
                 description=f"The overall value of the {key} for the root value",
-                value=[counts[key]],
+                value=[int(counts[key])],
             )
         )
     stats.append(

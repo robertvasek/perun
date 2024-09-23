@@ -76,7 +76,7 @@
     </table>
 {%- endmacro %}
 
-{%  macro overview_table(function_name, element_name, lhs_header, rhs_header, title) %}
+{%  macro overview_table(function_name, element_name, records, title) %}
 <table class="info" id="{{ element_name }}">
     <thead>
     <tr>
@@ -90,7 +90,7 @@
     </tr>
     </thead>
     <tbody>
-    {%- for (key, value, title) in lhs_header %}
+    {%- for (key, value, title) in records %}
         <tr title="{{ title }}">
             <td class="key">{{ key }}<span class="superscript">?</span></td>
             <td class="value">{{ value }}</td>
@@ -100,10 +100,68 @@
 </table>
 {%- endmacro %}
 
+{%  macro nested_overview_table(function_name, element_name, records, title) %}
+<table class="info" id="{{ element_name }}">
+    <thead>
+    <tr>
+        <th onclick="{{ function_name }}()" colspan="2">
+            <span id="{{ element_name }}-plus-left" style="float: left; display: none">[+]</span>
+            <span id="{{ element_name }}-minus-left" style="float: left">[-]</span>
+            {{ title }}
+            <span id="{{ element_name }}-minus-right" style="float: right">[-]</span>
+            <span id="{{ element_name }}-plus-right" style="float: right; display: none">[+]</span>
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    {%- for (key, value, title, nested_values) in records %}
+        {%- if not nested_values %}
+        <tr title="{{ title }}">
+            <td class="key">{{ key }}<span class="superscript">?</span></td>
+            <td class="value"> {{ value }} </td>
+        </tr>
+        {% else %}
+        <tr title="{{ title }}">
+            <td class="key" onclick="{{ function_name ~ loop.index0 }}()" style="cursor: pointer">
+                {{ key }}<span class="superscript">?</span>
+            </td>
+            <td class="value" onclick="{{ function_name ~ loop.index0 }}()" style="cursor: pointer">
+                {{ value }}
+                <span id="{{ element_name ~ loop.index0 }}-minus-right" style="float: right; display: none">[-]</span>
+                <span id="{{ element_name ~ loop.index0 }}-plus-right" style="float: right">[+]</span>
+            </td>
+        </tr>
+        <tr id="{{ element_name ~ loop.index0 }}" style="visibility: collapse">
+            <td colspan="2">
+                <table class="info">
+                    <tbody>
+                    {%- for nested_key, nested_value in nested_values.items() %}
+                        <tr>
+                            <td class="key">{{ nested_key }}</td>
+                            <td class="value">{% if nested_value is float %} {{'%.4f' % nested_value}} {% else %} {{ nested_value }} {% endif %}</td>
+                        </tr>
+                    {%- endfor %}
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        {% endif -%}
+    {%- endfor %}
+    </tbody>
+</table>
+{%- endmacro %}
+
 {% macro toggle_script(function_name, element_name_left, element_name_right) -%}
 function {{ function_name }}() {
     {{ toggle_one_side(element_name_left) }}
     {{ toggle_one_side(element_name_right) }}
+}
+{%- endmacro %}
+
+{% macro toggle_nested_table(function_name, element_name_left, element_name_right) -%}
+function {{ function_name }}() {
+    {{ toggle_row(element_name_left) }}
+    {{ toggle_row(element_name_right) }}
 }
 {%- endmacro %}
 
@@ -125,6 +183,22 @@ function {{ function_name }}() {
         minus_l.style.display = "none";
         minus_r.style.display = "none";
         plus_l.style.display = "block";
+        plus_r.style.display = "block";
+    }
+{%- endmacro %}
+
+{% macro toggle_row(element_name) -%}
+    var detailsRow = document.getElementById("{{ element_name }}");
+    var plus_r = document.getElementById("{{ element_name }}-plus-right");
+    var minus_r = document.getElementById("{{ element_name }}-minus-right");
+
+    if (detailsRow.style.visibility === "collapse") {
+        detailsRow.style.visibility = "visible";
+        minus_r.style.display = "block";
+        plus_r.style.display = "none";
+    } else {
+        detailsRow.style.visibility = "collapse";
+        minus_r.style.display = "none";
         plus_r.style.display = "block";
     }
 {%- endmacro %}
