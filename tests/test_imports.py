@@ -44,11 +44,13 @@ def test_imports(pcs_with_svs):
         cli.cli,
         [
             "import",
+            "--import-dir",
+            pool_path,
             "--machine-info",
-            os.path.join(pool_path, "machine_info.json"),
+            "machine_info.json",
             "perf",
             "stack",
-            os.path.join(pool_path, "import.stack"),
+            "import.stack",
         ],
     )
     assert result.exit_code == 0
@@ -82,14 +84,30 @@ def test_imports(pcs_with_svs):
             "..",
             "-d",
             pool_path,
+            "--stats-headers",
+            "wall-clock|lower_is_better|ms||total wall-clock run time,umemory|lower_is_better|KB|median|,",
+            "-md",
+            "gcc|v10.0.0|gcc version",
+            "--metadata",
+            "cmake|v3.0.1",
+            "-md",
+            "metadata.json",
+            "-md",
+            "invalid-format",
+            "-md",
+            "unknown-metadata.json",
             "perf",
             "stack",
             "import.csv",
+            "import.stack,1,192.13,13578.45,TSC,bogus",
+            "import-empty.csv",
+            "",
         ],
     )
     assert result.exit_code == 0
     assert len(os.listdir(os.path.join(".perun", "jobs"))) == 5
 
+    # Try to import stack profile using import perf record, we expect failure
     result = runner.invoke(
         cli.cli,
         [
@@ -101,6 +119,24 @@ def test_imports(pcs_with_svs):
             "perf",
             "record",
             os.path.join(pool_path, "import.stack"),
+        ],
+    )
+    assert result.exit_code == 1
+    assert len(os.listdir(os.path.join(".perun", "jobs"))) == 5
+
+    # Supplied invalid path for metadata (recoverable error) and profile (fatal error).
+    # We expect failure.
+    result = runner.invoke(
+        cli.cli,
+        [
+            "import",
+            "-c",
+            "ls",
+            "-w",
+            ".",
+            "perf",
+            "stack",
+            os.path.join(pool_path, "import-invalid.stack"),
         ],
     )
     assert result.exit_code == 1

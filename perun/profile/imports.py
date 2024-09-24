@@ -146,7 +146,7 @@ def import_perf_from_stack(
 @vcs_kit.lookup_minor_version
 def import_elk_from_json(
     import_entries: list[str],
-    metadata: tuple[str, ...] | None,
+    metadata: tuple[str, ...],
     minor_version: str,
     **kwargs: Any,
 ) -> None:
@@ -234,7 +234,7 @@ def import_perf_profile(
 
 def import_elk_profile(
     resources: list[dict[str, Any]],
-    metadata: dict[str, Any],
+    metadata: dict[str, profile_helpers.ProfileMetadata],
     minor_version: MinorVersion,
     save_to_index: bool = False,
     **kwargs: Any,
@@ -382,7 +382,9 @@ def get_machine_info(machine_info: str, import_dir: Path) -> dict[str, Any]:
     return environment.get_machine_specification()
 
 
-def extract_machine_info_from_elk_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
+def extract_machine_info_from_elk_metadata(
+    metadata: dict[str, profile_helpers.ProfileMetadata]
+) -> dict[str, Any]:
     """Extracts the parts of the profile that correspond to machine info.
 
     Note that not many is collected from the ELK formats, and it can vary greatly,
@@ -392,18 +394,28 @@ def extract_machine_info_from_elk_metadata(metadata: dict[str, Any]) -> dict[str
 
     :return: machine info extracted from the profiles.
     """
-    machine_info = {
-        "architecture": metadata.get("machine.arch", "?"),
-        "system": metadata.get("machine.os", "?").capitalize(),
-        "release": metadata.get("extra.machine.platform", "?"),
-        "host": metadata.get("machine.hostname", "?"),
+    machine_info: dict[str, Any] = {
+        "architecture": metadata.get(
+            "machine.arch", profile_helpers.ProfileMetadata("", "?")
+        ).value,
+        "system": str(
+            metadata.get("machine.os", profile_helpers.ProfileMetadata("", "?")).value
+        ).capitalize(),
+        "release": metadata.get(
+            "extra.machine.platform", profile_helpers.ProfileMetadata("", "?")
+        ).value,
+        "host": metadata.get("machine.hostname", profile_helpers.ProfileMetadata("", "?")).value,
         "cpu": {
             "physical": "?",
-            "total": metadata.get("machine.cpu-cores", "?"),
+            "total": metadata.get(
+                "machine.cpu-cores", profile_helpers.ProfileMetadata("", "?")
+            ).value,
             "frequency": "?",
         },
         "memory": {
-            "total_ram": metadata.get("machine.ram", "?"),
+            "total_ram": metadata.get(
+                "machine.ram", profile_helpers.ProfileMetadata("", "?")
+            ).value,
             "swap": "?",
         },
         "boot_info": "?",
@@ -415,7 +427,7 @@ def extract_machine_info_from_elk_metadata(metadata: dict[str, Any]) -> dict[str
 
 
 def _import_metadata(
-    metadata: tuple[str, ...] | None, import_dir: Path
+    metadata: tuple[str, ...], import_dir: Path
 ) -> list[profile_helpers.ProfileMetadata]:
     """Parse the metadata entries from CLI and convert them to our internal representation.
 
@@ -425,8 +437,6 @@ def _import_metadata(
     :return: a collection of parsed and converted metadata objects
     """
     p_metadata: list[profile_helpers.ProfileMetadata] = []
-    if metadata is None:
-        return p_metadata
     # Normalize the metadata string for parsing and/or opening the file
     for metadata_str in map(str.strip, metadata):
         if metadata_str.lower().endswith(".json"):
@@ -564,7 +574,7 @@ def _parse_perf_entry(
 
     :return: the parsed profile, or None if the import entry is invalid.
     """
-    if len(entry) == 0:
+    if len(entry) == 0 or not entry[0]:
         # Empty profile specification, warn
         log.warn("Empty import profile specification. Skipping.")
         return None

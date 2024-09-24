@@ -119,7 +119,7 @@ class ProfileStat:
     @classmethod
     def from_string(
         cls,
-        name: str = "[empty]",
+        name: str = "",
         cmp: str = "",
         unit: str = "#",
         aggregate_by: str = "",
@@ -139,9 +139,10 @@ class ProfileStat:
 
         :return: A constructed ProfileStat object.
         """
-        if name == "[empty]":
+        if not name:
             # Invalid stat specification, warn
             perun_log.warn("Empty profile stat specification. Creating a dummy '[empty]' stat.")
+            name = "[empty]"
         comparison_enum = ProfileStatComparison.str_to_comparison(cmp)
         return cls(name, comparison_enum, unit, aggregate_by, description)
 
@@ -479,10 +480,10 @@ def compare_stats(
             if comparison == ProfileStatComparison.HIGHER
             else StatComparisonResult.TARGET_BETTER
         )
-    elif value < other_value:
+    else:
+        # value < other_value
         return (
             StatComparisonResult.BASELINE_BETTER
             if comparison == ProfileStatComparison.LOWER
             else StatComparisonResult.TARGET_BETTER
         )
-    return StatComparisonResult.UNEQUAL

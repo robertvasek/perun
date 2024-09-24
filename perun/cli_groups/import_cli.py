@@ -53,7 +53,6 @@ from perun.utils.common import cli_kit
     "--metadata",
     "-md",
     multiple=True,
-    default=None,
     metavar="['KEY|VALUE|[DESCRIPTION]'] or [FILE.json]",
     help="Describes a single metadata entry associated with the imported profiles as a "
     "'key|value[|description]' string, or a JSON file that may contain multiple metadata entries "

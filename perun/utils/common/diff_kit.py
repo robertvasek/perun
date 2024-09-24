@@ -347,8 +347,8 @@ def _format_exit_codes(exit_code: str | list[str] | list[int]) -> str:
     """
     # Unify the exit code types
     exit_codes: list[str] = []
-    if isinstance(exit_code, str):
-        exit_codes.append(exit_code)
+    if isinstance(exit_code, (str, int)):
+        exit_codes.append(str(exit_code))
     else:
         exit_codes = list(map(str, exit_code))
     # Color exit codes that are not zero
@@ -386,8 +386,8 @@ def _color_stat_record_diff(
     if comparison_result == pstats.StatComparisonResult.INVALID:
         baseline_value, target_value = "invalid comparison", "invalid comparison"
     else:
-        baseline_value = _format_stat_value(lhs_stat_agg.as_table()[0])
-        target_value = _format_stat_value(rhs_stat_agg.as_table()[0])
+        baseline_value = _format_stat_value(lhs_stat_agg.as_table(compare_key)[0])
+        target_value = _format_stat_value(rhs_stat_agg.as_table(compare_key)[0])
     return _emphasize(baseline_value, baseline_color), _emphasize(target_value, target_color)
 
 
@@ -443,8 +443,9 @@ class _StatsDiffRecord:
         # The standard construction
         stat_agg = pstats.aggregate_stats(stat)
         unit = f" [{stat.unit}]" if stat.unit else ""
-        name = f"{stat.name}{unit} " f"({stat_agg.normalize_aggregate_key(stat.aggregate_by)})"
-        value, details = stat_agg.as_table()
+        agg_key = stat_agg.normalize_aggregate_key(stat.aggregate_by)
+        name = f"{stat.name}{unit} " f"({agg_key})"
+        value, details = stat_agg.as_table(agg_key)
         tooltip = stat_description_to_tooltip(
             stat.description, stat_agg.infer_auto_comparison(stat.cmp)
         )
