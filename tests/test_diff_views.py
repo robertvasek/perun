@@ -53,8 +53,12 @@ def test_diff_flamegraphs(pcs_with_root):
     Expecting no errors, and created flame.svg graph
     """
     runner = CliRunner()
-    baseline_profilename = test_utils.load_profilename("diff_profiles", "kperf-baseline.perf")
-    target_profilename = test_utils.load_profilename("diff_profiles", "kperf-target.perf")
+    baseline_profilename = test_utils.load_profilename(
+        "diff_profiles", "kperf-baseline-stats-metadata.perf"
+    )
+    target_profilename = test_utils.load_profilename(
+        "diff_profiles", "kperf-target-stats-metadata.perf"
+    )
 
     # Next try to create it using the click
     result = runner.invoke(
@@ -77,8 +81,12 @@ def test_diff_datatables(pcs_with_root):
     Expecting no errors, and created flame.svg graph
     """
     runner = CliRunner()
-    baseline_profilename = test_utils.load_profilename("diff_profiles", "kperf-baseline.perf")
-    target_profilename = test_utils.load_profilename("diff_profiles", "kperf-target.perf")
+    baseline_profilename = test_utils.load_profilename(
+        "diff_profiles", "kperf-baseline-stats-metadata.perf"
+    )
+    target_profilename = test_utils.load_profilename(
+        "diff_profiles", "kperf-target-stats-metadata.perf"
+    )
 
     # Next try to create it using the click
     result = runner.invoke(
@@ -104,8 +112,12 @@ def test_diff_datatables(pcs_with_root):
 def test_diff_sankey(pcs_with_root):
     """Test creating sankey diff graph out of the two profile"""
     runner = CliRunner()
-    baseline_profilename = test_utils.load_profilename("diff_profiles", "kperf-baseline.perf")
-    target_profilename = test_utils.load_profilename("diff_profiles", "kperf-target.perf")
+    baseline_profilename = test_utils.load_profilename(
+        "diff_profiles", "kperf-baseline-stats-metadata.perf"
+    )
+    target_profilename = test_utils.load_profilename(
+        "diff_profiles", "kperf-target-stats-metadata.perf"
+    )
 
     # Next try to create it using the click
     result = runner.invoke(
@@ -148,13 +160,26 @@ def test_diff_sankey(pcs_with_root):
 def test_diff_incremental_sankey_kperf(pcs_with_root):
     """Test creating sankey diff graph out of the two profile"""
     runner = CliRunner()
-    baseline_profilename = test_utils.load_profilename("diff_profiles", "kperf-baseline.perf")
-    target_profilename = test_utils.load_profilename("diff_profiles", "kperf-target.perf")
+    baseline_profilename = test_utils.load_profilename(
+        "diff_profiles", "kperf-baseline-stats-metadata.perf"
+    )
+    target_profilename = test_utils.load_profilename(
+        "diff_profiles", "kperf-target-stats-metadata.perf"
+    )
 
     # Next try to create it using the click
     result = runner.invoke(
         cli.showdiff,
-        [baseline_profilename, target_profilename, "report", "-o", "diff.html", "--minimize"],
+        [
+            baseline_profilename,
+            target_profilename,
+            "report",
+            "-o",
+            "diff.html",
+            "--minimize",
+            "--metadata-display",
+            "diff",
+        ],
     )
     assert result.exit_code == 0
     assert "diff.html" in os.listdir(os.getcwd())

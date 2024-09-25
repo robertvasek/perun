@@ -21,7 +21,7 @@ import click
 # Perun Imports
 from perun.logic import config
 from perun.postprocess.regression_analysis import regression_models
-from perun.profile import convert, query
+from perun.profile import convert, query, stats, helpers
 from perun.utils import log
 from perun.utils.common import common_kit
 import perun.check.detection_kit as detection
@@ -454,6 +454,22 @@ class Profile(MutableMapping[str, Any]):
         maximal_snapshot = max(snapshot_map.keys() or [0])
         for i in range(0, maximal_snapshot + 1):
             yield i, snapshot_map[i]
+
+    def all_stats(self) -> Iterable[stats.ProfileStat]:
+        """Iterates through all the stats records in the profile.
+
+        :return: iterable of all stats records
+        """
+        for stat in self._storage.get("stats", {}):
+            yield stats.ProfileStat.from_profile(stat)
+
+    def all_metadata(self) -> Iterable[helpers.ProfileMetadata]:
+        """Iterates through all the metadata records in the profile.
+
+        :return: iterable of all metadata records
+        """
+        for entry in self._storage.get("metadata", {}):
+            yield helpers.ProfileMetadata.from_profile(entry)
 
     # TODO: discuss the intent of __len__ and possibly merge?
     def resources_size(self) -> int:

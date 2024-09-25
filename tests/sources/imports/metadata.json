@@ -1,0 +1,7 @@
+{
+  "BenchmarkName": "stress-ng",
+  "TunedProfile": "balanced",
+  "SELinux": "Enforcing",
+  "Clock_source_start": "tsc",
+  "Clock_source_end": "tsc"
+}

@@ -7,11 +7,16 @@ This module encapsulates such functions, so they can be used in CLI, in tests, i
 from __future__ import annotations
 
 # Standard Imports
-from typing import TextIO, Any
+import contextlib
 import io
 import json
 import os
+from pathlib import Path
 import re
+from typing import Any, BinaryIO, Iterator, IO, Literal, TextIO, TYPE_CHECKING, overload
+
+if TYPE_CHECKING:
+    from _typeshed import OpenBinaryMode, OpenTextMode
 
 # Third-Party Imports
 from ruamel.yaml import YAML
@@ -97,3 +102,92 @@ def safely_load_file(filename: str) -> list[str]:
         except UnicodeDecodeError as ude:
             log.warn(f"Could not decode '{filename}': {ude}")
             return []
+
+
+@overload
+@contextlib.contextmanager
+def safely_open_and_log(
+    file_path: Path,
+    mode: OpenTextMode,
+    fatal_fail: Literal[False] = ...,
+    success_msg: str = ...,
+    fail_msg: str = ...,
+    **open_args: Any,
+) -> Iterator[TextIO | None]: ...
+
+
+@overload
+@contextlib.contextmanager
+def safely_open_and_log(
+    file_path: Path,
+    mode: OpenBinaryMode,
+    fatal_fail: Literal[False] = ...,
+    success_msg: str = ...,
+    fail_msg: str = ...,
+    **open_args: Any,
+) -> Iterator[BinaryIO | None]: ...
+
+
+@overload
+@contextlib.contextmanager
+def safely_open_and_log(
+    file_path: Path,
+    mode: OpenTextMode,
+    *,
+    fatal_fail: Literal[True],
+    success_msg: str = ...,
+    fail_msg: str = ...,
+    **open_args: Any,
+) -> Iterator[TextIO]: ...
+
+
+@overload
+@contextlib.contextmanager
+def safely_open_and_log(
+    file_path: Path,
+    mode: OpenBinaryMode,
+    *,
+    fatal_fail: Literal[True],
+    success_msg: str = ...,
+    fail_msg: str = ...,
+    **open_args: Any,
+) -> Iterator[BinaryIO]: ...
+
+
+@contextlib.contextmanager
+def safely_open_and_log(
+    file_path: Path,
+    mode: str,
+    fatal_fail: bool = False,
+    success_msg: str = "found",
+    fail_msg: str = "not found",
+    **open_args: Any,
+) -> Iterator[IO[Any] | None]:
+    """Attempt to safely open a file and log a success or failure message.
+
+    If fatal_fail is specified as True, the function will either return a valid file handle or
+    terminate the program; a None value will never be returned if fatal_fail is True.
+
+    When providing a fatal_fail parameter value, it needs to be written with a keyword, e.g.,
+    # safely_open_and_log(path, mode, fatal_fail=True) to conform to the expected call signature
+    # given how mypy currently handles overloads for parameters with default values.
+    # See this mypy issue for more details: https://github.com/python/mypy/issues/7333
+
+    :param file_path: path to the file to open.
+    :param mode: file opening mode.
+    :param fatal_fail: specifies whether failing to open a file should terminate the program.
+    :param success_msg: a log message when the file has been successfully opened.
+    :param fail_msg: a log message when the file could not be opened.
+    :param open_args: additional arguments to pass to the open function.
+
+    :return: a file handle or None, depending on the success of opening the file.
+    """
+    try:
+        with open(file_path, mode, **open_args) as f_handle:
+            log.minor_success(log.path_style(str(file_path)), success_msg)
+            yield f_handle
+    except OSError as exc:
+        log.minor_fail(log.path_style(str(file_path)), fail_msg)
+        if fatal_fail:
+            log.error(str(exc), exc)
+        yield None

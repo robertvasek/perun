@@ -4,12 +4,14 @@ from __future__ import annotations
 
 # Standard Imports
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any
 
 # Third-Party Imports
 import click
 
 # Perun Imports
+import perun
 from perun.templates import factory as templates
 from perun.utils import log
 from perun.utils.common import diff_kit, traces_kit
@@ -211,6 +213,8 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
     template = templates.get_template("diff_view_datatables.html.jinja2")
     content = template.render(
+        perun_version=perun.__version__,
+        timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S") + " UTC",
         lhs_tag="Baseline (base)",
         lhs_columns=columns,
         lhs_data=lhs_data,
