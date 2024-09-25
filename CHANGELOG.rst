@@ -1,6 +1,18 @@
 Changelog
 =========
 
+0.23.5 (2024-09-25)
+-------------------
+
+  - Polish perun import and viewdiff
+  - Stats and metadata specification, internal representation and visualization have been unified across different perf and ELK import and viewdiff commands
+  - Perf profile stats may now be specified both on CLI and in CSV files
+  - Stats may now be aggregated in different ways depending on the type of stats value(s), aggregation key and comparison operator
+  - Aggregated stats are now displayed in a nested table in viewdiff
+  - Metadata may now be specified directly on CLI using strings or JSON files
+  - Collapsing or showing different parts of profile headers in viewdiff now collapses or hides both LHS and RHS
+
+
 0.23.4 (2024-08-08)
 -------------------
 
