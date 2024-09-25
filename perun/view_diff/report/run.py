@@ -18,6 +18,7 @@ from __future__ import annotations
 import array
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from operator import itemgetter
 import sys
 from typing import Any, Literal, Type, Callable
@@ -26,6 +27,7 @@ from typing import Any, Literal, Type, Callable
 import click
 
 # Perun Imports
+import perun
 from perun.logic import config
 from perun.profile import convert, stats as profile_stats
 from perun.profile.factory import Profile
@@ -748,6 +750,8 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
     template = templates.get_template("diff_view_report.html.jinja2", filters=env_filters)
     content = template.render(
         title="Differences of profiles (with sankey)",
+        perun_version=perun.__version__,
+        timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S") + " UTC",
         lhs_tag="Baseline (base)",
         lhs_header=lhs_header,
         lhs_stats=lhs_diff_stats,

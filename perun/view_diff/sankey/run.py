@@ -17,12 +17,14 @@ from __future__ import annotations
 # Standard Imports
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any, Literal
 
 # Third-Party Imports
 import click
 
 # Perun Imports
+import perun
 from perun.templates import factory as templates
 from perun.profile import convert
 from perun.profile.factory import Profile
@@ -532,6 +534,8 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
     template = templates.get_template("diff_view_sankey.html.jinja2")
     content = template.render(
         title="Differences of profiles (with sankey)",
+        perun_version=perun.__version__,
+        timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S") + " UTC",
         lhs_tag="Baseline (base)",
         lhs_header=lhs_header,
         rhs_tag="Target (tgt)",

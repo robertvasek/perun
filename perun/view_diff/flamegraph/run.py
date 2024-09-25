@@ -4,6 +4,7 @@ from __future__ import annotations
 
 # Standard Imports
 from collections import defaultdict
+from datetime import datetime, timezone
 from subprocess import CalledProcessError
 from typing import Any, Optional
 import re
@@ -12,6 +13,7 @@ import re
 import click
 
 # Perun Imports
+import perun
 from perun.templates import factory as templates
 from perun.utils import log, mapping
 from perun.utils.common import common_kit, diff_kit
@@ -261,6 +263,8 @@ def generate_flamegraph_difference(
     template = templates.get_template("diff_view_flamegraph.html.jinja2")
     content = template.render(
         flamegraphs=flamegraphs,
+        perun_version=perun.__version__,
+        timestamp=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S") + " UTC",
         lhs_header=lhs_header,
         lhs_tag="Baseline (base)",
         lhs_top=table_run.get_top_n_records(lhs_profile, top_n=10, aggregated_key=data_type),
