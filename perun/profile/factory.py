@@ -24,7 +24,7 @@ from perun.postprocess.regression_analysis import regression_models
 from perun.profile import convert, query, stats, helpers
 from perun.utils import log
 from perun.utils.common import common_kit
-import perun.check.detection_kit as detection
+import perun.check as check
 import perun.postprocess.regressogram.methods as nparam_methods
 
 if TYPE_CHECKING:
@@ -374,9 +374,9 @@ class Profile(MutableMapping[str, Any]):
         """
         group = models_strategy.rsplit("-")[1]
         if models_strategy in ("all-param", "all-nonparam"):
-            return detection.get_filtered_best_models_of(self, group=group, model_filter=None)
+            return check.get_filtered_best_models_of(self, group=group, model_filter=None)
         elif models_strategy in ("best-nonparam", "best-model", "best-param"):
-            return detection.get_filtered_best_models_of(self, group=group)
+            return check.get_filtered_best_models_of(self, group=group)
         else:
             return {}
 

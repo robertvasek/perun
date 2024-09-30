@@ -50,7 +50,7 @@ from typing import Any, Iterable, TYPE_CHECKING
 # Perun Imports
 from perun.check.methods.abstract_base_checker import AbstractBaseChecker
 from perun.utils.structs.common_structs import DegradationInfo, PerformanceChange
-import perun.check.detection_kit as detection
+import perun.check as check
 
 if TYPE_CHECKING:
     from perun.profile.factory import Profile
@@ -81,10 +81,8 @@ class BestModelOrderEquality(AbstractBaseChecker):
         :param _: unification with other detection methods (unused in this method)
         :returns: tuple (degradation result, degradation location, degradation rate)
         """
-        best_baseline_models = detection.get_filtered_best_models_of(
-            baseline_profile, group="param"
-        )
-        best_target_models = detection.get_filtered_best_models_of(target_profile, group="param")
+        best_baseline_models = check.get_filtered_best_models_of(baseline_profile, group="param")
+        best_target_models = check.get_filtered_best_models_of(target_profile, group="param")
 
         for uid, best_model in best_target_models.items():
             best_baseline_model = best_baseline_models.get(uid)

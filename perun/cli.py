@@ -41,28 +41,8 @@ the flexibility of Perun's usage.
 
 from __future__ import annotations
 
-import cProfile, pstats, io
-import atexit
-
-pr = cProfile.Profile()
-pr.enable()
-
-
-def terminate_profiling():
-    pr.disable()
-    s = io.StringIO()
-    sortby = pstats.SortKey.CUMULATIVE
-    ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-    ps.print_stats("perun/collect")
-    # ps.print_stats(100)
-    print(s.getvalue())
-
-
-atexit.register(terminate_profiling)
-
-
 # Standard Imports
-from typing import Optional, Any
+from typing import Optional, Any, TYPE_CHECKING
 import os
 import sys
 
@@ -76,7 +56,6 @@ from perun.logic import commands, pcs, config as perun_config
 from perun.utils import exceptions, log as perun_log
 from perun.utils.common import cli_kit, common_kit
 from perun.utils.external import commands as external_commands
-from perun.profile.factory import Profile
 from perun.utils.exceptions import (
     UnsupportedModuleException,
     NotPerunRepositoryException,
@@ -91,6 +70,10 @@ import perun.profile.helpers as profiles
 import perun.view
 import perun.view_diff
 import perun.deltadebugging.factory as delta
+
+
+if TYPE_CHECKING:
+    from perun.profile.factory import Profile
 
 
 DEV_MODE = False
