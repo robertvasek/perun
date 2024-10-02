@@ -41,7 +41,7 @@ class _PerfProfileSpec:
 @vcs_kit.lookup_minor_version
 def import_perf_from_record(
     import_entries: list[str],
-    stats_headers: str,
+    stats_headers: str | None,
     minor_version: str,
     with_sudo: bool = False,
     **kwargs: Any,
@@ -86,7 +86,7 @@ def import_perf_from_record(
 @vcs_kit.lookup_minor_version
 def import_perf_from_script(
     import_entries: list[str],
-    stats_headers: str,
+    stats_headers: str | None,
     minor_version: str,
     **kwargs: Any,
 ) -> None:
@@ -117,7 +117,7 @@ def import_perf_from_script(
 @vcs_kit.lookup_minor_version
 def import_perf_from_stack(
     import_entries: list[str],
-    stats_headers: str,
+    stats_headers: str | None,
     minor_version: str,
     **kwargs: Any,
 ) -> None:
@@ -466,7 +466,7 @@ def _parse_metadata_json(metadata_path: Path) -> list[profile.ProfileMetadata]:
 
 
 def _parse_perf_import_entries(
-    import_entries: list[str], cli_stats_headers: str
+    import_entries: list[str], cli_stats_headers: str | None
 ) -> tuple[list[_PerfProfileSpec], list[profile.ProfileStat]]:
     """Parses perf import entries and stats.
 
@@ -494,9 +494,12 @@ def _parse_perf_import_entries(
 
     :return: parsed profiles and stats.
     """
-    stats = [
-        profile.ProfileStat.from_string(*stat.split("|")) for stat in cli_stats_headers.split(",")
-    ]
+    stats = []
+    if cli_stats_headers is not None:
+        stats = [
+            profile.ProfileStat.from_string(*stat.split("|"))
+            for stat in cli_stats_headers.split(",")
+        ]
     cli_stats_len = len(stats)
 
     import_dir = Path(config.lookup_key_recursively("import.dir", os.getcwd()))
