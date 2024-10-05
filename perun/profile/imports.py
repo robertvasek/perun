@@ -16,10 +16,9 @@ from typing import Any
 # Third-Party Imports
 
 # Perun Imports
+from perun import profile as profile
 from perun.collect.kperf import parser
 from perun.logic import commands, config, index, pcs
-from perun.profile import query, helpers as profile_helpers, stats as profile_stats
-from perun.profile.factory import Profile
 from perun.utils import log, streams
 from perun.utils.common import script_kit, common_kit
 from perun.utils.external import commands as external_commands, environment
@@ -31,7 +30,7 @@ from perun.vcs import vcs_kit
 class _PerfProfileSpec:
     """A representation of a perf profile record to import.
 
-    :ivar path: the absolute path to the perf profile.
+    :ivar path: the absolute path to the perf
     :ivar exit_code: the exit code of the profile collection process.
     """
 
@@ -162,7 +161,7 @@ def import_elk_from_json(
     import_dir = Path(config.lookup_key_recursively("import.dir", os.getcwd()))
     resources: list[dict[str, Any]] = []
     # Load the CLI-supplied metadata, if any
-    elk_metadata: dict[str, profile_helpers.ProfileMetadata] = {
+    elk_metadata: dict[str, profile.ProfileMetadata] = {
         data.name: data for data in _import_metadata(metadata, import_dir)
     }
 
@@ -184,7 +183,7 @@ def import_elk_from_json(
 
 def import_perf_profile(
     profiles: list[_PerfProfileSpec],
-    stats: list[profile_stats.ProfileStat],
+    stats: list[profile.ProfileStat],
     resources: list[dict[str, Any]],
     minor_version: MinorVersion,
     **kwargs: Any,
@@ -198,7 +197,7 @@ def import_perf_profile(
     :param kwargs: rest of the parameters.
     """
     import_dir = Path(config.lookup_key_recursively("import.dir", os.getcwd()))
-    prof = Profile(
+    prof = profile.Profile(
         {
             "global": {
                 "time": "???",
@@ -214,7 +213,7 @@ def import_perf_profile(
             "header": {
                 "type": "time",
                 "cmd": kwargs.get("cmd", ""),
-                "exitcode": [profile.exit_code for profile in profiles],
+                "exitcode": [p.exit_code for p in profiles],
                 "workload": kwargs.get("workload", ""),
                 "units": {"time": "sample"},
             },
@@ -234,7 +233,7 @@ def import_perf_profile(
 
 def import_elk_profile(
     resources: list[dict[str, Any]],
-    metadata: dict[str, profile_helpers.ProfileMetadata],
+    metadata: dict[str, profile.ProfileMetadata],
     minor_version: MinorVersion,
     save_to_index: bool = False,
     **kwargs: Any,
@@ -247,7 +246,7 @@ def import_elk_profile(
     :param save_to_index: indication whether we should save the imported profiles to index.
     :param kwargs: rest of the parameters.
     """
-    prof = Profile(
+    prof = profile.Profile(
         {
             "global": {
                 "time": "???",
@@ -273,14 +272,16 @@ def import_elk_profile(
     save_imported_profile(prof, save_to_index, minor_version)
 
 
-def save_imported_profile(prof: Profile, save_to_index: bool, minor_version: MinorVersion) -> None:
+def save_imported_profile(
+    prof: profile.Profile, save_to_index: bool, minor_version: MinorVersion
+) -> None:
     """Saves the imported profile either to index or to pending jobs.
 
     :param prof: imported profile
     :param minor_version: minor version corresponding to the imported profiles.
     :param save_to_index: indication whether we should save the imported profiles to index.
     """
-    full_profile_name = profile_helpers.generate_profile_name(prof)
+    full_profile_name = profile.generate_profile_name(prof)
     profile_directory = pcs.get_job_directory()
     full_profile_path = os.path.join(profile_directory, full_profile_name)
 
@@ -318,7 +319,7 @@ def load_perf_file(filepath: Path) -> str:
 
 def extract_from_elk(
     elk_query: list[dict[str, Any]]
-) -> tuple[list[dict[str, Any]], dict[str, profile_helpers.ProfileMetadata]]:
+) -> tuple[list[dict[str, Any]], dict[str, profile.ProfileMetadata]]:
     """For the given elk query, extracts resources and metadata.
 
     For metadata, we consider any key that has only single value through the profile,
@@ -339,7 +340,7 @@ def extract_from_elk(
         if not k.startswith("metric") and not k.startswith("benchmarking") and len(v) == 1
     }
 
-    metadata = {k: profile_helpers.ProfileMetadata(k, res_counter[k].pop()) for k in metadata_keys}
+    metadata = {k: profile.ProfileMetadata(k, res_counter[k].pop()) for k in metadata_keys}
     resources = [
         {
             k: common_kit.try_convert(v, [int, float, str])
@@ -383,7 +384,7 @@ def get_machine_info(machine_info: str, import_dir: Path) -> dict[str, Any]:
 
 
 def extract_machine_info_from_elk_metadata(
-    metadata: dict[str, profile_helpers.ProfileMetadata]
+    metadata: dict[str, profile.ProfileMetadata]
 ) -> dict[str, Any]:
     """Extracts the parts of the profile that correspond to machine info.
 
@@ -395,27 +396,19 @@ def extract_machine_info_from_elk_metadata(
     :return: machine info extracted from the profiles.
     """
     machine_info: dict[str, Any] = {
-        "architecture": metadata.get(
-            "machine.arch", profile_helpers.ProfileMetadata("", "?")
-        ).value,
+        "architecture": metadata.get("machine.arch", profile.ProfileMetadata("", "?")).value,
         "system": str(
-            metadata.get("machine.os", profile_helpers.ProfileMetadata("", "?")).value
+            metadata.get("machine.os", profile.ProfileMetadata("", "?")).value
         ).capitalize(),
-        "release": metadata.get(
-            "extra.machine.platform", profile_helpers.ProfileMetadata("", "?")
-        ).value,
-        "host": metadata.get("machine.hostname", profile_helpers.ProfileMetadata("", "?")).value,
+        "release": metadata.get("extra.machine.platform", profile.ProfileMetadata("", "?")).value,
+        "host": metadata.get("machine.hostname", profile.ProfileMetadata("", "?")).value,
         "cpu": {
             "physical": "?",
-            "total": metadata.get(
-                "machine.cpu-cores", profile_helpers.ProfileMetadata("", "?")
-            ).value,
+            "total": metadata.get("machine.cpu-cores", profile.ProfileMetadata("", "?")).value,
             "frequency": "?",
         },
         "memory": {
-            "total_ram": metadata.get(
-                "machine.ram", profile_helpers.ProfileMetadata("", "?")
-            ).value,
+            "total_ram": metadata.get("machine.ram", profile.ProfileMetadata("", "?")).value,
             "swap": "?",
         },
         "boot_info": "?",
@@ -426,9 +419,7 @@ def extract_machine_info_from_elk_metadata(
     return machine_info
 
 
-def _import_metadata(
-    metadata: tuple[str, ...], import_dir: Path
-) -> list[profile_helpers.ProfileMetadata]:
+def _import_metadata(metadata: tuple[str, ...], import_dir: Path) -> list[profile.ProfileMetadata]:
     """Parse the metadata entries from CLI and convert them to our internal representation.
 
     :param import_dir: the import directory to use for relative metadata file paths.
@@ -436,7 +427,7 @@ def _import_metadata(
 
     :return: a collection of parsed and converted metadata objects
     """
-    p_metadata: list[profile_helpers.ProfileMetadata] = []
+    p_metadata: list[profile.ProfileMetadata] = []
     # Normalize the metadata string for parsing and/or opening the file
     for metadata_str in map(str.strip, metadata):
         if metadata_str.lower().endswith(".json"):
@@ -445,13 +436,13 @@ def _import_metadata(
         else:
             # Add a single metadata entry parsed from its string representation
             try:
-                p_metadata.append(profile_helpers.ProfileMetadata.from_string(metadata_str))
+                p_metadata.append(profile.ProfileMetadata.from_string(metadata_str))
             except TypeError:
                 log.warn(f"Ignoring invalid profile metadata string '{metadata_str}'.")
     return p_metadata
 
 
-def _parse_metadata_json(metadata_path: Path) -> list[profile_helpers.ProfileMetadata]:
+def _parse_metadata_json(metadata_path: Path) -> list[profile.ProfileMetadata]:
     """Parse a metadata JSON file into the metadata objects.
 
     If the JSON file contains nested dictionaries, the hierarchical keys will be flattened.
@@ -467,8 +458,8 @@ def _parse_metadata_json(metadata_path: Path) -> list[profile_helpers.ProfileMet
             return []
         # Make sure we flatten the input
         metadata_list = [
-            profile_helpers.ProfileMetadata(k, v)
-            for k, v in query.all_items_of(json.load(metadata_handle))
+            profile.ProfileMetadata(k, v)
+            for k, v in profile.all_items_of(json.load(metadata_handle))
         ]
         log.minor_success(log.path_style(str(metadata_path)), "parsed")
         return metadata_list
@@ -476,7 +467,7 @@ def _parse_metadata_json(metadata_path: Path) -> list[profile_helpers.ProfileMet
 
 def _parse_perf_import_entries(
     import_entries: list[str], cli_stats_headers: str
-) -> tuple[list[_PerfProfileSpec], list[profile_stats.ProfileStat]]:
+) -> tuple[list[_PerfProfileSpec], list[profile.ProfileStat]]:
     """Parses perf import entries and stats.
 
     An import entry is either a profile entry
@@ -504,8 +495,7 @@ def _parse_perf_import_entries(
     :return: parsed profiles and stats.
     """
     stats = [
-        profile_stats.ProfileStat.from_string(*stat.split("|"))
-        for stat in cli_stats_headers.split(",")
+        profile.ProfileStat.from_string(*stat.split("|")) for stat in cli_stats_headers.split(",")
     ]
     cli_stats_len = len(stats)
 
@@ -528,7 +518,7 @@ def _parse_perf_import_csv(
     csv_file: str,
     import_dir: Path,
     profiles: list[_PerfProfileSpec],
-    stats: list[profile_stats.ProfileStat],
+    stats: list[profile.ProfileStat],
 ) -> None:
     """Parse stats headers and perf import entries in a CSV file.
 
@@ -547,8 +537,8 @@ def _parse_perf_import_csv(
             log.warn(f"Empty import file {csv_path}. Skipping.")
             return
         # Parse the stats headers
-        csv_stats: list[profile_stats.ProfileStat] = [
-            profile_stats.ProfileStat.from_string(*stat_definition.split("|"))
+        csv_stats: list[profile.ProfileStat] = [
+            profile.ProfileStat.from_string(*stat_definition.split("|"))
             for stat_definition in header[2:]
         ]
         # Parse the remaining rows that represent profile specifications and filter invalid ones
@@ -564,7 +554,7 @@ def _parse_perf_import_csv(
 
 
 def _parse_perf_entry(
-    entry: list[str], import_dir: Path, stats: list[profile_stats.ProfileStat]
+    entry: list[str], import_dir: Path, stats: list[profile.ProfileStat]
 ) -> _PerfProfileSpec | None:
     """Parse a single perf profile import entry.
 
@@ -596,9 +586,7 @@ def _parse_perf_entry(
     return profile_info
 
 
-def _merge_stats(
-    new_stat: profile_stats.ProfileStat, into_stats: list[profile_stats.ProfileStat]
-) -> None:
+def _merge_stats(new_stat: profile.ProfileStat, into_stats: list[profile.ProfileStat]) -> None:
     """Merge a new profile stat values into the current profile stats.
 
     If an existing stat with the same name exists, the values of both stats are merged. If no such

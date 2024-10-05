@@ -26,7 +26,7 @@ from perun.utils import exceptions, log
 from perun.utils.common import common_kit
 from perun.utils.external import commands
 from perun.utils.structs.common_structs import CollectStatus, RunnerReport
-import perun.check.factory as check
+from perun import check as check
 import perun.testing.utils as test_utils
 
 

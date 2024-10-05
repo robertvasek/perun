@@ -9,10 +9,11 @@ from typing import Any, TYPE_CHECKING, Optional
 import click
 
 # Perun Imports
+from perun import check as check
 from perun.logic import pcs, config as perun_config, commands
 from perun.utils import log
 from perun.utils.common import cli_kit, common_kit
-import perun.check.factory as check
+from perun.utils.structs import check_public
 
 if TYPE_CHECKING:
     from perun.profile.factory import Profile
@@ -50,8 +51,8 @@ if TYPE_CHECKING:
     nargs=1,
     required=False,
     multiple=False,
-    type=click.Choice(check.get_supported_detection_models_strategies()),
-    default=check.get_supported_detection_models_strategies()[0],
+    type=click.Choice(check_public.get_supported_detection_models_strategies()),
+    default=check_public.get_supported_detection_models_strategies()[0],
     help=(
         "The detection models strategies predict the way of executing "
         "the detection between two profiles, respectively between relevant "

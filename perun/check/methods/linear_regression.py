@@ -14,7 +14,7 @@ from typing import Any, Iterable, TYPE_CHECKING
 from scipy import stats
 
 # Perun Imports
-import perun.check as check
+from perun import check as check
 from perun.check.methods import fast_check
 from perun.check.methods.abstract_base_checker import AbstractBaseChecker
 from perun.utils.common import common_kit

@@ -19,13 +19,12 @@ import operator
 import click
 
 # Perun Imports
+from perun import check as check
 from perun.logic import config
-from perun.postprocess.regression_analysis import regression_models
 from perun.profile import convert, query, stats, helpers
 from perun.utils import log
+from perun.utils.structs import postprocess_public
 from perun.utils.common import common_kit
-import perun.check as check
-import perun.postprocess.regressogram.methods as nparam_methods
 
 if TYPE_CHECKING:
     from perun.utils.structs.common_structs import ModelRecord
@@ -61,7 +60,7 @@ class Profile(MutableMapping[str, Any]):
     }
     persistent = {"trace", "type", "subtype", "uid", "location"}
 
-    independent = [
+    independent: list[str] = [
         "structure-unit-size",
         "snapshot",
         "order",
@@ -70,7 +69,7 @@ class Profile(MutableMapping[str, Any]):
         "timestamp",
         "exclusive",
     ]
-    dependent = ["amount"]
+    dependent: list[str] = ["amount"]
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initializes the internal storage
@@ -415,11 +414,11 @@ class Profile(MutableMapping[str, Any]):
                 group == "model"
                 or (
                     group == "param"
-                    and model.get("model") in regression_models.get_supported_models()
+                    and model.get("model") in postprocess_public.get_supported_models()
                 )
                 or (
                     group == "nonparam"
-                    and model.get("model") in nparam_methods.get_supported_nparam_methods()
+                    and model.get("model") in postprocess_public.get_supported_nparam_methods()
                 )
             ):
                 yield model_idx, model

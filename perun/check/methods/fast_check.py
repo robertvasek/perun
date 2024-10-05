@@ -14,10 +14,10 @@ import copy
 import numpy as np
 
 # Perun Imports
+from perun import check as check
 from perun.check.methods.abstract_base_checker import AbstractBaseChecker
 from perun.logic import runner
 from perun.utils.structs.common_structs import DegradationInfo, ClassificationMethod
-import perun.check as check
 
 if TYPE_CHECKING:
     from perun.profile.factory import Profile

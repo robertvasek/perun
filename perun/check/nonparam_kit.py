@@ -8,10 +8,10 @@ import re
 import numpy as np
 
 # Perun Imports
+from perun import check as check
 from perun.postprocess.regression_analysis import data_provider
 from perun.utils import log
 from perun.utils.structs.common_structs import PerformanceChange, ModelRecord
-import perun.check as check
 import perun.postprocess.regressogram.methods as rg_methods
 
 if TYPE_CHECKING:

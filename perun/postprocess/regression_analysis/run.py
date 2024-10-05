@@ -8,6 +8,8 @@ from typing import Any
 # Third-Party Imports
 import click
 
+import perun.utils.structs.postprocess_public
+
 # Perun Imports
 from perun.logic import runner
 from perun.postprocess.regression_analysis import data_provider, methods, regression_models, tools
@@ -70,7 +72,11 @@ def store_model_counts(analysis: list[dict[str, Any]]) -> None:
     metrics.save_separate(f"details/{metrics.Metrics.metrics_id}.json", func_summary)
 
     # Count the number of respective models
-    models = {model: 0 for model in regression_models.get_supported_models() if model != "all"}
+    models = {
+        model: 0
+        for model in perun.utils.structs.postprocess_public.get_supported_models()
+        if model != "all"
+    }
     models["undefined"] = 0
     for func_record in funcs.values():
         models["undefined" if (func_record["r_square"] <= 0.5) else func_record["model"]] += 1
@@ -94,7 +100,7 @@ def store_model_counts(analysis: list[dict[str, Any]]) -> None:
 @click.option(
     "--regression_models",
     "-r",
-    type=click.Choice(regression_models.get_supported_models()),
+    type=click.Choice(perun.utils.structs.postprocess_public.get_supported_models()),
     required=False,
     multiple=True,
     help=(

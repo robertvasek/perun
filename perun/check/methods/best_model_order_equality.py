@@ -48,9 +48,9 @@ from typing import Any, Iterable, TYPE_CHECKING
 # Third-Party Imports
 
 # Perun Imports
+from perun import check as check
 from perun.check.methods.abstract_base_checker import AbstractBaseChecker
 from perun.utils.structs.common_structs import DegradationInfo, PerformanceChange
-import perun.check as check
 
 if TYPE_CHECKING:
     from perun.profile.factory import Profile

@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Iterable, Any
 # Third-Party Imports
 
 # Perun Imports
-import perun.check.factory as check
+from perun import check as check
 import perun.logic.runner as run
 from perun.utils.structs.common_structs import PerformanceChange
 from perun.utils import log

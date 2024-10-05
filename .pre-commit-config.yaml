@@ -11,4 +11,4 @@ repos:
     rev: 24.8.0
     hooks:
     -   id: black
-        types: [file, python]
+        types_or: [python, pyi]

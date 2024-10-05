@@ -24,10 +24,9 @@ import click
 import jinja2
 
 # Perun Imports
+from perun import profile as profile
 from perun.utils.structs import collect_public
 from perun.logic import commands, store, stats, config, pcs
-from perun.profile import helpers as profile_helpers, query
-from perun.profile.factory import Profile
 from perun.utils import exceptions, streams, timestamps, log, metrics
 from perun.utils.common import common_kit
 from perun.utils.exceptions import (
@@ -104,7 +103,7 @@ def process_resource_key_param(
     assert (
         hasattr(ctx, "parent") and ctx.parent is not None
     ), "The function expects `ctx` has parent"
-    valid_keys = set(ctx.parent.params.get("profile", Profile()).all_resource_fields())
+    valid_keys = set(ctx.parent.params.get("profile", profile.Profile()).all_resource_fields())
     if value not in valid_keys:
         valid_keys_str = ", ".join(f"'{vk}'" for vk in valid_keys)
         raise click.BadParameter(f"'{value}' is not one of {valid_keys_str}.")
@@ -128,7 +127,9 @@ def process_continuous_key(
     if value != "snapshots" and ctx.parent is not None:
         # If the requested value is not 'snapshots', then get all the numerical keys
         valid_numeric_keys = set(
-            query.all_numerical_resource_fields_of(ctx.parent.params.get("profile", Profile()))
+            profile.all_numerical_resource_fields_of(
+                ctx.parent.params.get("profile", profile.Profile())
+            )
         )
         # Check if the value is valid numeric key
         if value not in valid_numeric_keys:
@@ -297,7 +298,7 @@ def lookup_nth_pending_filename(position: int) -> str:
     :return: pending profile at given position
     """
     pending = commands.get_untracked_profiles()
-    profile_helpers.sort_profiles(pending)
+    profile.sort_profiles(pending)
     if 0 <= position < len(pending):
         return pending[position].realpath
     else:
@@ -369,7 +370,7 @@ def lookup_removed_profile_callback(ctx: click.Context, _: click.Option, value: 
         :param index: index we are looking up and registering to massaged values
         """
         try:
-            index_filename = profile_helpers.get_nth_profile_of(index, ctx.params["minor"])
+            index_filename = profile.get_nth_profile_of(index, ctx.params["minor"])
             start = index_filename.rfind("objects") + len("objects")
             # Remove the .perun/objects/... prefix and merge the directory and file to sha
             ctx.params["from_index_generator"].add("".join(index_filename[start:].split("/")))
@@ -470,7 +471,7 @@ def lookup_minor_version_callback(_: click.Context, __: click.Option, value: str
 
 def lookup_list_of_profiles_callback(
     ctx: click.Context, arg: click.Argument, value: tuple[str]
-) -> list[Profile]:
+) -> list[profile.Profile]:
     """Callback for lookup up list of profiles anywhere
 
     :param ctx: context of the CLI
@@ -480,14 +481,16 @@ def lookup_list_of_profiles_callback(
     """
     profiles = []
     aggregation_function = config.lookup_key_recursively("profile.aggregation", default="median")
-    for profile in value:
-        loaded_profile = lookup_any_profile_callback(ctx, arg, profile)
+    for prof in value:
+        loaded_profile = lookup_any_profile_callback(ctx, arg, prof)
         loaded_profile.apply(aggregation_function)
         profiles.append(loaded_profile)
     return profiles
 
 
-def lookup_any_profile_callback(_: click.Context, __: click.Argument, value: str) -> Profile:
+def lookup_any_profile_callback(
+    _: click.Context, __: click.Argument, value: str
+) -> profile.Profile:
     """Callback for looking up any profile, i.e. anywhere (in index, in pending, etc.)
 
     :param _: context
@@ -507,7 +510,7 @@ def lookup_any_profile_callback(_: click.Context, __: click.Argument, value: str
     index_tag_match = store.INDEX_TAG_REGEX.match(value)
     if index_tag_match:
         try:
-            index_profile = profile_helpers.get_nth_profile_of(int(index_tag_match.group(1)), rev)
+            index_profile = profile.get_nth_profile_of(int(index_tag_match.group(1)), rev)
             return store.load_profile_from_file(index_profile, is_raw_profile=False)
         except TagOutOfRangeException as exc:
             raise click.BadParameter(str(exc))

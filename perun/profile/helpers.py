@@ -29,7 +29,7 @@ from typing import Any, TYPE_CHECKING
 
 # Perun Imports
 from perun.logic import config, index, pcs, store
-from perun.profile import factory as profiles, query
+from perun import profile as profiles
 from perun.utils import decorators, log as perun_log
 from perun.utils.common import common_kit
 from perun.utils.external import environment
@@ -79,7 +79,7 @@ def lookup_param(profile: profiles.Profile, unit: str, param: str) -> str:
     unit_params = unit_param_map.get(unit)
     if unit_params:
         return (
-            common_kit.sanitize_filepart(list(query.all_key_values_of(unit_params, param))[0])
+            common_kit.sanitize_filepart(list(profiles.all_key_values_of(unit_params, param))[0])
             or "_"
         )
     else:
@@ -397,7 +397,7 @@ def is_key_aggregatable_by(profile: profiles.Profile, func: str, key: str, keyna
         return True
 
     # Get all valid numeric keys and validate
-    valid_keys = set(query.all_numerical_resource_fields_of(profile))
+    valid_keys = set(profiles.all_numerical_resource_fields_of(profile))
     if key not in valid_keys:
         choices = "(choose either count/nunique as aggregation function;"
         choices += f" or from the following keys: {', '.join(map(str, valid_keys))})"
