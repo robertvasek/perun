@@ -41,25 +41,6 @@ the flexibility of Perun's usage.
 
 from __future__ import annotations
 
-# import cProfile, pstats, io
-# import atexit
-#
-#
-# def terminate_profiling():
-#     pr.disable()
-#     s = io.StringIO()
-#     sortby = pstats.SortKey.CUMULATIVE
-#     ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-#     # ps.print_stats("perun/collect")
-#     ps.print_stats(100)
-#     print(s.getvalue())
-#
-#
-# atexit.register(terminate_profiling)
-# pr = cProfile.Profile()
-# pr.enable()
-
-
 # Standard Imports
 from typing import Optional, Any, TYPE_CHECKING
 import os
