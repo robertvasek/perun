@@ -44,7 +44,7 @@ from perun.utils.common import cli_kit
     "--stats-headers",
     "-t",
     nargs=1,
-    default="",
+    default=None,
     metavar="[STAT_HEADER+]",
     help="Describes the stats headers associated with imported profiles specified directly in CLI. "
     "A stats header has the form of 'NAME[|COMPARISON_TYPE[|UNIT[|AGGREGATE_BY[|DESCRIPTION]]]]'.",
