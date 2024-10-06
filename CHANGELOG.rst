@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.23.6 (2024-10-06)
+-------------------
+
+  - Fix issue with empty CLI stats headers
+  - Implement lazy loading of the most expensive internal packages to speedup Perun and make CLI snappier
+
+
 0.23.5 (2024-09-25)
 -------------------
 
