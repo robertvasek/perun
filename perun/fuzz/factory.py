@@ -29,7 +29,7 @@ from perun.fuzz.structs import (
     RuleSet,
     TimeSeries,
 )
-from perun.utils import decorators, log
+from perun.utils import log
 from perun.utils.exceptions import SuppressedExceptions
 import perun.fuzz.evaluate.by_perun as evaluate_workloads_by_perun
 import perun.fuzz.evaluate.by_coverage as evaluate_workloads_by_coverage
@@ -37,7 +37,7 @@ import perun.fuzz.evaluate.by_coverage as evaluate_workloads_by_coverage
 if TYPE_CHECKING:
     import types
 
-    from perun.utils.structs import Executable, MinorVersion
+    from perun.utils.structs.common_structs import Executable, MinorVersion
 
 # to ignore numpy division warnings
 np.seterr(divide="ignore", invalid="ignore")

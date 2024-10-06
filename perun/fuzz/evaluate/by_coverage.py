@@ -27,7 +27,7 @@ if TYPE_CHECKING:
         FuzzingProgress,
         CoverageConfiguration,
     )
-    from perun.utils.structs import Executable
+    from perun.utils.structs.common_structs import Executable
 
 
 def prepare_workspace(source_path: str) -> None:

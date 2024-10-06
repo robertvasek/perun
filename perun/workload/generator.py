@@ -15,10 +15,10 @@ from typing import Any, Callable, Iterable, TYPE_CHECKING
 # Third-Party Imports
 
 # Perun Imports
+from perun import profile
 from perun.logic import config
-from perun.profile import helpers as profile_helpers, factory as profile_factory
 from perun.utils import log
-from perun.utils.structs import CollectStatus, Job, Unit
+from perun.utils.structs.common_structs import CollectStatus, Job, Unit
 from perun.utils.common import common_kit
 
 if TYPE_CHECKING:
@@ -53,7 +53,7 @@ class WorkloadGenerator:
 
         :return: tuple of collection status and collected profile
         """
-        collective_profile, collective_status = profile_factory.Profile(), CollectStatus.OK
+        collective_profile, collective_status = profile.Profile(), CollectStatus.OK
 
         for workload, workload_ctx in self._generate_next_workload():
             config.runtime().set("context.workload", workload_ctx)
@@ -70,7 +70,7 @@ class WorkloadGenerator:
                 collective_status = (
                     CollectStatus.ERROR if collective_status == CollectStatus.ERROR else c_status
                 )
-                collective_profile = profile_helpers.merge_resources_of(collective_profile, prof)
+                collective_profile = profile.merge_resources_of(collective_profile, prof)
 
         if not self.for_each:
             yield collective_status, collective_profile

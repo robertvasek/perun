@@ -20,7 +20,7 @@ import git
 from perun.vcs.abstract_repository import AbstractRepository
 from perun.utils import log as perun_log, timestamps
 from perun.utils.exceptions import VersionControlSystemException
-from perun.utils.structs import MinorVersion, MajorVersion
+from perun.utils.structs.common_structs import MinorVersion, MajorVersion
 
 
 class GitRepository(AbstractRepository):

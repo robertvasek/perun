@@ -14,10 +14,10 @@ import numpy as np
 
 # Perun Imports
 from perun.check.methods.abstract_base_checker import AbstractBaseChecker
-from perun.check import factory, nonparam_kit as nparam_helpers
+from perun import check as check
 from perun.postprocess.regression_analysis import regression_models
 from perun.utils.common import common_kit
-from perun.utils.structs import DegradationInfo, ModelRecord, DetectionChangeResult
+from perun.utils.structs.common_structs import DegradationInfo, ModelRecord, DetectionChangeResult
 
 if TYPE_CHECKING:
     from perun.profile.factory import Profile
@@ -95,7 +95,7 @@ def execute_analysis(
     :return: tuple with degradation info between a pair of models:
         (deg. result, deg. location, deg. rate, confidence type and rate, etc.)
     """
-    x_pts, baseline_y_pts, target_y_pts = nparam_helpers.preprocess_nonparam_models(
+    x_pts, baseline_y_pts, target_y_pts = check.preprocess_nonparam_models(
         uid, baseline_model, target_profile, target_model
     )
 
@@ -114,7 +114,7 @@ def execute_analysis(
         float(target_integral - baseline_integral), float(baseline_integral)
     )
 
-    change_info = nparam_helpers.classify_change(
+    change_info = check.classify_change(
         rel_error if np.isfinite(rel_error) else 0,
         _INTEGRATE_DIFF_NO_CHANGE,
         _INTEGRATE_DIFF_CHANGE,
@@ -142,7 +142,7 @@ class IntegralComparison(AbstractBaseChecker):
         :param _: other kwgargs
         :returns: tuple - degradation result (structure DegradationInfo)
         """
-        for degradation_info in factory.run_detection_with_strategy(
+        for degradation_info in check.run_detection_with_strategy(
             execute_analysis, baseline_profile, target_profile, models_strategy
         ):
             yield degradation_info

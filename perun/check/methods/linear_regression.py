@@ -14,11 +14,11 @@ from typing import Any, Iterable, TYPE_CHECKING
 from scipy import stats
 
 # Perun Imports
-from perun.check import detection_kit as detect
+from perun import check as check
 from perun.check.methods import fast_check
 from perun.check.methods.abstract_base_checker import AbstractBaseChecker
 from perun.utils.common import common_kit
-from perun.utils.structs import DegradationInfo, ModelRecord, ClassificationMethod
+from perun.utils.structs.common_structs import DegradationInfo, ModelRecord, ClassificationMethod
 
 if TYPE_CHECKING:
     import numpy
@@ -40,7 +40,7 @@ class LinearRegression(AbstractBaseChecker):
         :returns: tuple (degradation result, degradation location, degradation rate, confidence)
         """
 
-        return detect.general_detection(
+        return check.general_detection(
             baseline_profile, target_profile, ClassificationMethod.LinearRegression
         )
 
@@ -107,15 +107,15 @@ def exec_linear_regression(
         uid, baseline_profile, baseline_x_pts, lin_abs_error
     )
     # obtaining the models (linear and quadratic) from the new regressed profile
-    quad_err_model = detect.get_filtered_best_models_of(
+    quad_err_model = check.get_filtered_best_models_of(
         std_err_profile,
         group="param",
-        model_filter=detect.create_filter_by_model("quadratic"),
+        model_filter=check.create_filter_by_model("quadratic"),
     )
-    linear_err_model = detect.get_filtered_best_models_of(
+    linear_err_model = check.get_filtered_best_models_of(
         std_err_profile,
         group="param",
-        model_filter=detect.create_filter_by_model("linear"),
+        model_filter=check.create_filter_by_model("linear"),
     )
 
     # check the last quadratic type of change
@@ -127,7 +127,7 @@ def exec_linear_regression(
 
     # We did not classify the change
     if not change_type:
-        std_err_model = detect.get_filtered_best_models_of(std_err_profile, group="param")
+        std_err_model = check.get_filtered_best_models_of(std_err_profile, group="param")
         change_type = std_err_model[uid].type
 
     return change_type

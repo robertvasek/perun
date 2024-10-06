@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Any, Iterable
 # Perun Imports
 if TYPE_CHECKING:
     from perun.profile.factory import Profile
-    from perun.utils.structs import DegradationInfo
+    from perun.utils.structs.common_structs import DegradationInfo
 
 
 class AbstractBaseChecker(ABC):

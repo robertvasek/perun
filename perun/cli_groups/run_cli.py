@@ -12,7 +12,7 @@ import click
 from perun.logic import config as perun_config, runner, commands
 from perun.utils import log as perun_log
 from perun.utils.common import cli_kit
-from perun.utils.structs import CollectStatus
+from perun.utils.structs.common_structs import CollectStatus
 
 
 @click.group()

@@ -1,6 +1,7 @@
 perun_files = files(
     'cli.py',
     '__init__.py',
+    'py.typed',
 )
 
 py3.install_sources(

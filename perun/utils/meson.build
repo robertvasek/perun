@@ -8,7 +8,6 @@ perun_utils_files = files(
     'mapping.py',
     'metrics.py',
     'streams.py',
-    'structs.py',
     'timestamps.py',
 )
 
@@ -19,3 +18,4 @@ py3.install_sources(
 
 subdir('common')
 subdir('external')
+subdir('structs')

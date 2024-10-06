@@ -47,7 +47,7 @@ from perun.utils.external import commands
 from perun.workload.generator import WorkloadGenerator
 
 if TYPE_CHECKING:
-    from perun.utils.structs import Job
+    from perun.utils.structs.common_structs import Job
 
 
 class ExternalGenerator(WorkloadGenerator):

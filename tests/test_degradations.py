@@ -10,11 +10,12 @@ import git
 import pytest
 
 # Perun Imports
+from perun import check as check
 from perun.check.methods.abstract_base_checker import AbstractBaseChecker
 from perun.logic import config, store
 from perun.utils import log
+from perun.utils.structs.common_structs import PerformanceChange
 from perun.utils.exceptions import UnsupportedModuleException
-import perun.check.factory as check
 
 
 def test_degradation_precollect(monkeypatch, pcs_with_degradations, capsys):
@@ -85,7 +86,7 @@ def test_degradation_in_history(pcs_with_degradations):
     head = str(git_repo.head.commit)
 
     result = check.degradation_in_history(head)
-    assert check.PerformanceChange.Degradation in [r[0].result for r in result]
+    assert PerformanceChange.Degradation in [r[0].result for r in result]
 
 
 def test_degradation_between_profiles(pcs_with_root, capsys):
@@ -114,8 +115,8 @@ def test_degradation_between_profiles(pcs_with_root, capsys):
         )
     )
     expected_changes = {
-        check.PerformanceChange.TotalDegradation,
-        check.PerformanceChange.NoChange,
+        PerformanceChange.TotalDegradation,
+        PerformanceChange.NoChange,
     }
     assert expected_changes & set(r.result for r in result)
 
@@ -127,9 +128,9 @@ def test_degradation_between_profiles(pcs_with_root, capsys):
     )
     # We allow TotalDegradation and TotalOptimization since one them is always reported
     allowed = {
-        check.PerformanceChange.NoChange,
-        check.PerformanceChange.TotalDegradation,
-        check.PerformanceChange.TotalOptimization,
+        PerformanceChange.NoChange,
+        PerformanceChange.TotalDegradation,
+        PerformanceChange.TotalOptimization,
     }
     # No other result should be present here
     assert not set(r.result for r in result) - allowed
@@ -139,33 +140,33 @@ def test_degradation_between_profiles(pcs_with_root, capsys):
     result = list(
         check.run_degradation_check("best_model_order_equality", profiles[0], profiles[1])
     )
-    assert check.PerformanceChange.NoChange in [r.result for r in result]
+    assert PerformanceChange.NoChange in [r.result for r in result]
 
     # Can detect degradation using BMOE strategy betwen these pairs of profiles
     result = list(
         check.run_degradation_check("best_model_order_equality", profiles[1], profiles[2])
     )
-    assert check.PerformanceChange.Degradation in [r.result for r in result]
+    assert PerformanceChange.Degradation in [r.result for r in result]
 
     result = list(
         check.run_degradation_check("best_model_order_equality", profiles[0], profiles[2])
     )
-    assert check.PerformanceChange.Degradation in [r.result for r in result]
+    assert PerformanceChange.Degradation in [r.result for r in result]
 
     result = list(check.run_degradation_check("average_amount_threshold", profiles[1], profiles[2]))
-    assert check.PerformanceChange.Degradation in [r.result for r in result]
+    assert PerformanceChange.Degradation in [r.result for r in result]
 
     # Can detect optimizations both using BMOE and AAT and Fast
     result = list(check.run_degradation_check("average_amount_threshold", profiles[2], profiles[1]))
-    assert check.PerformanceChange.Optimization in [r.result for r in result]
+    assert PerformanceChange.Optimization in [r.result for r in result]
 
     result = list(check.run_degradation_check("fast_check", profiles[2], profiles[1]))
-    assert check.PerformanceChange.MaybeOptimization in [r.result for r in result]
+    assert PerformanceChange.MaybeOptimization in [r.result for r in result]
 
     result = list(
         check.run_degradation_check("best_model_order_equality", profiles[2], profiles[1])
     )
-    assert check.PerformanceChange.Optimization in [r.result for r in result]
+    assert PerformanceChange.Optimization in [r.result for r in result]
 
     # Try that we printed confidence
     deg_list = [(res, "", "") for res in result]
@@ -178,7 +179,7 @@ def test_degradation_between_profiles(pcs_with_root, capsys):
     # Assert that DegradationInfo was yield
     assert result
     # Assert there was no change
-    assert check.PerformanceChange.NoChange in [r.result for r in result]
+    assert PerformanceChange.NoChange in [r.result for r in result]
 
     # Test incompatible profiles
     pool_path = os.path.join(os.path.split(__file__)[0], "profiles", "full_profiles")

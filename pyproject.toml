@@ -32,6 +32,9 @@ dependencies = [
     "ninja>=1.11",
     "wheel>=0.43.0",
 
+    # Lazy loading
+    "lazy-loader>=0.4",
+
     # Other
     "psutil>=6.0.0",
 
@@ -140,6 +143,7 @@ module = [
     "statsmodels.*",
     "holoviews.*",
     "bcc.*",
+    "lazy_loader.*",
 ]
 ignore_missing_imports = true
 

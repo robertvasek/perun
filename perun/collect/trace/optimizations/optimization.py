@@ -6,13 +6,10 @@ import collections
 from perun.utils.common.common_kit import sanitize_filepart
 from perun.utils.exceptions import SuppressedExceptions
 from perun.collect.trace.optimizations.structs import (
-    Optimizations,
-    Pipeline,
-    Parameters,
-    CallGraphTypes,
     ParametersManager,
     CGShapingMode,
 )
+from perun.utils.structs.collect_structs import Optimizations, Pipeline, Parameters, CallGraphTypes
 import perun.collect.trace.optimizations.resources.manager as resources
 from perun.collect.trace.optimizations.call_graph import CallGraphResource
 import perun.collect.trace.optimizations.cg_projection as proj

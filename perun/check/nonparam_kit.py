@@ -8,10 +8,10 @@ import re
 import numpy as np
 
 # Perun Imports
+from perun import check as check
 from perun.postprocess.regression_analysis import data_provider
 from perun.utils import log
-from perun.utils.structs import PerformanceChange, ModelRecord
-import perun.check.detection_kit as methods
+from perun.utils.structs.common_structs import PerformanceChange, ModelRecord
 import perun.postprocess.regressogram.methods as rg_methods
 
 if TYPE_CHECKING:
@@ -107,7 +107,7 @@ def unify_buckets_in_regressogram(
 
     # match the regressogram model with the right 'uid'
     model = [model for model in new_regressogram_models if model["uid"] == uid][0]
-    return methods.create_model_record(model)
+    return check.create_model_record(model)
 
 
 def preprocess_nonparam_models(
@@ -146,7 +146,7 @@ def preprocess_nonparam_models(
         :return: obtained x and y coordinates - x-points, y-points
         """
         if model.b1 is not None:
-            x_pts, y_pts = methods.get_function_values(model)
+            x_pts, y_pts = check.get_function_values(model)
         else:
             x_pts = np.linspace(model.x_start, model.x_end, num=len(model.b0))
             y_pts = model.b0

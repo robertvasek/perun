@@ -23,7 +23,7 @@ from perun.utils.exceptions import (
     NotPerunRepositoryException,
     UnsupportedModuleException,
 )
-from perun.utils.structs import MinorVersion, ProfileListConfig
+from perun.utils.structs.common_structs import MinorVersion, ProfileListConfig
 
 
 @pytest.mark.usefixtures("cleandir")

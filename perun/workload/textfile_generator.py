@@ -43,7 +43,7 @@ import tempfile
 import faker
 
 # Perun Imports
-from perun.utils.structs import Job
+from perun.utils.structs.common_structs import Job
 from perun.utils.common import common_kit
 from perun.workload.generator import WorkloadGenerator
 

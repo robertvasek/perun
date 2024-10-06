@@ -13,12 +13,11 @@ import numpy as np
 from scipy import integrate
 
 # Perun Imports
-from perun.check import factory
+from perun import check as check
 from perun.check.methods.abstract_base_checker import AbstractBaseChecker
 from perun.profile.factory import Profile
 from perun.utils.common import common_kit
-from perun.utils.structs import DegradationInfo, ModelRecord, DetectionChangeResult
-import perun.check.nonparam_kit as nparam_helpers
+from perun.utils.structs.common_structs import DegradationInfo, ModelRecord, DetectionChangeResult
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -141,7 +140,7 @@ def classify_stats_diff(
     """
     # create vectorized functions which take a np.arrays as inputs and perform actions over it
     compare_diffs = np.vectorize(compare_diff_values)
-    classify_change = np.vectorize(nparam_helpers.classify_change)
+    classify_change = np.vectorize(check.classify_change)
     stat_no = len(baseline_stats.keys())
     stat_size = baseline_stats.get(list(baseline_stats.keys())[0])
 
@@ -227,7 +226,7 @@ def execute_analysis(
         original_x_pts,
         baseline_y_pts,
         target_y_pts,
-    ) = nparam_helpers.preprocess_nonparam_models(uid, baseline_model, target_profile, target_model)
+    ) = check.preprocess_nonparam_models(uid, baseline_model, target_profile, target_model)
 
     baseline_window_stats, _ = compute_window_stats(original_x_pts, baseline_y_pts)
     target_window_stats, x_pts = compute_window_stats(original_x_pts, target_y_pts)
@@ -238,7 +237,7 @@ def execute_analysis(
     x_pts_odd = x_pts[:, 1::2].reshape(-1, x_pts.size // 2)[0].round(2)
     partial_intervals = list(np.array((change_info, partial_rel_error, x_pts_even, x_pts_odd)).T)
 
-    change_info_enum = nparam_helpers.classify_change(
+    change_info_enum = check.classify_change(
         common_kit.safe_division(float(np.sum(partial_rel_error)), partial_rel_error.size),
         _STATS_DIFF_NO_CHANGE,
         _STATS_DIFF_CHANGE,
@@ -268,7 +267,7 @@ class LocalStatistics(AbstractBaseChecker):
         :param models_strategy: detection model strategy for obtains the relevant kind of models
         :returns: tuple - degradation result
         """
-        for degradation_info in factory.run_detection_with_strategy(
+        for degradation_info in check.run_detection_with_strategy(
             execute_analysis, baseline_profile, target_profile, models_strategy
         ):
             yield degradation_info

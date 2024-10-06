@@ -19,11 +19,11 @@ import zlib
 # Third-Party Imports
 
 # Perun Imports
-from perun.profile.factory import Profile
+from perun import profile as profile
 from perun.utils import log
 from perun.utils.common import common_kit
 from perun.utils.exceptions import IncorrectProfileFormatException
-from perun.utils.structs import PerformanceChange, DegradationInfo
+from perun.utils.structs.common_structs import PerformanceChange, DegradationInfo
 
 
 INDEX_TAG_REGEX = re.compile(r"^(\d+)@i$")
@@ -295,7 +295,7 @@ def load_degradation_list_for(
 
 def load_profile_from_file(
     file_name: str, is_raw_profile: bool, unsafe_load: bool = False
-) -> Profile:
+) -> profile.Profile:
     """Loads profile w.r.t :ref:`profile-spec` from file.
 
     :param file_name: file path, where the profile is stored
@@ -317,7 +317,7 @@ def load_profile_from_file(
 
 def load_profile_from_handle(
     file_name: str, file_handle: BinaryIO, is_raw_profile: bool
-) -> Profile:
+) -> profile.Profile:
     """
     Fixme: Add check that the loaded profile is in valid format!!!
     TODO: This should be broken into two parts
@@ -348,7 +348,7 @@ def load_profile_from_handle(
     # Try to load the json, if there is issue with the profile
     try:
         with common_kit.disposable_resources(json.loads(body)) as json_profile:
-            return Profile(json_profile)
+            return profile.Profile(json_profile)
     except ValueError:
         raise IncorrectProfileFormatException(
             file_name, f"profile '{file_name}' is not in profile format"

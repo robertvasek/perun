@@ -19,7 +19,7 @@ from perun.utils import log, streams
 from perun.utils.common import common_kit
 from perun.utils.exceptions import SignalReceivedException
 from perun.utils.external import commands as external_commands
-from perun.utils.structs import (
+from perun.utils.structs.common_structs import (
     CollectStatus,
     Executable,
     GeneratorSpec,
@@ -31,7 +31,6 @@ from perun.utils.structs import (
     Unit,
 )
 from perun.workload.singleton_generator import SingletonGenerator
-import perun.collect.trace.optimizations.optimization as optimizations
 import perun.profile.helpers as profile
 import perun.workload as workloads
 
@@ -286,6 +285,8 @@ def run_all_phases_for(
     :param runner_params: dictionary of arguments for runner
     :return: report about the run phase adn profile
     """
+    import perun.collect.trace.optimizations.optimization as optimizations
+
     runner_verb = runner_type[:-2]
     # Create immutable list of resource that should hold even in case of problems
     runner_params["opened_resources"] = []

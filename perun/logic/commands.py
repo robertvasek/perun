@@ -43,7 +43,7 @@ from perun.utils.common.common_kit import (
     PROFILE_DELIMITER,
     ColorChoiceType,
 )
-from perun.utils.structs import ProfileListConfig, MinorVersion
+from perun.utils.structs.common_structs import ProfileListConfig, MinorVersion
 from perun.vcs import vcs_kit
 from perun.vcs.git_repository import GitRepository
 import perun.profile.helpers as profile

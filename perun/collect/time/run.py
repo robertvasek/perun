@@ -18,7 +18,7 @@ from perun.logic import runner
 from perun.utils import log
 from perun.utils.common import common_kit
 from perun.utils.external import commands
-from perun.utils.structs import CollectStatus, Executable
+from perun.utils.structs.common_structs import CollectStatus, Executable
 
 
 TIME_TYPES = ("real", "user", "sys")

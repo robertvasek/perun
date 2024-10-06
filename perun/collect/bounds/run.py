@@ -22,7 +22,7 @@ from perun.collect.bounds import parser
 from perun.logic import runner
 from perun.utils import log
 from perun.utils.external import commands
-from perun.utils.structs import CollectStatus
+from perun.utils.structs.common_structs import CollectStatus
 
 _CLANG_COMPILER = "clang-3.5"
 _CLANG_COMPILATION_PARAMS = ["-g", "-emit-llvm", "-c"]

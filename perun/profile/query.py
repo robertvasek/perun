@@ -26,7 +26,7 @@ import operator
 from perun.utils.common import common_kit
 
 if TYPE_CHECKING:
-    from perun.profile.factory import Profile
+    from perun.profile import Profile
 
 
 def flattened_values(root_key: Any, root_value: Any) -> Iterable[tuple[str, str | float]]:

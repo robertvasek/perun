@@ -10,7 +10,7 @@ from typing import Any, Iterator, TYPE_CHECKING, Optional
 
 # Perun Imports
 if TYPE_CHECKING:
-    from perun.utils.structs import MinorVersion, MajorVersion
+    from perun.utils.structs.common_structs import MinorVersion, MajorVersion
 
 
 class AbstractRepository(ABC):

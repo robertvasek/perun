@@ -34,7 +34,7 @@ from perun.profile.factory import Profile
 from perun.templates import filters, factory as templates
 from perun.utils import log, mapping
 from perun.utils.common import diff_kit, common_kit
-from perun.utils.structs import WebColorPalette
+from perun.utils.structs.common_structs import WebColorPalette
 from perun.view_diff.flamegraph import run as flamegraph_run
 
 

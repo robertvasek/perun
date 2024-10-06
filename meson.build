@@ -18,6 +18,7 @@ perun_files = files(
     'LICENSE',
     'pyproject.toml',
     'tox.ini',
+    'MANIFEST.in',
 )
 
 perun_dir = 'perun'

@@ -30,7 +30,7 @@ from perun.profile import convert
 from perun.profile.factory import Profile
 from perun.utils import log
 from perun.utils.common import diff_kit, common_kit
-from perun.utils.structs import WebColorPalette
+from perun.utils.structs.common_structs import WebColorPalette
 
 
 @dataclass

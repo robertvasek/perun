@@ -32,7 +32,7 @@ from perun.utils.common.common_kit import (
     AttrChoiceType,
     ColorChoiceType,
 )
-from perun.utils.structs import (
+from perun.utils.structs.common_structs import (
     PerformanceChange,
     DegradationInfo,
     MinorVersion,

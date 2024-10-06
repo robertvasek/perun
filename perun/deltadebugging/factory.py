@@ -12,7 +12,7 @@ from pathlib import Path
 from perun.utils.common import common_kit
 
 if TYPE_CHECKING:
-    from perun.utils.structs import Executable
+    from perun.utils.structs.common_structs import Executable
 
 
 def run_delta_debugging_for_command(

@@ -19,6 +19,7 @@ from perun.postprocess.regression_analysis import derived, generic, specific
 from perun.utils import exceptions
 from perun.utils.common import common_kit
 import perun.postprocess.regression_analysis.extensions.plot_models as plot
+from perun.utils.structs.postprocess_structs import get_supported_models
 
 
 def get_formula_of(model: str) -> Callable[..., float]:
@@ -30,17 +31,6 @@ def get_formula_of(model: str) -> Callable[..., float]:
     :return: formula for y coordinates computation
     """
     return MODEL_MAP[model]["transformations"]["plot_model"]["formula"]
-
-
-def get_supported_models() -> list[str]:
-    """Provides all currently supported models as a list of their names.
-
-    The 'all' specifier is used in reverse mapping as it enables to easily specify all models
-
-    :return: the names of all supported models and 'all' specifier
-    """
-    # Disable quadratic model, but allow to process already existing profiles with quad model
-    return [key for key in sorted(MODEL_MAP.keys())]
 
 
 def get_supported_transformations(model_key: str) -> list[str]:
@@ -289,3 +279,5 @@ MODEL_MAP: dict[str, dict[str, Any]] = {
         },
     },
 }
+
+SUPPORTED_MODELS = MODEL_MAP.keys()
