@@ -19,7 +19,7 @@ from perun.postprocess.regression_analysis import derived, generic, specific
 from perun.utils import exceptions
 from perun.utils.common import common_kit
 import perun.postprocess.regression_analysis.extensions.plot_models as plot
-from perun.utils.structs.postprocess_public import get_supported_models
+from perun.utils.structs.postprocess_structs import get_supported_models
 
 
 def get_formula_of(model: str) -> Callable[..., float]:

@@ -8,15 +8,13 @@ from typing import Any
 # Third-Party Imports
 import click
 
-import perun.utils.structs.postprocess_public
-
 # Perun Imports
 from perun.logic import runner
-from perun.postprocess.regression_analysis import data_provider, methods, regression_models, tools
+from perun.postprocess.regression_analysis import data_provider, methods, tools
 from perun.profile.factory import pass_profile, Profile
 from perun.utils import metrics
 from perun.utils.common import cli_kit
-from perun.utils.structs.common_structs import PostprocessStatus
+from perun.utils.structs import common_structs, postprocess_structs
 
 
 _DEFAULT_STEPS = 3
@@ -24,7 +22,7 @@ _DEFAULT_STEPS = 3
 
 def postprocess(
     profile: Profile, **configuration: Any
-) -> tuple[PostprocessStatus, str, dict[str, Any]]:
+) -> tuple[common_structs.PostprocessStatus, str, dict[str, Any]]:
     """Invoked from perun core, handles the postprocess actions
 
     :param profile: the profile to analyze
@@ -44,7 +42,7 @@ def postprocess(
     # Store the results
     new_profile = tools.add_models_to_profile(profile, analysis)
 
-    return PostprocessStatus.OK, "", {"profile": new_profile}
+    return common_structs.PostprocessStatus.OK, "", {"profile": new_profile}
 
 
 def store_model_counts(analysis: list[dict[str, Any]]) -> None:
@@ -72,11 +70,7 @@ def store_model_counts(analysis: list[dict[str, Any]]) -> None:
     metrics.save_separate(f"details/{metrics.Metrics.metrics_id}.json", func_summary)
 
     # Count the number of respective models
-    models = {
-        model: 0
-        for model in perun.utils.structs.postprocess_public.get_supported_models()
-        if model != "all"
-    }
+    models = {model: 0 for model in postprocess_structs.get_supported_models() if model != "all"}
     models["undefined"] = 0
     for func_record in funcs.values():
         models["undefined" if (func_record["r_square"] <= 0.5) else func_record["model"]] += 1
@@ -100,7 +94,7 @@ def store_model_counts(analysis: list[dict[str, Any]]) -> None:
 @click.option(
     "--regression_models",
     "-r",
-    type=click.Choice(perun.utils.structs.postprocess_public.get_supported_models()),
+    type=click.Choice(postprocess_structs.get_supported_models()),
     required=False,
     multiple=True,
     help=(

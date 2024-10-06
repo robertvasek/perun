@@ -24,8 +24,8 @@ import click
 import jinja2
 
 # Perun Imports
+import perun
 from perun import profile as profile
-from perun.utils.structs import collect_public
 from perun.logic import commands, store, stats, config, pcs
 from perun.utils import exceptions, streams, timestamps, log, metrics
 from perun.utils.common import common_kit
@@ -35,7 +35,7 @@ from perun.utils.exceptions import (
     StatsFileNotFoundException,
     NotPerunRepositoryException,
 )
-import perun
+from perun.utils.structs import collect_structs
 
 if TYPE_CHECKING:
     from perun.utils.structs.common_structs import MinorVersion
@@ -858,6 +858,7 @@ def set_optimization_param(_: click.Context, __: click.Argument, value: str) -> 
     :param value: value of the parameter
     :return: the value
     """
+    # TODO: to be fixed when lazy-loader is used in the entire codebase
     from perun.collect.trace.optimizations.optimization import Optimization
 
     for param in value:
@@ -904,7 +905,7 @@ def set_call_graph_type(_: click.Context, __: click.Argument, value: str) -> Non
     """
     from perun.collect.trace.optimizations.optimization import Optimization
 
-    Optimization.call_graph_type = collect_public.CallGraphTypes(value)
+    Optimization.call_graph_type = collect_structs.CallGraphTypes(value)
 
 
 def configure_metrics(_: click.Context, __: click.Option, value: tuple[str, str]) -> None:

@@ -10,7 +10,7 @@ from enum import Enum
 from perun.utils.structs.common_structs import OrderedEnum
 from perun.utils.common import common_kit
 import perun.utils.metrics as metrics
-from perun.utils.structs import collect_public
+from perun.utils.structs import collect_structs
 
 
 class DiffCfgMode(Enum):
@@ -151,70 +151,70 @@ class ParametersManager:
         self.cli_params = []
         self.param_map = {
             # TODO: add proper check
-            collect_public.Parameters.DIFF_VERSION: {"value": None, "validate": lambda x: x},
-            collect_public.Parameters.DIFF_KEEP_LEAF: {
+            collect_structs.Parameters.DIFF_VERSION: {"value": None, "validate": lambda x: x},
+            collect_structs.Parameters.DIFF_KEEP_LEAF: {
                 "value": False,
                 "validate": self._validate_bool,
             },
-            collect_public.Parameters.DIFF_INSPECT_ALL: {
+            collect_structs.Parameters.DIFF_INSPECT_ALL: {
                 "value": True,
                 "validate": self._validate_bool,
             },
-            collect_public.Parameters.DIFF_CG_MODE: {
+            collect_structs.Parameters.DIFF_CG_MODE: {
                 "value": DiffCfgMode.SEMISTRICT,
                 "validate": partial(self._validate_enum, DiffCfgMode),
             },
-            collect_public.Parameters.SOURCE_FILES: {"value": [], "validate": self._validate_path},
-            collect_public.Parameters.SOURCE_DIRS: {"value": [], "validate": self._validate_path},
-            collect_public.Parameters.STATIC_COMPLEXITY: {
+            collect_structs.Parameters.SOURCE_FILES: {"value": [], "validate": self._validate_path},
+            collect_structs.Parameters.SOURCE_DIRS: {"value": [], "validate": self._validate_path},
+            collect_structs.Parameters.STATIC_COMPLEXITY: {
                 "value": Complexity.CONSTANT,
                 "validate": partial(self._validate_enum, Complexity),
             },
-            collect_public.Parameters.STATIC_KEEP_TOP: {
+            collect_structs.Parameters.STATIC_KEEP_TOP: {
                 "value": self._default_keep_top,
                 "validate": self._validate_uint,
             },
-            collect_public.Parameters.CG_SHAPING_MODE: {
+            collect_structs.Parameters.CG_SHAPING_MODE: {
                 "value": CGShapingMode.MATCH,
                 "validate": partial(self._validate_enum, CGShapingMode),
             },
-            collect_public.Parameters.CG_PROJ_LEVELS: {
+            collect_structs.Parameters.CG_PROJ_LEVELS: {
                 "value": self._default_chain_length,
                 "validate": self._validate_uint,
             },
-            collect_public.Parameters.CG_PROJ_KEEP_LEAF: {
+            collect_structs.Parameters.CG_PROJ_KEEP_LEAF: {
                 "value": False,
                 "validate": self._validate_bool,
             },
-            collect_public.Parameters.DYNSAMPLE_STEP: {
+            collect_structs.Parameters.DYNSAMPLE_STEP: {
                 "value": self._default_sampling_step,
                 "validate": self._validate_ufloat,
             },
-            collect_public.Parameters.DYNSAMPLE_THRESHOLD: {
+            collect_structs.Parameters.DYNSAMPLE_THRESHOLD: {
                 "value": self._threshold_soft_base,
                 "validate": self._validate_uint,
             },
-            collect_public.Parameters.PROBING_THRESHOLD: {
+            collect_structs.Parameters.PROBING_THRESHOLD: {
                 "value": self._probing_threshold,
                 "validate": self._validate_uint,
             },
-            collect_public.Parameters.PROBING_REATTACH: {
+            collect_structs.Parameters.PROBING_REATTACH: {
                 "value": False,
                 "validate": self._validate_bool,
             },
-            collect_public.Parameters.TIMEDSAMPLE_FREQ: {
+            collect_structs.Parameters.TIMEDSAMPLE_FREQ: {
                 "value": 1,
                 "validate": self._validate_uint,
             },
-            collect_public.Parameters.DYNBASE_SOFT_THRESHOLD: {
+            collect_structs.Parameters.DYNBASE_SOFT_THRESHOLD: {
                 "value": self._threshold_soft_base,
                 "validate": self._validate_uint,
             },
-            collect_public.Parameters.DYNBASE_HARD_THRESHOLD: {
+            collect_structs.Parameters.DYNBASE_HARD_THRESHOLD: {
                 "value": self._threshold_soft_base * self._hard_threshold_coefficient,
                 "validate": self._validate_uint,
             },
-            collect_public.Parameters.THRESHOLD_MODE: {
+            collect_structs.Parameters.THRESHOLD_MODE: {
                 "value": ThresholdMode.SOFT,
                 "validate": partial(self._validate_enum, ThresholdMode),
             },
@@ -245,7 +245,7 @@ class ParametersManager:
 
         :return: the parameter value if the validation is successful, else None
         """
-        param = collect_public.Parameters(name)
+        param = collect_structs.Parameters(name)
         validated = self.param_map[param]["validate"](value)
         if validated is not None:
             self.cli_params.append((param, validated))
@@ -269,9 +269,9 @@ class ParametersManager:
             self._default_keep_top = call_graph.coverage_max_cut()[1] + 1
         # Extract the user-supplied modes and parameters
         modes = [
-            collect_public.Parameters.DIFF_CG_MODE,
-            collect_public.Parameters.CG_SHAPING_MODE,
-            collect_public.Parameters.THRESHOLD_MODE,
+            collect_structs.Parameters.DIFF_CG_MODE,
+            collect_structs.Parameters.CG_SHAPING_MODE,
+            collect_structs.Parameters.THRESHOLD_MODE,
         ]
         cli_modes, cli_params = common_kit.partition_list(
             self.cli_params, lambda param: param[0] in modes
@@ -309,11 +309,11 @@ class ParametersManager:
             return
         # Keep the leaf functions if the total number of profiled functions is low
         if func_count <= self._functions_keep_leaves:
-            self[collect_public.Parameters.DIFF_KEEP_LEAF] = True
-            self[collect_public.Parameters.CG_PROJ_KEEP_LEAF] = True
+            self[collect_structs.Parameters.DIFF_KEEP_LEAF] = True
+            self[collect_structs.Parameters.CG_PROJ_KEEP_LEAF] = True
         # Keep-top: 10% of levels, minimum is default
         keep_top = max(math.ceil(level_count * self._keep_top_ratio), self._default_keep_top)
-        self[collect_public.Parameters.STATIC_KEEP_TOP] = keep_top
+        self[collect_structs.Parameters.STATIC_KEEP_TOP] = keep_top
 
     def _infer_modes(self, selected_pipeline, user_modes):
         """Predicts the mode parameters based on the used pipeline.
@@ -321,13 +321,13 @@ class ParametersManager:
         :param selected_pipeline: the currently selected pipeline
         :param user_modes: list of pairs with user-specified modes
         """
-        self[collect_public.Parameters.DIFF_CG_MODE] = DiffCfgMode.COLORING
-        self[collect_public.Parameters.CG_SHAPING_MODE] = CGShapingMode.TOP_DOWN
+        self[collect_structs.Parameters.DIFF_CG_MODE] = DiffCfgMode.COLORING
+        self[collect_structs.Parameters.CG_SHAPING_MODE] = CGShapingMode.TOP_DOWN
         # The selected pipeline determines the used modes
-        if selected_pipeline == collect_public.Pipeline.BASIC:
-            self[collect_public.Parameters.THRESHOLD_MODE] = ThresholdMode.STRICT
+        if selected_pipeline == collect_structs.Pipeline.BASIC:
+            self[collect_structs.Parameters.THRESHOLD_MODE] = ThresholdMode.STRICT
         else:
-            self[collect_public.Parameters.THRESHOLD_MODE] = ThresholdMode.SOFT
+            self[collect_structs.Parameters.THRESHOLD_MODE] = ThresholdMode.SOFT
         # Apply the user-supplied modes
         for mode_type, mode_value in user_modes:
             self[mode_type] = mode_value
@@ -343,18 +343,18 @@ class ParametersManager:
         # Determine the number of trimmed levels
         trim_levels = round(level_count * self._levels_ratio)
         # Set the trim levels
-        self[collect_public.Parameters.CG_PROJ_LEVELS] = max(trim_levels, self._default_min_levels)
+        self[collect_structs.Parameters.CG_PROJ_LEVELS] = max(trim_levels, self._default_min_levels)
 
     def _infer_thresholds(self):
         """Infer the threshold values based on the selected modes."""
         # Determine the thresholds based on the mode
         base = self._threshold_soft_base
-        if self[collect_public.Parameters.THRESHOLD_MODE] == ThresholdMode.STRICT:
+        if self[collect_structs.Parameters.THRESHOLD_MODE] == ThresholdMode.STRICT:
             base = self._threshold_strict_base
         # Set the threshold
-        self[collect_public.Parameters.DYNSAMPLE_THRESHOLD] = base
-        self[collect_public.Parameters.DYNBASE_SOFT_THRESHOLD] = base
-        self[collect_public.Parameters.DYNBASE_HARD_THRESHOLD] = (
+        self[collect_structs.Parameters.DYNSAMPLE_THRESHOLD] = base
+        self[collect_structs.Parameters.DYNBASE_SOFT_THRESHOLD] = base
+        self[collect_structs.Parameters.DYNBASE_HARD_THRESHOLD] = (
             base * self._hard_threshold_coefficient
         )
 
@@ -364,12 +364,12 @@ class ParametersManager:
         :param cli_params: a collection of user-supplied parameters
         """
         # Update the probing threshold if reattach is enabled and probing threshold is not set
-        probing_threshold_set = collect_public.Parameters.PROBING_THRESHOLD in [
+        probing_threshold_set = collect_structs.Parameters.PROBING_THRESHOLD in [
             param for param, _ in cli_params
         ]
-        if self[collect_public.Parameters.PROBING_REATTACH] and not probing_threshold_set:
+        if self[collect_structs.Parameters.PROBING_REATTACH] and not probing_threshold_set:
             probing_threshold = self._probing_threshold * self._probing_reattach_coefficient
-            self[collect_public.Parameters.PROBING_THRESHOLD] = probing_threshold
+            self[collect_structs.Parameters.PROBING_THRESHOLD] = probing_threshold
 
     def _extract_sources(self, binary):
         """Search for source files of the project in the binary directory, if none are given.
@@ -377,8 +377,8 @@ class ParametersManager:
         :param binary: path to the binary executable
         """
         files, dirs = (
-            self[collect_public.Parameters.SOURCE_FILES],
-            self[collect_public.Parameters.SOURCE_DIRS],
+            self[collect_structs.Parameters.SOURCE_FILES],
+            self[collect_structs.Parameters.SOURCE_DIRS],
         )
         # No need to extract if only source files are supplied
         if files and not dirs:
@@ -388,7 +388,7 @@ class ParametersManager:
             dirs.append(os.path.dirname(binary))
 
         # Save the sources
-        self[collect_public.Parameters.SOURCE_FILES] = list(set(_get_source_files(dirs, files)))
+        self[collect_structs.Parameters.SOURCE_FILES] = list(set(_get_source_files(dirs, files)))
 
     @staticmethod
     def _validate_bool(value):

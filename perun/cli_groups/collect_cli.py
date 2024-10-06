@@ -5,7 +5,7 @@ from typing import Any
 import click
 
 # Perun Imports
-from perun.utils.structs import collect_public
+from perun.utils.structs import collect_structs
 from perun.utils.common import cli_kit
 from perun.logic import commands, config as perun_config
 
@@ -108,15 +108,15 @@ from perun.logic import commands, config as perun_config
 @click.option(
     "--optimization-pipeline",
     "-op",
-    type=click.Choice(collect_public.Pipeline.supported()),
-    default=collect_public.Pipeline.default(),
+    type=click.Choice(collect_structs.Pipeline.supported()),
+    default=collect_structs.Pipeline.default(),
     callback=cli_kit.set_optimization,
     help="Pre-configured combinations of collection optimization methods.",
 )
 @click.option(
     "--optimization-on",
     "-on",
-    type=click.Choice(collect_public.Optimizations.supported()),
+    type=click.Choice(collect_structs.Optimizations.supported()),
     multiple=True,
     callback=cli_kit.set_optimization,
     help="Enable the specified collection optimization method.",
@@ -124,7 +124,7 @@ from perun.logic import commands, config as perun_config
 @click.option(
     "--optimization-off",
     "-off",
-    type=click.Choice(collect_public.Optimizations.supported()),
+    type=click.Choice(collect_structs.Optimizations.supported()),
     multiple=True,
     callback=cli_kit.set_optimization,
     help="Disable the specified collection optimization method.",
@@ -132,7 +132,7 @@ from perun.logic import commands, config as perun_config
 @click.option(
     "--optimization-args",
     "-oa",
-    type=(click.Choice(collect_public.Parameters.supported()), str),
+    type=(click.Choice(collect_structs.Parameters.supported()), str),
     multiple=True,
     callback=cli_kit.set_optimization_param,
     help="Set parameter values for various optimizations.",
@@ -153,8 +153,8 @@ from perun.logic import commands, config as perun_config
 @click.option(
     "--use-cg-type",
     "-cg",
-    type=(click.Choice(collect_public.CallGraphTypes.supported())),
-    default=collect_public.CallGraphTypes.default(),
+    type=(click.Choice(collect_structs.CallGraphTypes.supported())),
+    default=collect_structs.CallGraphTypes.default(),
     callback=cli_kit.set_call_graph_type,
 )
 @click.pass_context

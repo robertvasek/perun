@@ -23,7 +23,7 @@ from perun import check as check
 from perun.logic import config
 from perun.profile import convert, query, stats, helpers
 from perun.utils import log
-from perun.utils.structs import postprocess_public
+from perun.utils.structs import postprocess_structs
 from perun.utils.common import common_kit
 
 if TYPE_CHECKING:
@@ -414,11 +414,11 @@ class Profile(MutableMapping[str, Any]):
                 group == "model"
                 or (
                     group == "param"
-                    and model.get("model") in postprocess_public.get_supported_models()
+                    and model.get("model") in postprocess_structs.get_supported_models()
                 )
                 or (
                     group == "nonparam"
-                    and model.get("model") in postprocess_public.get_supported_nparam_methods()
+                    and model.get("model") in postprocess_structs.get_supported_nparam_methods()
                 )
             ):
                 yield model_idx, model
