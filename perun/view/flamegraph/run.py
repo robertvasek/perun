@@ -9,6 +9,7 @@ from typing import Any
 import click
 
 # Perun Imports
+from perun.profile import convert
 import perun.view.flamegraph.flamegraph as flame
 import perun.profile.factory as profile_factory
 
@@ -19,7 +20,11 @@ def save_flamegraph(profile: profile_factory.Profile, filename: str) -> None:
     :param profile: profile for which we are saving flamegraph
     :param filename: name of the file where the flamegraph will be saved
     """
-    flamegraph_content = flame.draw_flame_graph(profile)
+    flamegraph_content = flame.draw_flame_graph(
+        convert.to_flame_graph_format(profile),
+        flame.generate_title(profile["header"]),
+        flame.get_units(profile["header"]["type"]),
+    )
     with open(filename, "w") as file_handle:
         file_handle.write(flamegraph_content)
 
