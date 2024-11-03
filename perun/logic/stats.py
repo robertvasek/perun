@@ -440,8 +440,7 @@ def _delete_stats_objects(dirs: Iterable[str], files: Iterable[str]) -> None:
         delete_func = shutil.rmtree if idx == 1 else os.remove
         for item in group:
             try:
-                # Note: We, ignore this, as MyPy seems to have problem inferring and coping with delete_func type
-                delete_func(item)  # type: ignore
+                delete_func(item)
             except OSError as exc:
                 # Possibly already deleted files or restricted permission etc., log and skip
                 perun_log.msg_to_file(f"Stats object deletion error: {exc}", 0)

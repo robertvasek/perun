@@ -243,7 +243,7 @@
                 </tfoot>
             </table>
         </div>
-        {%- for (metric, lhs_flamegraph, rhs_flamegraph, diff_flamegraph) in flamegraphs %}
+        {%- for (metric, lhs_flamegraph, rhs_flamegraph, lhs_diff_flamegraph, rhs_diff_flamegraph) in flamegraphs %}
         <div id="{{ metric|sanitize_variable_name }}" class="tabcontent">
             <div class="middle">
                 <div>
@@ -275,6 +275,16 @@
             <div class="right column">
                 <div class='svg-container'>
                 {{ rhs_flamegraph }}
+                </div>
+            </div>
+            <div class="left column" style="margin-top: 1%">
+                <div class='svg-container'>
+                {{ lhs_diff_flamegraph }}
+                </div>
+            </div>
+            <div class="right column" style="margin-top: 1%">
+                <div class='svg-container'>
+                {{ rhs_diff_flamegraph }}
                 </div>
             </div>
         </div>
@@ -1228,7 +1238,7 @@
             const svgContent = svgContents[i];
             svgContent.setAttribute("viewBox", max_viewBox);
             svgContent.viewBox = max_viewBox;
-            svgContent.getElementsByTagName("rect")[0].style.height = max_box;
+            svgContent.getElementsByTagName("rect")[0].setAttribute("height", max_box);
         };
       }
       resize();
@@ -1260,9 +1270,12 @@
         if (curr_tab == "")
             return;
         const tab = document.getElementById(curr_tab);
+        const searchContent = tab.getElementsByClassName('middle')[0];
         const svgContents = tab.getElementsByClassName('svg-content');
         const lhs_svgContainer = tab.getElementsByClassName('svg-container')[0];
         const rhs_svgContainer = tab.getElementsByClassName('svg-container')[1];
+        const lhs_diff_svgContainer = tab.getElementsByClassName('svg-container')[2];
+        const rhs_diff_svgContainer = tab.getElementsByClassName('svg-container')[3];
         if (lhs_svgContainer) {
             let max_box = 0, max_height = 0;
             for (let i = 0; i < svgContents.length; i++) {
@@ -1276,9 +1289,12 @@
                 if (height > max_box)
                     max_box = height;
             };
-            lhs_svgContainer.style.height = `${max_box}px`;
-            rhs_svgContainer.style.height = `${max_box}px`;
-            tab.style.height = `${max_height + 100}px`;
+            const searchHeight = searchContent.getBoundingClientRect().height;
+            lhs_svgContainer.style.height = `${max_height}px`;
+            rhs_svgContainer.style.height = `${max_height}px`;
+            lhs_diff_svgContainer.style.height = `${max_height}px`;
+            rhs_diff_svgContainer.style.height = `${max_height}px`;
+            tab.style.height = `${max_height * 2.1 + searchHeight}px`;
         }
     }
 
@@ -1300,6 +1316,10 @@
         addListeners("lhs", i, "text");
         addListeners("rhs", i, "rect");
         addListeners("rhs", i, "text");
+        addListeners("lhs_diff", i, "rect");
+        addListeners("lhs_diff", i, "text");
+        addListeners("rhs_diff", i, "rect");
+        addListeners("rhs_diff", i, "text");
     };
 
     {%- if flamegraphs %}
@@ -1313,6 +1333,12 @@
             rhs_{{index}}_reset_search();
             rhs_{{index}}_currentSearchTerm = searchBar_{{index}}.value;
             rhs_{{index}}_search();
+            lhs_diff_{{index}}_reset_search();
+            lhs_diff_{{index}}_currentSearchTerm = searchBar_{{index}}.value;
+            lhs_diff_{{index}}_search();
+            rhs_diff_{{index}}_reset_search();
+            rhs_diff_{{index}}_currentSearchTerm = searchBar_{{index}}.value;
+            rhs_diff_{{index}}_search();
         })
     {%- endfor%}
     {%- endif %}

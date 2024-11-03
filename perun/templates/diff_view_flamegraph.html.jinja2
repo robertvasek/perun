@@ -144,7 +144,7 @@
     </table>
 </div>
 
-{% for (_, lhs_flamegraph, rhs_flamegraph, diff_flamegraph) in flamegraphs %}
+{% for (_, lhs_flamegraph, rhs_flamegraph, lhs_diff_flamegraph, rhs_diff_flamegraph) in flamegraphs %}
 <div class="flamegraphs" id="{{ data_types[loop.index0] }}">
     <h2>{{ data_types[loop.index0] }}</h2>
     <div class="left column">
@@ -160,7 +160,7 @@
     <div class="middle">
         <h2 class="column-head">Difference of profiles</h2>
         <div class='svg-container'>
-            {{ diff_flamegraph }}
+            {{ lhs_diff_flamegraph }}
         </div>
 
         <div class="help">

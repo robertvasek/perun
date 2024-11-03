@@ -6,7 +6,7 @@ from __future__ import annotations
 from collections import defaultdict
 from datetime import datetime, timezone
 from subprocess import CalledProcessError
-from typing import Any, Optional
+from typing import Any
 import re
 
 # Third-Party Imports
@@ -119,9 +119,7 @@ def generate_flamegraphs(
     width: int = DEFAULT_WIDTH,
     skip_diff: bool = False,
     minimize: bool = False,
-    max_trace: int = 0,
-    max_per_resource: Optional[dict[str, float]] = None,
-) -> list[tuple[str, str, str, str]]:
+) -> list[tuple[str, str, str, str, str]]:
     """Constructs a list of tuples of flamegraphs for list of data_types
 
     :param lhs_profile: baseline profile
@@ -130,51 +128,68 @@ def generate_flamegraphs(
     :param width: width of the flame graph
     :param skip_diff: whether the flamegraph diff should be skipped or not
     :param minimize: whether the flamegraph should be minimized or not
-    :param max_trace: maximal size of the trace
-    :param max_per_resource: maximal values for each resource
     """
     flamegraphs = []
     for i, dtype in log.progress(enumerate(data_types), description="Generating Flamegraphs"):
         try:
             data_type = mapping.from_readable_key(dtype)
+            lhs_flame = convert.to_flame_graph_format(
+                lhs_profile, profile_key=data_type, minimize=minimize
+            )
+            rhs_flame = convert.to_flame_graph_format(
+                rhs_profile, profile_key=data_type, minimize=minimize
+            )
+            _, lhs_max_trace, lhs_max_res = flamegraph_factory.compute_max_traces(lhs_flame, width)
+            _, rhs_max_trace, rhs_max_res = flamegraph_factory.compute_max_traces(rhs_flame, width)
+            max_trace = max(lhs_max_trace, rhs_max_trace)
+            max_resources = max(lhs_max_res, rhs_max_res)
+
             lhs_graph = flamegraph_factory.draw_flame_graph(
-                lhs_profile,
-                width,
-                title="Baseline Flamegraph",
-                profile_key=data_type,
-                minimize=minimize,
-                max_trace=max_trace,
-                max_resource=max_per_resource[dtype] if max_per_resource else 0,
+                lhs_flame,
+                "Baseline Flamegraph",
+                img_width=width,
+                fg_max_trace=max_trace,
+                fg_max_resource=max_resources,
             )
             escaped_lhs = escape_content(f"lhs_{i}", lhs_graph)
             log.minor_success(f"Baseline flamegraph ({dtype})", "generated")
 
             rhs_graph = flamegraph_factory.draw_flame_graph(
-                rhs_profile,
-                width,
-                title="Target Flamegraph",
-                profile_key=data_type,
-                minimize=minimize,
-                max_trace=max_trace,
-                max_resource=max_per_resource[dtype] if max_per_resource else 0,
+                rhs_flame,
+                "Target Flamegraph",
+                img_width=width,
+                fg_max_trace=max_trace,
+                fg_max_resource=max_resources,
             )
             escaped_rhs = escape_content(f"rhs_{i}", rhs_graph)
             log.minor_success(f"Target flamegraph ({dtype})", "generated")
 
             if skip_diff:
-                escaped_diff = ""
+                lhs_escaped_diff, rhs_escaped_diff = "", ""
             else:
-                diff_graph = flamegraph_factory.draw_flame_graph_difference(
-                    lhs_profile,
-                    rhs_profile,
-                    width,
-                    title="Difference Flamegraph",
-                    profile_key=data_type,
-                    minimize=minimize,
+                lhs_diff_graph = flamegraph_factory.draw_flame_graph_difference(
+                    lhs_flame,
+                    rhs_flame,
+                    "Baseline-Target Diff Flamegraph",
+                    img_width=width,
+                    fg_flags="--negate",
+                    fg_max_trace=max_trace,
+                    fg_max_resource=max_resources,
                 )
-                escaped_diff = escape_content(f"diff_{i}", diff_graph)
-            log.minor_success(f"Diff flamegraph ({dtype})", "generated")
-            flamegraphs.append((dtype, escaped_lhs, escaped_rhs, escaped_diff))
+                lhs_escaped_diff = escape_content(f"lhs_diff_{i}", lhs_diff_graph)
+                rhs_diff_graph = flamegraph_factory.draw_flame_graph_difference(
+                    rhs_flame,
+                    lhs_flame,
+                    "Target-Baseline Diff Flamegraph",
+                    img_width=width,
+                    fg_max_trace=max_trace,
+                    fg_max_resource=max_resources,
+                )
+                rhs_escaped_diff = escape_content(f"rhs_diff_{i}", rhs_diff_graph)
+                log.minor_success(f"Diff flamegraph ({dtype})", "generated")
+            flamegraphs.append(
+                (dtype, escaped_lhs, escaped_rhs, lhs_escaped_diff, rhs_escaped_diff)
+            )
         except CalledProcessError as exc:
             log.warn(f"could not generate flamegraphs: {exc}")
     return flamegraphs
@@ -241,20 +256,14 @@ def generate_flamegraph_difference(
     rhs_types = list(rhs_profile.all_resource_fields())
     data_types = diff_kit.get_candidate_keys(set(lhs_types).union(set(rhs_types)))
     data_type = list(data_types)[0]
-    lhs_max_trace = process_maxima(maxima_per_resource, lhs_stats, lhs_profile)
-    rhs_max_trace = process_maxima(maxima_per_resource, rhs_stats, rhs_profile)
+    process_maxima(maxima_per_resource, lhs_stats, lhs_profile)
+    process_maxima(maxima_per_resource, rhs_stats, rhs_profile)
     lhs_stats += list(lhs_profile.all_stats())
     rhs_stats += list(rhs_profile.all_stats())
     lhs_final_stats, rhs_final_stats = diff_kit.generate_diff_of_stats(lhs_stats, rhs_stats)
 
     log.major_info("Generating Flamegraph Difference")
-    flamegraphs = generate_flamegraphs(
-        lhs_profile,
-        rhs_profile,
-        data_types,
-        max_per_resource=maxima_per_resource,
-        max_trace=max(lhs_max_trace, rhs_max_trace),
-    )
+    flamegraphs = generate_flamegraphs(lhs_profile, rhs_profile, data_types)
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
     lhs_meta, rhs_meta = diff_kit.generate_diff_of_metadata(
         lhs_profile.all_metadata(), rhs_profile.all_metadata(), kwargs["metadata_display"]

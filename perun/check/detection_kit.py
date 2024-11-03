@@ -81,7 +81,7 @@ def create_model_record(model: dict[str, Any]) -> ModelRecord:
         model["model"],
         model["r_square"],
         model["coeffs"][0]["value"] if model.get("coeffs") else model["bucket_stats"],
-        model["coeffs"][1]["value"] if model.get("coeffs") else None,
+        model["coeffs"][1]["value"] if model.get("coeffs") else None,  # type: ignore
         model["coeffs"][2]["value"] if len(model.get("coeffs", [])) == 3 else 0,
         model["x_start"],
         model["x_end"],

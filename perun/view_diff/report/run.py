@@ -734,10 +734,8 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
         lhs_profile,
         rhs_profile,
         Stats.all_stats(),
-        skip_diff=True,
+        skip_diff=False,
         minimize=Config().minimize,
-        max_trace=Config().max_seen_trace,
-        max_per_resource=Config().max_per_resource,
     )
     log.minor_success("Sankey graphs", "generated")
     lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
