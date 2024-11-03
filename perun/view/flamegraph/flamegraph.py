@@ -88,7 +88,6 @@ def draw_flame_graph(
     :param fg_max_resource: maximum number of samples collected
     """
     # converting profile format to format suitable to Flame graph visualization
-    # flame = convert.to_flame_graph_format(profile, profile_key=profile_key, minimize=minimize)
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp.write("".join(flame_data).encode("utf-8"))
         tmp.close()

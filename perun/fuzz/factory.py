@@ -177,10 +177,13 @@ def fuzz(
 
             if is_binary:
                 with open(filename, "wb") as bp_out:
-                    bp_out.write((b"".join(fuzzed_lines))[:max_bytes])
+                    # Note: At this point, we know that fuzzed_lines is `list[bytes]` since
+                    # `is_binary == True`
+                    bp_out.write((b"".join(cast(list[bytes], fuzzed_lines)))[:max_bytes])
             else:
                 with open(filename, "w") as fp_out:
-                    # Note: At this point, we know, that fuzzed_lines is `list[str]` wrt `is_binary == False`
+                    # Note: At this point, we know, that fuzzed_lines is `list[str]` since
+                    # `is_binary == False`
                     fp_out.write("".join(cast(list[str], fuzzed_lines))[:max_bytes])
 
     return mutations
