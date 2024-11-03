@@ -29,7 +29,7 @@ from .helpers import (
     get_default_independent_variable as get_default_independent_variable,
     get_default_dependent_variable as get_default_dependent_variable,
     ProfileInfo as ProfileInfo,
-    ProfileMetadata as ProfileMetadata,
+    ProfileHeaderEntry as ProfileHeaderEntry,
 )
 
 from .imports import (

@@ -738,10 +738,12 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
         minimize=Config().minimize,
     )
     log.minor_success("Sankey graphs", "generated")
-    lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
+    lhs_header, rhs_header = diff_kit.generate_diff_of_headers(
+        diff_kit.generate_specification(lhs_profile), diff_kit.generate_specification(rhs_profile)
+    )
     lhs_diff_stats, rhs_diff_stats = diff_kit.generate_diff_of_stats(lhs_stats, rhs_stats)
-    lhs_meta, rhs_meta = diff_kit.generate_diff_of_metadata(
-        lhs_profile.all_metadata(), rhs_profile.all_metadata(), kwargs["metadata_display"]
+    lhs_meta, rhs_meta = diff_kit.generate_diff_of_headers(
+        lhs_profile.all_metadata(), rhs_profile.all_metadata()
     )
 
     env_filters = {"sanitize_variable_name": filters.sanitize_variable_name}
@@ -813,15 +815,6 @@ def generate_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: Any) -
     "-m",
     is_flag=True,
     help="Minimizes the traces, folds the recursive calls, hides the generic types.",
-)
-@click.option(
-    "--metadata-display",
-    type=click.Choice(diff_kit.MetadataDisplayStyle.supported()),
-    default=diff_kit.MetadataDisplayStyle.default(),
-    callback=lambda _, __, ds: diff_kit.MetadataDisplayStyle(ds),
-    help="Selects the display style of profile metadata. The 'full' option displays all provided "
-    "metadata, while the 'diff' option shows only metadata with different values "
-    f"(default={diff_kit.MetadataDisplayStyle.default()}).",
 )
 @click.pass_context
 def report(ctx: click.Context, *_: Any, **kwargs: Any) -> None:

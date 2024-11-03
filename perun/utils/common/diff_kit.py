@@ -5,42 +5,20 @@ from __future__ import annotations
 # Standard Imports
 import dataclasses
 import difflib
-import enum
 import os
-from typing import Any, Optional, Iterable, Literal
+from typing import Any, Optional, Iterable, Literal, cast, Union
 
 # Third-Party Imports
 
 # Perun Imports
+from perun.logic import config
 from perun.profile import helpers
 from perun.profile.factory import Profile
 from perun.profile import stats as pstats
 from perun.utils import log
 from perun.utils.common import common_kit
 from perun.utils.common.common_kit import ColorChoiceType
-
-
-class MetadataDisplayStyle(enum.Enum):
-    """Supported styles of displaying metadata."""
-
-    FULL = "full"
-    DIFF = "diff"
-
-    @staticmethod
-    def supported() -> list[str]:
-        """Obtain the collection of supported metadata display styles.
-
-        :return: the collection of valid display styles
-        """
-        return [style.value for style in MetadataDisplayStyle]
-
-    @staticmethod
-    def default() -> str:
-        """Provide the default metadata display style.
-
-        :return: the default display style
-        """
-        return MetadataDisplayStyle.FULL.value
+from perun.utils.structs.diff_structs import HeaderDisplayStyle
 
 
 def save_diff_view(
@@ -99,45 +77,58 @@ def get_candidate_keys(candidate_keys: Iterable[str]) -> list[str]:
     return sorted([candidate for candidate in candidate_keys if candidate in allowed_keys])
 
 
-def generate_header(profile: Profile) -> list[tuple[str, Any, str]]:
-    """Generates header for given profile
+def generate_specification(profile: Profile) -> list[helpers.ProfileHeaderEntry]:
+    """Generates profile specification from the given profile
 
-    :param profile: profile for which we are generating the header
-    :return: list of tuples (key and value)
+    :param profile: profile for which we are generating the specification
+
+    :return: the profile specification as a list of entries
     """
     command = " ".join([profile["header"]["cmd"], profile["header"]["workload"]]).strip()
     exitcode = _format_exit_codes(profile["header"].get("exitcode", "?"))
     machine_info = profile.get("machine", {})
     return [
-        (
+        helpers.ProfileHeaderEntry(
             "origin",
             profile.get("origin", "?"),
             "The version control version, for which the profile was measured.",
         ),
-        ("command", command, "The workload / command, for which the profile was measured."),
-        ("exitcode", exitcode, "The exit code that was returned by the underlying command."),
-        (
+        helpers.ProfileHeaderEntry(
+            "command", command, "The workload / command, for which the profile was measured."
+        ),
+        helpers.ProfileHeaderEntry(
+            "exitcode", exitcode, "The exit code that was returned by the underlying command."
+        ),
+        helpers.ProfileHeaderEntry(
             "collector command",
             log.collector_to_command(profile.get("collector_info", {})),
             "The collector / profiler, which collected the data.",
         ),
-        (
+        helpers.ProfileHeaderEntry(
             "kernel",
             machine_info.get("release", "?"),
             "The underlying kernel version, where the results were measured.",
         ),
-        (
+        helpers.ProfileHeaderEntry(
             "boot info",
             machine_info.get("boot_info", "?"),
             "The contents of `/proc/cmdline` containing boot information about kernel",
         ),
-        ("host", machine_info["host"], "The hostname, where the results were measured."),
-        (
+        helpers.ProfileHeaderEntry(
+            "vulnerabilities",
+            "?" if "cpu_vulnerabilities" not in machine_info else "",
+            "CPU vulnerabilities summary.",
+            machine_info.get("cpu_vulnerabilities", {}),
+        ),
+        helpers.ProfileHeaderEntry(
+            "host", machine_info["host"], "The hostname, where the results were measured."
+        ),
+        helpers.ProfileHeaderEntry(
             "cpu (total)",
             machine_info.get("cpu", {"total": "?"}).get("total", "?"),
             "The total number (physical and virtual) of CPUs available on the host.",
         ),
-        (
+        helpers.ProfileHeaderEntry(
             "memory (total)",
             machine_info.get("memory", {"total_ram": "?"}).get("total_ram", "?"),
             "The total number of RAM available on the host.",
@@ -145,77 +136,48 @@ def generate_header(profile: Profile) -> list[tuple[str, Any, str]]:
     ]
 
 
-def generate_headers(
-    lhs_profile: Profile, rhs_profile: Profile
-) -> tuple[list[tuple[str, Any, str]], list[tuple[str, Any, str]]]:
-    """Generates headers for lhs and rhs profile
-
-    :param lhs_profile: profile for baseline
-    :param rhs_profile: profile for target
-    :return: pair of headers for lhs (baseline) and rhs (target)
-    """
-    lhs_header = generate_header(lhs_profile)
-    rhs_header = generate_header(rhs_profile)
-    return generate_diff_of_headers(lhs_header, rhs_header)
-
-
 def generate_diff_of_headers(
-    lhs_header: list[tuple[str, Any, str]], rhs_header: list[tuple[str, Any, str]]
-) -> tuple[list[tuple[str, Any, str]], list[tuple[str, Any, str]]]:
-    """Regenerates header entries with HTML diff styles suitable for an output.
+    lhs_headers: Iterable[helpers.ProfileHeaderEntry],
+    rhs_headers: Iterable[helpers.ProfileHeaderEntry],
+) -> tuple[list[helpers.ProfileHeaderTuple], list[helpers.ProfileHeaderTuple]]:
+    """Generates diffed headers for lhs (baseline) and rhs (target) profiles.
 
-    :param lhs_header: header for baseline
-    :param rhs_header: header for target
+    Based on the configuration parameter 'display_style', either all or only different header
+    entries will be generated.
 
-    :return: pair of header entries for lhs (baseline) and rhs (target)
+    :param lhs_headers: baseline header entries
+    :param rhs_headers: target header entries
+
+    :return: pair of diffed baseline and target header entries
     """
     lhs_diff, rhs_diff = [], []
-    for lhs_record, rhs_record in zip(lhs_header, rhs_header):
-        _, lhs_diff_record, rhs_diff_record = generate_diff_of_header_record(lhs_record, rhs_record)
-        lhs_diff.append(lhs_diff_record)
-        rhs_diff.append(rhs_diff_record)
+    # Match the LHS and RHS records by entry name
+    lhs_dict = {header.name: header for header in lhs_headers}
+    rhs_dict = {header.name: header for header in rhs_headers}
+    header_map = common_kit.match_dicts_by_keys(lhs_dict, rhs_dict)
+    # Check if we should include all entries or just the diff ones
+    display_style = HeaderDisplayStyle(config.lookup_key_recursively("showdiff.display_style"))
+    only_diff = display_style == HeaderDisplayStyle.DIFF
+    is_diff: bool = False
+    for header_key in sorted(header_map.keys()):
+        lhs_data, rhs_data = _generate_missing_entry(*header_map[header_key])
+        if lhs_data.details or rhs_data.details:
+            # There are details in this entry, compare them one by one
+            is_diff, lhs_details, rhs_details = _generate_diff_of_details(
+                lhs_data.details, rhs_data.details, only_diff
+            )
+            # We need to work around Dict invariance
+            lhs_data.details = cast(dict[str, Union[str, float]], lhs_details)
+            rhs_data.details = cast(dict[str, Union[str, float]], rhs_details)
+        is_diff, key, lhs_data.value, rhs_data.value = _generate_diff_of_values(
+            lhs_data.name, lhs_data.value, rhs_data.value, is_diff
+        )
+        lhs_data.name = rhs_data.name = key
+        # Add this entry if applicable
+        if not only_diff or is_diff:
+            lhs_diff.append(lhs_data.as_tuple())
+            rhs_diff.append(rhs_data.as_tuple())
     return lhs_diff, rhs_diff
-
-
-def generate_diff_of_metadata(
-    lhs_metadata: Iterable[helpers.ProfileMetadata],
-    rhs_metadata: Iterable[helpers.ProfileMetadata],
-    display_style: MetadataDisplayStyle,
-) -> tuple[list[tuple[str, Any, str]], list[tuple[str, Any, str]]]:
-    """Generates metadata entries with HTML diff styles suitable for an output.
-
-    :param lhs_metadata: a collection of metadata entries for baseline
-    :param rhs_metadata: a collection of metadata entries for target
-    :param display_style: the metadata display style; DIFF produces only entries that have diffs
-
-    :return: pair of metadata entries for lhs (baseline) and rhs (target)
-    """
-    metadata_map = common_kit.match_dicts_by_keys(
-        {data.name: data for data in lhs_metadata}, {data.name: data for data in rhs_metadata}
-    )
-    lhs_list, rhs_list = [], []
-    for metadata_key in sorted(metadata_map.keys()):
-        lhs_data: helpers.ProfileMetadata | None
-        rhs_data: helpers.ProfileMetadata | None
-        lhs_data, rhs_data = metadata_map[metadata_key]
-        lhs_tuple = (
-            lhs_data.as_tuple()
-            if lhs_data is not None
-            else (metadata_key, "-", "missing metadata info")
-        )
-        rhs_tuple = (
-            rhs_data.as_tuple()
-            if rhs_data is not None
-            else (metadata_key, "-", "missing metadata info")
-        )
-        if lhs_data is not None and rhs_data is not None:
-            is_diff, lhs_tuple, rhs_tuple = generate_diff_of_header_record(lhs_tuple, rhs_tuple)
-            if display_style == MetadataDisplayStyle.DIFF and not is_diff:
-                # We wish to display only differing metadata, skip this one
-                continue
-        lhs_list.append(lhs_tuple)
-        rhs_list.append(rhs_tuple)
-    return lhs_list, rhs_list
 
 
 def generate_diff_of_stats(
@@ -225,7 +187,7 @@ def generate_diff_of_stats(
 
     :param lhs_stats: stats from the baseline
     :param rhs_stats: stats from the target
-    :return: collection of LHS and RHS stats (stat-description, stat-value, stat-description)
+    :return: collection of LHS and RHS stats (stat-name, stat-value, stat-description, stat-details)
              with HTML styles that reflect the stat diffs.
     """
     # Get all the stats that occur in either lhs or rhs and match those that exist in both
@@ -238,40 +200,91 @@ def generate_diff_of_stats(
         lhs_stat: pstats.ProfileStat | None
         rhs_stat: pstats.ProfileStat | None
         lhs_stat, rhs_stat = stats_map[stat_key]
-        lhs_info, rhs_info = generate_diff_of_stats_record(lhs_stat, rhs_stat)
+        lhs_info, rhs_info = _generate_diff_of_stats_record(lhs_stat, rhs_stat)
         lhs_diff.append(lhs_info)
         rhs_diff.append(rhs_info)
     return lhs_diff, rhs_diff
 
 
-def generate_diff_of_header_record(
-    lhs_record: tuple[str, Any, str], rhs_record: tuple[str, Any, str]
-) -> tuple[bool, tuple[str, Any, str], tuple[str, Any, str]]:
-    """Generates a single diffed LHS and RHS header entry.
+def _generate_missing_entry(
+    lhs_data: helpers.ProfileHeaderEntry | None, rhs_data: helpers.ProfileHeaderEntry | None
+) -> tuple[helpers.ProfileHeaderEntry, helpers.ProfileHeaderEntry]:
+    """Check if both header entries exist and if not, generate the missing one.
 
-    :param lhs_record: the LHS (baseline) entry
-    :param rhs_record: the RHS (target) entry
+    The missing header entry is generated using the values from the existing one.
 
-    :return: pair of a single diffed LHS (baseline) and RHS (target) header entry
+    :param lhs_data: baseline header entry
+    :param rhs_data: target header entry
+
+    :return: both baseline and target header entries
     """
-    (lhs_key, lhs_value, lhs_info), (rhs_key, rhs_value, _) = lhs_record, rhs_record
-    assert (
-        lhs_key == rhs_key
-        and f"Configuration keys in headers are wrongly ordered (expected {lhs_key}; got {rhs_key})"
-    )
-    if lhs_value != rhs_value:
-        diff = list(difflib.ndiff(str(lhs_value).split(), str(rhs_value).split()))
-        key = _emphasize(lhs_key, "red")
-        return (
-            True,
-            (key, diff_to_html(diff, "-"), lhs_info),
-            (key, diff_to_html(diff, "+"), lhs_info),
-        )
+    # Both lhs and rhs must not be None
+    assert lhs_data is not None or rhs_data is not None
+    if lhs_data is not None and rhs_data is not None:
+        return lhs_data, rhs_data
+    if lhs_data is not None:
+        # Note: rhs data must be None
+        return lhs_data, helpers.ProfileHeaderEntry(lhs_data.name, "-", "missing header info", {})
     else:
-        return False, (lhs_key, lhs_value, lhs_info), (rhs_key, rhs_value, lhs_info)
+        # Note: lhs data must be None
+        assert rhs_data is not None
+        return helpers.ProfileHeaderEntry(rhs_data.name, "-", "missing header info", {}), rhs_data
 
 
-def generate_diff_of_stats_record(
+def _generate_diff_of_details(
+    lhs_records: dict[str, str | float], rhs_records: dict[str, str | float], only_diffs: bool
+) -> tuple[bool, dict[str, str], dict[str, str]]:
+    """Generates diffed nested headers for baseline and target header entry.
+
+    :param lhs_records: nested headers of a baseline header entry
+    :param rhs_records: nested headers of a target header entry
+    :param only_diffs: if True, only diffed nested headers will be generated.
+
+    :return: a flag indicating whether the nested headers are different or not, and a pair of
+             diffed baseline and target nested headers
+    """
+    lhs_diff, rhs_diff, has_differences = {}, {}, False
+    header_map = common_kit.match_dicts_by_keys(lhs_records, rhs_records)
+    for header_key in sorted(header_map.keys()):
+        lhs_detail, rhs_detail = header_map[header_key]
+        is_diff, key, lhs_data, rhs_data = _generate_diff_of_values(
+            header_key, lhs_detail, rhs_detail
+        )
+        has_differences = has_differences or is_diff
+        # Check whether we should include this detail
+        if not only_diffs or is_diff:
+            lhs_diff[key] = lhs_data
+            rhs_diff[key] = rhs_data
+    return has_differences, lhs_diff, rhs_diff
+
+
+def _generate_diff_of_values(
+    header_key: str,
+    lhs_value: str | float | None,
+    rhs_value: str | float | None,
+    is_diff: bool = False,
+) -> tuple[bool, str, str, str]:
+    """Generates diff of a single LHS and RHS entry pair.
+
+    :param header_key: name of the header entry
+    :param lhs_value: the LHS (baseline) value
+    :param rhs_value: the RHS (target) value
+    :param is_diff: an override mechanism indicating that the values are different
+
+    :return: different flag, updated header key, diffed lhs value, and diffed rhs value
+    """
+    lhs_value = "-" if lhs_value is None else str(lhs_value)
+    rhs_value = "-" if rhs_value is None else str(rhs_value)
+    if lhs_value != rhs_value or is_diff:
+        diff = list(difflib.ndiff(str(lhs_value).split(), str(rhs_value).split()))
+        header_key = _emphasize(header_key, "red")
+        lhs_value = _diff_to_html(diff, "-")
+        rhs_value = _diff_to_html(diff, "+")
+        is_diff = True
+    return is_diff, header_key, lhs_value, rhs_value
+
+
+def _generate_diff_of_stats_record(
     lhs_stat: pstats.ProfileStat | None, rhs_stat: pstats.ProfileStat | None
 ) -> tuple[tuple[str, str, str, dict[str, Any]], tuple[str, str, str, dict[str, Any]]]:
     """Generates a single diffed LHS and RHS profile stats entry.
@@ -294,7 +307,7 @@ def generate_diff_of_stats_record(
     return lhs_diff.to_tuple(), rhs_diff.to_tuple()
 
 
-def diff_to_html(diff: list[str], start_tag: Literal["+", "-"]) -> str:
+def _diff_to_html(diff: list[str], start_tag: Literal["+", "-"]) -> str:
     """Create a html tag with differences for either + or - changes
 
     :param diff: diff computed by difflib.ndiff
@@ -313,7 +326,7 @@ def diff_to_html(diff: list[str], start_tag: Literal["+", "-"]) -> str:
     return " ".join(result)
 
 
-def stat_description_to_tooltip(description: str, comparison: pstats.ProfileStatComparison) -> str:
+def _stat_description_to_tooltip(description: str, comparison: pstats.ProfileStatComparison) -> str:
     """Transform a stat description into a tooltip by including the comparison type as well.
 
     :param description: the original stat description
@@ -446,7 +459,7 @@ class _StatsDiffRecord:
         agg_key = stat_agg.normalize_aggregate_key(stat.aggregate_by)
         name = f"{stat.name}{unit} " f"({agg_key})"
         value, details = stat_agg.as_table(agg_key)
-        tooltip = stat_description_to_tooltip(
+        tooltip = _stat_description_to_tooltip(
             stat.description, stat_agg.infer_auto_comparison(stat.cmp)
         )
         return cls(name, str(value), tooltip, stat_agg, details)

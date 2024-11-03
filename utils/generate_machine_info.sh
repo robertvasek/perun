@@ -118,7 +118,23 @@ get_machine_specification() {
       fi
     done < /proc/cpuinfo
   fi
-  echo -n -e "]"
+  echo -n -e "],"
+
+  vulns=$(lscpu | grep '^Vulnerability ' | sed 's/Vulnerability //g' | sort)
+  first=0
+  echo -n -e "\"cpu_vulnerabilities\": {"
+  while IFS=: read -r key value; do
+    if [[ -n "$key" && -n "$value" ]]; then
+      value=$(echo -n "$value" | xargs)
+      if [[ $first -eq 0 ]]; then
+        first=1
+      else
+        echo -n -e ", "
+      fi
+      echo -n -e "\"$key\": \"$value\""
+    fi
+  done <<< "$vulns"
+  echo -n -e "}"
 
   echo -n "}"
 }

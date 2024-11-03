@@ -210,7 +210,9 @@ def generate_html_report(lhs_profile: Profile, rhs_profile: Profile, **kwargs: A
         ("[%]", "The relative measured value (in percents overall)."),
     ]
 
-    lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
+    lhs_header, rhs_header = diff_kit.generate_diff_of_headers(
+        diff_kit.generate_specification(lhs_profile), diff_kit.generate_specification(rhs_profile)
+    )
     template = templates.get_template("diff_view_datatables.html.jinja2")
     content = template.render(
         perun_version=perun.__version__,

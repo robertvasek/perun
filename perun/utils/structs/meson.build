@@ -5,6 +5,7 @@ perun_utils_structs_files = files(
     'check_structs.py',
     'collect_structs.py',
     'common_structs.py',
+    'diff_structs.py',
     'postprocess_structs.py',
 )
 
