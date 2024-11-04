@@ -1,6 +1,16 @@
 Changelog
 =========
 
+0.23.7 (2024-11-04)
+-------------------
+
+  - Add Flamegraph diffs to the showdiff report
+  - Fix Flamegraph height scaling in showdiff report
+  - Add CPU vulnerabilities overview to the profile specification in showdiff
+  - Perun now supports Python 3.13
+  - README file has been updated with more detailed installation instructions
+
+
 0.23.6 (2024-10-06)
 -------------------
 
