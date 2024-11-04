@@ -23,7 +23,7 @@ import operator
 import os
 import re
 import time
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, Union
 
 # Third-Party Imports
 
@@ -43,6 +43,9 @@ from perun.vcs import vcs_kit
 
 if TYPE_CHECKING:
     import types
+
+# A tuple representation of the ProfileHeaderEntry object
+ProfileHeaderTuple = tuple[str, Union[str, float], str, dict[str, Union[str, float]]]
 
 
 PROFILE_COUNTER: int = 0
@@ -613,41 +616,51 @@ class ProfileInfo:
 
 
 @dataclasses.dataclass
-class ProfileMetadata:
-    """A representation of a single profile metadata entry.
+class ProfileHeaderEntry:
+    """A representation of a single profile header entry.
 
-    :ivar name: the name (key) of the metadata entry
-    :ivar value: the value of the metadata entry
-    :ivar description: detailed description of the metadata entry
+    :ivar name: the name (key) of the header entry
+    :ivar value: the value of the header entry
+    :ivar description: detailed description of the header entry
+    :ivar details: nested key: value data
     """
 
     name: str
     value: str | float
     description: str = ""
+    details: dict[str, str | float] = dataclasses.field(default_factory=dict)
 
     @classmethod
-    def from_string(cls, metadata: str) -> ProfileMetadata:
-        """Constructs a ProfileMetadata object from a string representation.
+    def from_string(cls, header: str) -> ProfileHeaderEntry:
+        """Constructs a `ProfileHeaderRecord` object from a string representation.
 
-        :param metadata: the string representation of a metadata entry
+        :param header: the string representation of a header entry
 
-        :return: the constructed ProfileMetadata object
+        :return: the constructed ProfileHeaderRecord object
         """
-        return cls(*metadata.split("|"))
+        split = header.split("|")
+        name = split[0]
+        value = common_kit.try_convert(split[1] if len(split) > 1 else "[empty]", [float, str])
+        desc = split[2] if len(split) > 2 else ProfileHeaderEntry.description
+        details: dict[str, str | float] = {}
+        for detail in split[4:]:
+            detail_key, detail_value = detail.split(maxsplit=1)
+            details[detail_key] = common_kit.try_convert(detail_value, [float, str])
+        return cls(name, value, desc, details)
 
     @classmethod
-    def from_profile(cls, metadata: dict[str, Any]) -> ProfileMetadata:
-        """Constructs a ProfileMetadata object from a dictionary representation used in Profile.
+    def from_profile(cls, header: dict[str, Any]) -> ProfileHeaderEntry:
+        """Constructs a ProfileHeaderEntry object from a dictionary representation used in Profile.
 
-        :param metadata: the dictionary representation of a metadata entry
+        :param header: the dictionary representation of a header entry
 
-        :return: the constructed ProfileMetadata object
+        :return: the constructed ProfileHeaderEntry object
         """
-        return cls(**metadata)
+        return cls(**header)
 
-    def as_tuple(self) -> tuple[str, str | float, str]:
-        """Converts the metadata object into a tuple.
+    def as_tuple(self) -> ProfileHeaderTuple:
+        """Converts the header object into a tuple.
 
-        :return: the tuple representation of a metadata entry
+        :return: the tuple representation of a header entry
         """
-        return self.name, self.value, self.description
+        return self.name, self.value, self.description, self.details

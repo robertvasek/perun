@@ -9,7 +9,7 @@ from __future__ import annotations
 from subprocess import CalledProcessError
 from typing import Optional, Callable, Protocol, Any
 import operator
-import os
+from pathlib import Path
 import platform
 import re
 import sys
@@ -132,7 +132,7 @@ def get_machine_specification() -> dict[str, Any]:
     :return: machine specification as dictionary
     """
     system = platform.uname()
-    machine_info = {
+    machine_info: dict[str, Any] = {
         "architecture": system.machine,
         "system": system.system,
         "release": system.release,
@@ -148,10 +148,10 @@ def get_machine_specification() -> dict[str, Any]:
         },
     }
 
-    if os.path.exists("/proc/cmdline"):
+    if Path("/proc/cmdline").exists():
         with open("/proc/cmdline", "r", encoding="utf-8") as cmdline_handle:
             machine_info["boot_info"] = " ".join(cmdline_handle.read().split("\n")).strip()
-    if os.path.exists("/proc/meminfo"):
+    if Path("/proc/meminfo").exists():
         with open("/proc/meminfo", "r", encoding="utf-8") as meminfo_handle:
             machine_info["mem_details"] = {
                 key: value.strip()
@@ -159,14 +159,22 @@ def get_machine_specification() -> dict[str, Any]:
                     line.split(":") for line in meminfo_handle.read().split("\n") if line
                 ]
             }
-    if os.path.exists("/proc/cpuinfo"):
+    if Path("/proc/cpuinfo").exists():
         with open("/proc/cpuinfo", "r", encoding="utf-8") as cpuinfo_handle:
             machine_info["cpu_details"] = [
-                {  # type: ignore
+                {
                     key.strip(): value.strip()
                     for (key, value) in [line.split(":") for line in cpu_line.split("\n") if line]
                 }
                 for cpu_line in cpuinfo_handle.read().split("\n\n")
                 if cpu_line
             ]
+    # Gather CPU vulnerabilities
+    vulnerabilities_dir = Path("/sys/devices/system/cpu/vulnerabilities/")
+    if vulnerabilities_dir.exists():
+        machine_info["cpu_vulnerabilities"] = {}
+        for vuln in sorted(list(vulnerabilities_dir.iterdir())):
+            with open(vuln, "r", encoding="utf-8") as vuln_handle:
+                vuln_name = vuln.name.replace("_", " ").capitalize()
+                machine_info["cpu_vulnerabilities"][vuln_name] = vuln_handle.read()
     return machine_info

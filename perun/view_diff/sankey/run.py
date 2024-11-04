@@ -529,7 +529,9 @@ def generate_sankey_difference(lhs_profile: Profile, rhs_profile: Profile, **kwa
         SelectionRow(g.uid, i, g.diff, common_kit.safe_division(g.diff, g.sum) * 100)
         for (i, g) in enumerate(sankey_graphs)
     ]
-    lhs_header, rhs_header = diff_kit.generate_headers(lhs_profile, rhs_profile)
+    lhs_header, rhs_header = diff_kit.generate_diff_of_headers(
+        diff_kit.generate_specification(lhs_profile), diff_kit.generate_specification(rhs_profile)
+    )
 
     template = templates.get_template("diff_view_sankey.html.jinja2")
     content = template.render(

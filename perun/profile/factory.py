@@ -462,13 +462,13 @@ class Profile(MutableMapping[str, Any]):
         for stat in self._storage.get("stats", {}):
             yield stats.ProfileStat.from_profile(stat)
 
-    def all_metadata(self) -> Iterable[helpers.ProfileMetadata]:
+    def all_metadata(self) -> Iterable[helpers.ProfileHeaderEntry]:
         """Iterates through all the metadata records in the profile.
 
         :return: iterable of all metadata records
         """
         for entry in self._storage.get("metadata", {}):
-            yield helpers.ProfileMetadata.from_profile(entry)
+            yield helpers.ProfileHeaderEntry.from_profile(entry)
 
     # TODO: discuss the intent of __len__ and possibly merge?
     def resources_size(self) -> int:

@@ -64,6 +64,7 @@ from perun.utils.exceptions import (
     ExternalEditorErrorException,
 )
 from perun.utils.structs.common_structs import Executable
+from perun.utils.structs.diff_structs import HeaderDisplayStyle
 from perun import fuzz as fuzz
 import perun.postprocess
 import perun.profile.helpers as profiles
@@ -703,6 +704,16 @@ def show(ctx: click.Context, profile: Profile, **_: Any) -> None:
     is_flag=True,
     default=False,
     help="Creates self-contained outputs usable in offline environments (default=False).",
+)
+@click.option(
+    "--display-style",
+    "-d",
+    type=click.Choice(HeaderDisplayStyle.supported()),
+    default=HeaderDisplayStyle.default(),
+    callback=cli_kit.set_config_option_from_flag(perun_config.runtime, "showdiff.display_style"),
+    help="Selects the display style of profile header. The 'full' option displays all provided "
+    "headers, while the 'diff' option shows only headers with different values "
+    f"(default={HeaderDisplayStyle.default()}).",
 )
 @click.pass_context
 def showdiff(ctx: click.Context, **kwargs: Any) -> None:

@@ -340,8 +340,10 @@ def try_convert(value: Any, list_of_types: list[type]) -> Any:
     :return: converted value or None, if conversion failed for all the types
     """
     for checked_type in list_of_types:
-        with SuppressedExceptions(Exception):
+        try:
             return checked_type(value)
+        except Exception:
+            continue
 
 
 def try_min(lhs: Optional[int | float], rhs: int | float) -> int | float:

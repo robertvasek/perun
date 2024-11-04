@@ -161,7 +161,7 @@ def import_elk_from_json(
     import_dir = Path(config.lookup_key_recursively("import.dir", os.getcwd()))
     resources: list[dict[str, Any]] = []
     # Load the CLI-supplied metadata, if any
-    elk_metadata: dict[str, profile.ProfileMetadata] = {
+    elk_metadata: dict[str, profile.ProfileHeaderEntry] = {
         data.name: data for data in _import_metadata(metadata, import_dir)
     }
 
@@ -233,7 +233,7 @@ def import_perf_profile(
 
 def import_elk_profile(
     resources: list[dict[str, Any]],
-    metadata: dict[str, profile.ProfileMetadata],
+    metadata: dict[str, profile.ProfileHeaderEntry],
     minor_version: MinorVersion,
     save_to_index: bool = False,
     **kwargs: Any,
@@ -319,7 +319,7 @@ def load_perf_file(filepath: Path) -> str:
 
 def extract_from_elk(
     elk_query: list[dict[str, Any]]
-) -> tuple[list[dict[str, Any]], dict[str, profile.ProfileMetadata]]:
+) -> tuple[list[dict[str, Any]], dict[str, profile.ProfileHeaderEntry]]:
     """For the given elk query, extracts resources and metadata.
 
     For metadata, we consider any key that has only single value through the profile,
@@ -340,7 +340,7 @@ def extract_from_elk(
         if not k.startswith("metric") and not k.startswith("benchmarking") and len(v) == 1
     }
 
-    metadata = {k: profile.ProfileMetadata(k, res_counter[k].pop()) for k in metadata_keys}
+    metadata = {k: profile.ProfileHeaderEntry(k, res_counter[k].pop()) for k in metadata_keys}
     resources = [
         {
             k: common_kit.try_convert(v, [int, float, str])
@@ -384,7 +384,7 @@ def get_machine_info(machine_info: str, import_dir: Path) -> dict[str, Any]:
 
 
 def extract_machine_info_from_elk_metadata(
-    metadata: dict[str, profile.ProfileMetadata]
+    metadata: dict[str, profile.ProfileHeaderEntry]
 ) -> dict[str, Any]:
     """Extracts the parts of the profile that correspond to machine info.
 
@@ -396,19 +396,21 @@ def extract_machine_info_from_elk_metadata(
     :return: machine info extracted from the profiles.
     """
     machine_info: dict[str, Any] = {
-        "architecture": metadata.get("machine.arch", profile.ProfileMetadata("", "?")).value,
+        "architecture": metadata.get("machine.arch", profile.ProfileHeaderEntry("", "?")).value,
         "system": str(
-            metadata.get("machine.os", profile.ProfileMetadata("", "?")).value
+            metadata.get("machine.os", profile.ProfileHeaderEntry("", "?")).value
         ).capitalize(),
-        "release": metadata.get("extra.machine.platform", profile.ProfileMetadata("", "?")).value,
-        "host": metadata.get("machine.hostname", profile.ProfileMetadata("", "?")).value,
+        "release": metadata.get(
+            "extra.machine.platform", profile.ProfileHeaderEntry("", "?")
+        ).value,
+        "host": metadata.get("machine.hostname", profile.ProfileHeaderEntry("", "?")).value,
         "cpu": {
             "physical": "?",
-            "total": metadata.get("machine.cpu-cores", profile.ProfileMetadata("", "?")).value,
+            "total": metadata.get("machine.cpu-cores", profile.ProfileHeaderEntry("", "?")).value,
             "frequency": "?",
         },
         "memory": {
-            "total_ram": metadata.get("machine.ram", profile.ProfileMetadata("", "?")).value,
+            "total_ram": metadata.get("machine.ram", profile.ProfileHeaderEntry("", "?")).value,
             "swap": "?",
         },
         "boot_info": "?",
@@ -419,7 +421,9 @@ def extract_machine_info_from_elk_metadata(
     return machine_info
 
 
-def _import_metadata(metadata: tuple[str, ...], import_dir: Path) -> list[profile.ProfileMetadata]:
+def _import_metadata(
+    metadata: tuple[str, ...], import_dir: Path
+) -> list[profile.ProfileHeaderEntry]:
     """Parse the metadata entries from CLI and convert them to our internal representation.
 
     :param import_dir: the import directory to use for relative metadata file paths.
@@ -427,7 +431,7 @@ def _import_metadata(metadata: tuple[str, ...], import_dir: Path) -> list[profil
 
     :return: a collection of parsed and converted metadata objects
     """
-    p_metadata: list[profile.ProfileMetadata] = []
+    p_metadata: list[profile.ProfileHeaderEntry] = []
     # Normalize the metadata string for parsing and/or opening the file
     for metadata_str in map(str.strip, metadata):
         if metadata_str.lower().endswith(".json"):
@@ -436,13 +440,13 @@ def _import_metadata(metadata: tuple[str, ...], import_dir: Path) -> list[profil
         else:
             # Add a single metadata entry parsed from its string representation
             try:
-                p_metadata.append(profile.ProfileMetadata.from_string(metadata_str))
+                p_metadata.append(profile.ProfileHeaderEntry.from_string(metadata_str))
             except TypeError:
                 log.warn(f"Ignoring invalid profile metadata string '{metadata_str}'.")
     return p_metadata
 
 
-def _parse_metadata_json(metadata_path: Path) -> list[profile.ProfileMetadata]:
+def _parse_metadata_json(metadata_path: Path) -> list[profile.ProfileHeaderEntry]:
     """Parse a metadata JSON file into the metadata objects.
 
     If the JSON file contains nested dictionaries, the hierarchical keys will be flattened.
@@ -458,7 +462,7 @@ def _parse_metadata_json(metadata_path: Path) -> list[profile.ProfileMetadata]:
             return []
         # Make sure we flatten the input
         metadata_list = [
-            profile.ProfileMetadata(k, v)
+            profile.ProfileHeaderEntry(k, v)
             for k, v in profile.all_items_of(json.load(metadata_handle))
         ]
         log.minor_success(log.path_style(str(metadata_path)), "parsed")

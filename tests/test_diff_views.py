@@ -171,14 +171,14 @@ def test_diff_incremental_sankey_kperf(pcs_with_root):
     result = runner.invoke(
         cli.showdiff,
         [
+            "--display-style",
+            "diff",
             baseline_profilename,
             target_profilename,
             "report",
             "-o",
             "diff.html",
             "--minimize",
-            "--metadata-display",
-            "diff",
         ],
     )
     assert result.exit_code == 0
