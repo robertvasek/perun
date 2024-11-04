@@ -4,6 +4,8 @@
 [![codecov](https://codecov.io/gh/Perfexionists/perun/graph/badge.svg?token=3x4Luodr84)](https://codecov.io/gh/Perfexionists/perun)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/a704486b4679442cb2a53173475f79ca)](https://app.codacy.com/gh/Perfexionists/perun/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![GitHub tag](https://img.shields.io/github/tag/Perfexionists/perun.svg)](https://github.com/Perfexionists/perun)
+[![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FPerfexionists%2Fperun%2Fdevel%2Fpyproject.toml)](https://www.python.org)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
 
 
 <p align="center">
@@ -51,11 +53,12 @@ makes it a good store of performance profiles along with the functional (or envi
 
 ## Installation
 
-Note that we are no longer maintaining support for Python 3.8, nor do we support Python 3.12
-(this is due to some of its dependencies). Perun may work, but we strongly advise to upgrade your 
-Python to one of the supported version between Python 3.9 and Python 3.11.
+> [!WARNING]
+> Installing Perun into the system Python environment may cause dependency conflicts with other
+> packages. We highly suggest using some form of virtual environment to install and run Perun
+> (see the [Installation in Virtual Environment section](#installation-in-virtual-environment)).
 
-You can install Perun from pip as follows:
+You can install Perun in the system Python environment from pip as follows:
 
     pip3 install perun-toolsuite
 
@@ -71,6 +74,50 @@ documentation](https://perfexionists.github.io/perun/cli.html) for more informat
 commands from command line. Note that depending on your OS and the location of Python libraries, you
 might require root permissions to install Perun.
 
+## Installation in Virtual Environment
+
+To avoid dependency clashes and other installation issues, we recommend installing Perun in some form
+of virtual environment. For example:
+
+- **Using the `venv` standard library.** This is the easiest default approach as no additional packages
+  or dependencies are needed. For example, the following code snippet creates a virtual environment
+  `perun-venv` in the current directory using the system Python version, activates the environment, and
+  installs Perun in the environment.
+
+      python -m venv perun-venv
+      source perun-venv/bin/activate
+      pip install perun-toolsuite
+  
+  It is also possible to create a virtual environment using different Python version, provided that the
+  Python version executable is installed on the system. For example, `python3.12 -m venv perun-venv` will
+  create a virtual environment for Python 3.12. Note that the `perun` CLI command will only be accessible
+  when the `perun-venv` virtual environment is activated.
+
+- **Using the [`pipx`](https://pipx.pypa.io/stable/) package.** Pipx automatically creates new virtual
+  environment for each installed Python application. Provided you have the `pipx` tool available on your
+  system, Perun can be installed as follows:
+
+      pipx install perun-toolsuite
+
+  The `perun` CLI command will now be accessible directly without the need to activate any virtual
+  environment.
+
+Other forms of virtual environments might work as well, however, these are the only ones we tested.
+
+## System Dependencies
+
+It is possible that some of the Perun commands may not be working at first, or that the installation fails
+(if some of the Python dependencies are not available as wheels and need to be built from source). This is
+likely due to some missing system dependencies:
+- `g++`
+- `python-devel`
+- `cmake` (complexity collector)
+- `perf` (kperf collector)
+- `libunwind`, `libunwind-devel` (memory collector)
+- `perl-open` (flamegraph view)
+
+## Checking Perun Installation
+
 It is advised to verify that Perun is running correctly in your environment as follows:
 
     # Runs all tests using pytest
@@ -79,12 +126,20 @@ It is advised to verify that Perun is running correctly in your environment as f
 or alternatively using Tox if you wish to test for more Python versions 
 (see the [developing section](#developing)).
 
-### Installing Tracer Dependencies
+Note that we do not guarantee Perun to work on other Python versions than those marked as supported
+in the `pyproject.toml` file (also shown as a badge at the top of this README).
+
+## Installing Tracer Dependencies
 
 If you wish to use our `tracer` profiler, you have to install its dependencies first. Please refer
 to [INSTALL-tracer.md](https://github.com/Perfexionists/perun/blob/devel/INSTALL-tracer).
 
+
 ## Developing
+
+> [!NOTE]
+> Do not forget to check for missing [system dependencies](#system-dependencies) if the installation
+> or some of the tests fail.
 
 In order to commit changes to the Perun, you have to install Perun in development mode:
 
@@ -97,8 +152,6 @@ by the installation.
 
 Again, it is advised to verify that Perun is running correctly in your environment as follows:
 
-    # You can run this only once: it will initialize the requirements necessary for testing
-    make init-test
     # Runs all tests using pytest
     make test
 
