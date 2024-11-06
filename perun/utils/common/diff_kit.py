@@ -158,8 +158,8 @@ def generate_diff_of_headers(
     # Check if we should include all entries or just the diff ones
     display_style = HeaderDisplayStyle(config.lookup_key_recursively("showdiff.display_style"))
     only_diff = display_style == HeaderDisplayStyle.DIFF
-    is_diff: bool = False
     for header_key in sorted(header_map.keys()):
+        is_diff: bool = False
         lhs_data, rhs_data = _generate_missing_entry(*header_map[header_key])
         if lhs_data.details or rhs_data.details:
             # There are details in this entry, compare them one by one
