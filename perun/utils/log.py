@@ -325,23 +325,31 @@ def minor_status(msg: str, status: str = "", sep: str = "-") -> None:
 
     It prints the status of some action, starting with `-` with indent and ending with newline.
 
-    :param msg: printed message, which will be stripped from whitespace and capitalized
+    Note, that there are some sanitizations happening to the message:
+      1. Leading and trailing whitespace characters will be stripped;
+      2. The first character will be made uppercase, if possible.
+
+    :param msg: message to print, will be sanitized
     :param status: status of the info
     :param sep: separator used to separate the info with its results
     """
-    write(" " * CURRENT_INDENT * 2 + f" - {msg.strip().capitalize()} {sep} {status}")
+    write(
+        " " * CURRENT_INDENT * 2 + f" - {common_kit.capitalize_first(msg.strip())} {sep} {status}"
+    )
 
 
 def minor_info(msg: str, end: str = "\n") -> None:
     """Prints minor information, formatted with indent and starting with -
 
     Note, that there are some sanitizations happening:
-      1. If we want to end the info in new line, we add the punctuations;
+      1. Leading and trailing whitespace characters will be stripped;
+      2. The first character will be made uppercase, if possible;
+      3. If the message ends with a new line, we add a punctuation.
 
-    :param msg: printed message, which will be stripped from whitespace and capitalized
+    :param msg: message to print, will be sanitized
     :param end: ending of the message
     """
-    msg = msg.strip().capitalize()
+    msg = common_kit.capitalize_first(msg.strip())
     if end == "\n" and msg[-1] not in ".!;":
         msg += "."
     write(" " * CURRENT_INDENT * 2 + f" - {msg}", end)
