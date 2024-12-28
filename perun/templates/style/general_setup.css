@@ -1,0 +1,42 @@
+:root {
+    --color-baseline: rgba(80, 201, 206, 1);
+    --color-target: rgba(152, 131, 229, 1);
+    --color-common: rgba(248, 117, 117, 1);
+
+    --color-baseline-transparent: rgba(80, 201, 206, 0.3);
+    --color-target-transparent: rgba(152, 131, 229, 0.3);
+    --color-common-transparent: rgba(248, 117, 117, 0.3);
+
+    --color-text-tag: #FFFFFF;
+    --color-mid-gray: #333;
+    --color-mid-gray-hover: #444;
+
+    --color-light-gray: #999999;
+
+    --color-correct: #27ae60;
+    --color-wrong: #c0392b;
+
+    --color-correct-transparent: rgba(39, 174, 96, 0.3);
+    --color-wrong-transparent: rgba(192, 57, 43, 0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+    font-size: 15px;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+h1 {
+    font-size: 3rem;
+}
