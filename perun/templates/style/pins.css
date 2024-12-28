@@ -1,0 +1,22 @@
+.pin-icon {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    position: absolute;
+    left: 0;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--color-light-gray);
+}
+
+.pin-icon__header {
+    position: unset;
+    left: unset;
+    scale: 1.5;
+}
+
+.data-row:hover .pin-icon,
+.section-header:hover .pin-icon {
+    visibility: visible;
+    opacity: 1;
+}
