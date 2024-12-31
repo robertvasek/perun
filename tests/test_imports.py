@@ -78,6 +78,8 @@ def test_imports(pcs_with_svs):
         cli.cli,
         [
             "import",
+            "-pn",
+            "custom_import_profile",
             "-c",
             "ls",
             "-w",
@@ -105,7 +107,8 @@ def test_imports(pcs_with_svs):
         ],
     )
     assert result.exit_code == 0
-    assert len(os.listdir(os.path.join(".perun", "jobs"))) == 5
+    profiles = os.listdir(os.path.join(".perun", "jobs"))
+    assert len(profiles) == 5 and "custom_import_profile.perf" in profiles
 
     # Try to import stack profile using import perf record, we expect failure
     result = runner.invoke(

@@ -80,6 +80,15 @@ from perun.utils.common import cli_kit
     default=False,
     help="Saves the imported profile to index.",
 )
+@click.option(
+    "--profile-name",
+    "-pn",
+    nargs=1,
+    type=str,
+    help=(
+        "Specifies the name of the resulting imported profile, which will be stored in .perun/jobs."
+    ),
+)
 @click.pass_context
 def import_group(ctx: click.Context, **kwargs: Any) -> None:
     """Imports Perun profiles from different formats.
