@@ -341,7 +341,7 @@ def test_status_sort(monkeypatch, pcs_single_prof, capsys, valid_profile_pool):
     commands.status()
 
     out, _ = capsys.readouterr()
-    assert "missing set option" in out
+    assert "missing config value" in out
 
     cfg = config.Config(
         "shared",
@@ -360,5 +360,5 @@ def test_status_sort(monkeypatch, pcs_single_prof, capsys, valid_profile_pool):
     commands.status()
 
     out, _ = capsys.readouterr()
-    assert "invalid sort key" in out
+    assert "invalid value" in out
     monkeypatch.undo()

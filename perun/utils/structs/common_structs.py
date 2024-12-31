@@ -677,6 +677,36 @@ class HandledSignals:
         return isinstance(exc_val, self.handler_exc)
 
 
+class SortOrder(Enum):
+    """Enumeration representing sorting order in a more descriptive way compared to the library."""
+
+    Ascending = "ascending"
+    Descending = "descending"
+
+    @staticmethod
+    def supported() -> list[str]:
+        """Obtain the collection of supported sort orders.
+
+        :return: the collection of valid sort orders
+        """
+        return [order.value for order in SortOrder]
+
+    @staticmethod
+    def default() -> str:
+        """Provide the default sort order.
+
+        :return: the default sort order
+        """
+        return SortOrder.Ascending.value
+
+    def as_sort_flag(self) -> bool:
+        """Translates the sort order into the library bool representation.
+
+        :return: False if the sort order is ascending, True otherwise
+        """
+        return self.value == SortOrder.Descending.value
+
+
 class WebColorPalette:
     """Colour palette for HTML/JS visualizations"""
 

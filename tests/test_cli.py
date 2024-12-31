@@ -1199,9 +1199,12 @@ def test_status_correct(pcs_single_prof):
     assert config.lookup_key_recursively("format.sort_profiles_by") == "time"
 
     # Try that the sort order changed
-    short_result = runner.invoke(cli.status, ["--short", "--sort-by", "source"])
+    short_result = runner.invoke(
+        cli.status, ["--short", "--sort-by", "source", "--sort-order", "descending"]
+    )
     asserts.predicate_from_cli(short_result, short_result.exit_code == 0)
     assert pcs_single_prof.local_config().get("format.sort_profiles_by") == "source"
+    assert pcs_single_prof.local_config().get("format.sort_profiles_order") == "descending"
 
     # The sort order is kept the same
     short_result = runner.invoke(cli.status, ["--short"])
