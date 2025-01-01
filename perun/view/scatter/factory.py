@@ -232,7 +232,7 @@ def _create_regressogram_model(model: ProfileModel) -> hv.Curve:
 
 
 def _render_step_function(
-    x_pts: npt.NDArray[np.float64], y_pts: npt.NDArray[np.float64], legend: str
+    x_pts: npt.NDArray[np.floating[Any]], y_pts: npt.NDArray[np.floating[Any]], legend: str
 ) -> hv.Curve:
     """Build regressogram's step lines according to given coordinates.
 
