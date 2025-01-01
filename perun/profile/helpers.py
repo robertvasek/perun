@@ -105,6 +105,8 @@ def generate_profile_name(profile: profiles.Profile) -> str:
             Command of the job
         `%workload%`:
             Workload of the job
+        `%label%`:
+            A custom string label associated with the profile
         `%type%`:
             Type of the generated profile
         `%kernel%`:
@@ -155,6 +157,10 @@ def generate_profile_name(profile: profiles.Profile) -> str:
                 )
                 + "]",
             ),
+            (
+                r"%label%",
+                lambda scanner, token: lookup_value(profile["header"], "label", "_"),
+            ),
             (r"%kernel%", lambda scanner, token: environment.get_kernel()),
             (
                 r"%type%",
@@ -201,6 +207,7 @@ def load_list_for_minor_version(minor_version: str) -> list["ProfileInfo"]:
                 "type": index_entry.type,
                 "cmd": index_entry.cmd,
                 "workload": index_entry.workload,
+                "label": index_entry.label,
             },
             "collector_info": {"name": index_entry.collector},
             "postprocessors": [{"name": p} for p in index_entry.postprocessors],
@@ -518,6 +525,7 @@ class ProfileInfo:
         "type",
         "cmd",
         "workload",
+        "label",
         "collector",
         "postprocessors",
         "checksum",
@@ -540,7 +548,6 @@ class ProfileInfo:
         :param is_raw_profile: true if the stored profile is raw, i.e. in json and not
             compressed
         """
-
         self._is_raw_profile = is_raw_profile
         self.source = path
         self.realpath = os.path.relpath(real_path, os.getcwd())
@@ -548,6 +555,7 @@ class ProfileInfo:
         self.type = profile_info["header"]["type"]
         self.cmd = profile_info["header"]["cmd"]
         self.workload = profile_info["header"]["workload"]
+        self.label = profile_info["header"].get("label", "")
         self.collector = profile_info["collector_info"]["name"]
         self.postprocessors = [
             postprocessor["name"] for postprocessor in profile_info["postprocessors"]
@@ -593,6 +601,7 @@ class ProfileInfo:
         "time",
         "cmd",
         "workload",
+        "label",
         "collector",
         "checksum",
         "source",

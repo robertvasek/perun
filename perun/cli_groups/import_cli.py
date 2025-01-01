@@ -89,6 +89,14 @@ from perun.utils.common import cli_kit
         "Specifies the name of the resulting imported profile, which will be stored in .perun/jobs."
     ),
 )
+@click.option(
+    "--profile-label",
+    "-pl",
+    nargs=1,
+    type=str,
+    default="",
+    help="An optional custom label to associate with the imported profile.",
+)
 @click.pass_context
 def import_group(ctx: click.Context, **kwargs: Any) -> None:
     """Imports Perun profiles from different formats.

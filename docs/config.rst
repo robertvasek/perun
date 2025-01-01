@@ -175,6 +175,10 @@ List of Supported Options
         Placeholder for workload that was supplied to the profiled command (refer to
         :munit:`workloads` or :doc:`jobs` for more details).
 
+    ``%label%``:
+
+        Placeholder for custom user-supplied string label associated with a profile.
+
     ``%type%``:
 
         Placeholder for global type of the resources of the profile, i.e. `memory`, `time`,

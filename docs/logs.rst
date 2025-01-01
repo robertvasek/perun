@@ -65,6 +65,11 @@ The specification of the formatting string can contain the following special tag
     program, script or binary. Refer to :ref:`jobs-overview` for more information about profiling
     jobs and command workloads.
 
+``%label%``:
+    Lists the optional, user-defined string label associated with the profile. Labels may be used
+    to further distinguish profiles, e.g., collected using different environment configuration or
+    collected on differently configured machines.
+
 ``%collector%``:
     Lists the collector which was used to obtain the given profile. Refer to :doc:`collectors` for
     list of supported collectors and more information about collection of profiles.

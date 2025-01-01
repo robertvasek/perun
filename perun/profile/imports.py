@@ -215,6 +215,7 @@ def import_perf_profile(
                 "cmd": kwargs.get("cmd", ""),
                 "exitcode": [p.exit_code for p in profiles],
                 "workload": kwargs.get("workload", ""),
+                "label": kwargs.get("profile_label", ""),
                 "units": {"time": "sample"},
             },
             "collector_info": {
@@ -262,6 +263,7 @@ def import_elk_profile(
                 "cmd": kwargs.get("cmd", ""),
                 "exitcode": "?",
                 "workload": kwargs.get("workload", ""),
+                "label": kwargs.get("profile_label", ""),
                 "units": {"time": "sample"},
             },
             "collector_info": {
