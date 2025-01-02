@@ -213,6 +213,20 @@ def format_counter_number(count: int, max_number: int) -> str:
     return f"{count:{len(str(max_number))}d}"
 
 
+def capitalize_first(string: str) -> str:
+    """Helper function that capitalizes only the first letter of a string.
+
+    Note that contrary to the library string method `capitalize()` that changes the remaining
+    characters to lowercase, this helper function does not modify any other character except the
+    first.
+
+    :param string: the string to capitalize
+
+    :return: the string with the first letter being uppercase
+    """
+    return string[0].upper() + string[1:]
+
+
 def default_signal_handler(signum: int, frame: types.FrameType) -> None:
     """Default signal handler used by the HandledSignals CM.
 

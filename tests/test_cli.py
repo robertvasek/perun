@@ -1144,7 +1144,7 @@ def test_reg_analysis_correct(pcs_single_prof):
         [cprof_idx, "regression-analysis", "-m", "iterative", "-r", "all", "-s", "4"],
     )
     asserts.predicate_from_cli(result, result.exit_code == 0)
-    asserts.predicate_from_cli(result, result.output.count("too few point") == 5)
+    asserts.predicate_from_cli(result, result.output.count("Too few point") == 5)
     asserts.predicate_from_cli(result, "succeeded" in result.output)
 
     # Test too many steps output
@@ -1162,7 +1162,7 @@ def test_reg_analysis_correct(pcs_single_prof):
         ],
     )
     asserts.predicate_from_cli(result, result.exit_code == 0)
-    asserts.predicate_from_cli(result, result.output.count("too few point") == 7)
+    asserts.predicate_from_cli(result, result.output.count("Too few point") == 7)
     asserts.predicate_from_cli(result, "succeeded" in result.output)
 
     # Test steps value clamping with iterative method
