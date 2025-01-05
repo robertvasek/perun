@@ -63,7 +63,7 @@ from perun.utils.exceptions import (
     MissingConfigSectionException,
     ExternalEditorErrorException,
 )
-from perun.utils.structs.common_structs import Executable
+from perun.utils.structs.common_structs import Executable, SortOrder
 from perun.utils.structs.diff_structs import HeaderDisplayStyle
 from perun import fuzz as fuzz
 import perun.postprocess
@@ -398,8 +398,8 @@ def add(profile: list[str], minor: Optional[str], **kwargs: Any) -> None:
     pending profiles, then all the non-existing pending profiles will
     be obviously skipped.
     Run ``perun status`` to see the `tag` annotation of pending profiles.
-    Tags consider the sorted order as specified by the following option
-    :ckey:`format.sort_profiles_by`.
+    Tags consider the sorted order as specified by the options
+    :ckey:`format.sort_profiles_by` and :ckey:`format.sort_profiles_order`.
 
     Example of adding profiles:
 
@@ -486,8 +486,8 @@ def remove(
     to represent the removed profile. If the path points to existing profile in
     pending jobs (i.e. ``.perun/jobs`` directory) the profile is removed from the
     jobs, otherwise it is looked-up in the index.
-    Tags consider the sorted order as specified by the following option
-    :ckey:`format.sort_profiles_by`.
+    Tags consider the sorted order as specified by the options
+    :ckey:`format.sort_profiles_by` and :ckey:`format.sort_profiles_order`.
 
     Examples of removing profiles:
 
@@ -565,9 +565,22 @@ def log(head: Optional[str], **kwargs: Any) -> None:
     type=click.Choice(profiles.ProfileInfo.valid_attributes),
     callback=cli_kit.set_config_option_from_flag(pcs.local_config, "format.sort_profiles_by", str),
     help=(
-        "Sets the <key> in the local configuration for sorting profiles. "
-        "Note that after setting the <key> it will be used for sorting which is "
-        "considered in pending and index tags!"
+        "Sets the sort key in the local configuration as 'format.sort_profiles_by' that will be "
+        "used for sorting both pending and index profiles."
+    ),
+)
+@click.option(
+    "--sort-order",
+    "-so",
+    "format__sort_profiles_order",
+    nargs=1,
+    type=click.Choice(SortOrder.supported()),
+    callback=cli_kit.set_config_option_from_flag(
+        pcs.local_config, "format.sort_profiles_order", str
+    ),
+    help=(
+        "Sets the sort order in the local configuration as 'format.sort_profiles_order' that will "
+        "be used for sorting both pending and index profiles."
     ),
 )
 def status(**kwargs: Any) -> None:
@@ -585,17 +598,17 @@ def status(**kwargs: Any) -> None:
     default using ``less``).
 
     An error is raised if the command is executed outside of range of any
-    perun, or configuration misses certain configuration keys
-    (namely ``format.status``).
+    perun, or configuration misses certain configuration keys (namely
+    ``format.status``).
 
     Profiles (both registered in index and stored in pending directory) are sorted
-    according to the :ckey:`format.sort_profiles_by`. The option ``--sort-by``
-    sets this key in the local configuration for further usage. This means that
+    according to the key :ckey:`format.sort_profiles_by` and order
+    :ckey:`format.sort_profiles_order`. The options ``--sort-by`` and ``--sort-order``
+    set these keys in the local configuration for further usage. This means that
     using the pending or index tags will consider this order.
 
     Refer to :ref:`logs-status` for information how to customize the outputs of
-    ``status`` or how to set :ckey:`format.status` in nearest
-    configuration.
+    ``status`` or how to set :ckey:`format.status` in nearest configuration.
     """
     try:
         commands.try_init()
@@ -651,8 +664,8 @@ def show(ctx: click.Context, profile: Profile, **_: Any) -> None:
         5. Otherwise, the directory is walked for any match. Each found match
            is asked for confirmation by user.
 
-    Tags consider the sorted order as specified by the following option
-    :ckey:`format.sort_profiles_by`.
+    Tags consider the sorted order as specified by the options
+    :ckey:`format.sort_profiles_by` and :ckey:`format.sort_profiles_order`.
 
     Example 1. The following command will show the first profile registered at
     index of ``HEAD~1`` commit. The resulting graph will contain bars
@@ -742,8 +755,8 @@ def showdiff(ctx: click.Context, **kwargs: Any) -> None:
         5. Otherwise, the directory is walked for any match. Each found match
            is asked for confirmation by user.
 
-    Tags consider the sorted order as specified by the following option
-    :ckey:`format.sort_profiles_by`.
+    Tags consider the sorted order as specified by the options
+    :ckey:`format.sort_profiles_by` and :ckey:`format.sort_profiles_order`.
 
     Example 1. The following command will show the difference first two profiles
     registered at index of ``HEAD~1`` commit::
@@ -813,8 +826,8 @@ def postprocessby(ctx: click.Context, profile: Profile, **_: Any) -> None:
         5. Otherwise, the directory is walked for any match. Each found match
            is asked for confirmation by user.
 
-    Tags consider the sorted order as specified by the following option
-    :ckey:`format.sort_profiles_by`.
+    Tags consider the sorted order as specified by the options
+    :ckey:`format.sort_profiles_by` and :ckey:`format.sort_profiles_order`.
 
     For checking the associated `tags` to profiles run ``perun status``.
 

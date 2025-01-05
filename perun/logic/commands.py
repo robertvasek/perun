@@ -1094,6 +1094,7 @@ def get_untracked_profiles() -> list[ProfileInfo]:
                     "type": index_entry.type,
                     "cmd": index_entry.cmd,
                     "workload": index_entry.workload,
+                    "label": index_entry.label,
                 },
                 "collector_info": {"name": index_entry.collector},
                 "postprocessors": [{"name": p} for p in index_entry.postprocessors],

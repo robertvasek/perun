@@ -215,6 +215,7 @@ def import_perf_profile(
                 "cmd": kwargs.get("cmd", ""),
                 "exitcode": [p.exit_code for p in profiles],
                 "workload": kwargs.get("workload", ""),
+                "label": kwargs.get("profile_label", ""),
                 "units": {"time": "sample"},
             },
             "collector_info": {
@@ -228,7 +229,9 @@ def import_perf_profile(
             "postprocessors": [],
         }
     )
-    save_imported_profile(prof, kwargs.get("save_to_index", False), minor_version)
+    save_imported_profile(
+        prof, kwargs.get("save_to_index", False), minor_version, kwargs.get("profile_name")
+    )
 
 
 def import_elk_profile(
@@ -260,6 +263,7 @@ def import_elk_profile(
                 "cmd": kwargs.get("cmd", ""),
                 "exitcode": "?",
                 "workload": kwargs.get("workload", ""),
+                "label": kwargs.get("profile_label", ""),
                 "units": {"time": "sample"},
             },
             "collector_info": {
@@ -269,21 +273,30 @@ def import_elk_profile(
             "postprocessors": [],
         }
     )
-    save_imported_profile(prof, save_to_index, minor_version)
+    save_imported_profile(prof, save_to_index, minor_version, kwargs.get("profile_name"))
 
 
 def save_imported_profile(
-    prof: profile.Profile, save_to_index: bool, minor_version: MinorVersion
+    prof: profile.Profile,
+    save_to_index: bool,
+    minor_version: MinorVersion,
+    profile_name: str | None = None,
 ) -> None:
     """Saves the imported profile either to index or to pending jobs.
 
     :param prof: imported profile
     :param minor_version: minor version corresponding to the imported profiles.
     :param save_to_index: indication whether we should save the imported profiles to index.
+    :param profile_name: optional custom name of the saved profile
     """
-    full_profile_name = profile.generate_profile_name(prof)
+    if not profile_name:
+        # No custom profile name provided, generate the name
+        profile_name = profile.generate_profile_name(prof)
+    elif not profile_name.endswith(".perf"):
+        # Make sure the profile name ends with the proper suffix
+        profile_name += ".perf"
     profile_directory = pcs.get_job_directory()
-    full_profile_path = os.path.join(profile_directory, full_profile_name)
+    full_profile_path = os.path.join(profile_directory, profile_name)
 
     streams.store_json(prof.serialize(), full_profile_path)
     log.minor_status(

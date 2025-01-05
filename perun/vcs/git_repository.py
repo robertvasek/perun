@@ -115,7 +115,7 @@ class GitRepository(AbstractRepository):
         :return: yields stream of major versions
         :raises VersionControlSystemException: when the master head cannot be massaged
         """
-        for branch in self.git_repo.branches:  # type: ignore
+        for branch in self.git_repo.branches:
             yield MajorVersion(branch.name, self.massage_parameter(branch.name))
 
     def parse_commit(self, commit: git.objects.Commit) -> MinorVersion:
