@@ -30,7 +30,7 @@ from typing import Any, TYPE_CHECKING, Union
 # Perun Imports
 from perun.logic import config, index, pcs, store
 from perun import profile as profiles
-from perun.utils import log as perun_log
+from perun.utils import decorators, log as perun_log
 from perun.utils.common import common_kit
 from perun.utils.external import environment
 from perun.utils.exceptions import (

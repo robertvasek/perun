@@ -156,7 +156,7 @@ profiles:
 ## Be default, we sort the profiles by time in ascending order
 format:
   sort_profiles_by: time
-  sort_profiles_order: ascending
+  sort_profiles_order: asc
 {% if format is defined and format.output_profile_template is defined %}
 ## The following changes the automatically generated name of the profiles
   output_profile_template: "{{ format.output_profile_template }}"

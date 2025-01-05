@@ -680,8 +680,8 @@ class HandledSignals:
 class SortOrder(Enum):
     """Enumeration representing sorting order in a more descriptive way compared to the library."""
 
-    Ascending = "ascending"
-    Descending = "descending"
+    Ascending = "asc"
+    Descending = "desc"
 
     @staticmethod
     def supported() -> list[str]:

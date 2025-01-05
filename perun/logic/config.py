@@ -214,7 +214,7 @@ format:
     output_profile_template: "%collector%-%cmd%-%workload%-%date%"
     output_show_template: "%collector%-%cmd%-%workload%-%date%"
     sort_profiles_by: time
-    sort_profiles_order: ascending
+    sort_profiles_order: asc
 
 degradation:
     apply: all

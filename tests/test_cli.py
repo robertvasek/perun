@@ -1200,11 +1200,11 @@ def test_status_correct(pcs_single_prof):
 
     # Try that the sort order changed
     short_result = runner.invoke(
-        cli.status, ["--short", "--sort-by", "source", "--sort-order", "descending"]
+        cli.status, ["--short", "--sort-by", "source", "--sort-order", "desc"]
     )
     asserts.predicate_from_cli(short_result, short_result.exit_code == 0)
     assert pcs_single_prof.local_config().get("format.sort_profiles_by") == "source"
-    assert pcs_single_prof.local_config().get("format.sort_profiles_order") == "descending"
+    assert pcs_single_prof.local_config().get("format.sort_profiles_order") == "desc"
 
     # The sort order is kept the same
     short_result = runner.invoke(cli.status, ["--short"])
