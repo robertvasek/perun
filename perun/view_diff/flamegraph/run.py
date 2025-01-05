@@ -5,6 +5,7 @@ from __future__ import annotations
 # Standard Imports
 from collections import defaultdict
 from datetime import datetime, timezone
+import pathlib
 from subprocess import CalledProcessError
 from typing import Any
 import re
@@ -190,6 +191,8 @@ def generate_flamegraphs(
             flamegraphs.append(
                 (dtype, escaped_lhs, escaped_rhs, lhs_escaped_diff, rhs_escaped_diff)
             )
+            # Attempt to remove the leftover temporary 'palette.map' file that is no longer needed
+            pathlib.Path("palette.map").unlink(missing_ok=True)
         except CalledProcessError as exc:
             log.warn(f"could not generate flamegraphs: {exc}")
     return flamegraphs
