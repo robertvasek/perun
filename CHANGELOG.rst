@@ -1,6 +1,18 @@
 Changelog
 =========
 
+0.23.8 (2025-01-05)
+-------------------
+
+  - Fix a bug in the logging module capitalizing log messages
+  - Fix showdiff not deleting a temporary palette.map file
+  - Perun import now allows to specify the name of the resulting profile
+  - It is now possible to specify the sort order for perun status
+  - Perun status now by default sorts profiles in ascending order w.r.t. the time
+  - Perun import now allows to specify a user-defined string label to associate with the profile
+  - New tag %label% may now be used when specifying formats in config
+
+
 0.23.7 (2024-11-04)
 -------------------
 
