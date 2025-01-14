@@ -104,7 +104,7 @@ def test_no_params_exists_pcs_in_same_dir(capsys):
     # Check if user was warned, that at the given path, the perun pcs was reinitialized
     out, _ = capsys.readouterr()
     assert (
-        "Reinitialized existing perun repository" in common_kit.escape_ansi(out)
+        "Reinitialized existing Perun repository" in common_kit.escape_ansi(out)
         and f"{pcs_path}" in out
     )
 
@@ -178,7 +178,7 @@ def test_git_exists_already(capsys):
     # Capture the out and check if the message contained "Reinitialized"
     out, _ = capsys.readouterr()
     assert (
-        "Reinitialized existing git repository" in common_kit.escape_ansi(out) and pcs_path in out
+        "Reinitialized existing Git repository" in common_kit.escape_ansi(out) and pcs_path in out
     )
 
 

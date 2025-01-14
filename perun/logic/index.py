@@ -74,6 +74,7 @@ class BasicIndexEntry:
         self.type: str = "??"
         self.cmd: str = "??"
         self.workload: str = "??"
+        self.label: str = "??"
         self.collector: str = "??"
         self.postprocessors: list[str] = []
 
@@ -141,8 +142,8 @@ class ExtendedIndexEntry(BasicIndexEntry):
     :ivar path: the original path to the profile
     :ivar offset: offset of the entry within the index
     :ivar cmd: command for which we collected data
-    :ivar args: arguments of the command
     :ivar workload: workload of the command
+    :ivar label: a custom profile label
     :ivar collector: collector used to collect data
     :ivar postprocessors: list of postprocessors used to postprocess data
     """
@@ -168,6 +169,7 @@ class ExtendedIndexEntry(BasicIndexEntry):
         self.type: str = profile["header"]["type"]
         self.cmd: str = profile["header"]["cmd"]
         self.workload: str = profile["header"].get("workload", "")
+        self.label: str = profile["header"].get("label", "")
         self.collector: str = profile["collector_info"]["name"]
         self.postprocessors: list[str] = [
             postprocessor["name"] for postprocessor in profile["postprocessors"]
@@ -237,6 +239,7 @@ class ExtendedIndexEntry(BasicIndexEntry):
         profile["header"]["type"] = store.read_string_from_handle(index_handle)
         profile["header"]["cmd"] = store.read_string_from_handle(index_handle)
         profile["header"]["workload"] = store.read_string_from_handle(index_handle)
+        profile["header"]["label"] = store.read_string_from_handle(index_handle)
         profile["collector_info"]["name"] = store.read_string_from_handle(index_handle)
         profile["postprocessors"] = [
             {"name": post} for post in store.read_list_from_handle(index_handle)
@@ -260,6 +263,7 @@ class ExtendedIndexEntry(BasicIndexEntry):
         store.write_string_to_handle(index_handle, self.type)
         store.write_string_to_handle(index_handle, self.cmd)
         store.write_string_to_handle(index_handle, self.workload)
+        store.write_string_to_handle(index_handle, self.label)
         store.write_string_to_handle(index_handle, self.collector)
         store.write_list_to_handle(index_handle, self.postprocessors)
 
@@ -268,15 +272,10 @@ class ExtendedIndexEntry(BasicIndexEntry):
 
         :return:  string representation of the entry
         """
-        return " @{3} {2} -> {1} ({0}) {4}; {5}; {6} {7}".format(
-            self.time,
-            self.checksum,
-            self.path,
-            self.offset,
-            self.type,
-            " ".join([self.cmd, self.workload]),
-            self.collector,
-            " ".join(self.postprocessors),
+        return (
+            f" @{self.offset} {self.path} -> {self.checksum} ({self.time}) {self.type}; "
+            f"{' '.join([self.cmd, self.workload])}; {self.label}; "
+            f"{self.collector} {' '.join(self.postprocessors)}"
         )
 
 

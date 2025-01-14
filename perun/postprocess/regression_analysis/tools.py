@@ -122,7 +122,7 @@ def sort_points(x_pts: list[float], y_pts: list[float]) -> tuple[list[float], li
     return list(res_x_pts), list(res_y_pts)
 
 
-def split_model_interval(start: int, end: int, steps: int) -> npt.NDArray[np.float64]:
+def split_model_interval(start: int, end: int, steps: int) -> npt.NDArray[np.floating[Any]]:
     """Splits the interval defined by its edges to #steps points in a safe manner, i.e. no zero
         points in the array, which prevents zero division errors.
 

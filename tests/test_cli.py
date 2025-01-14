@@ -1144,7 +1144,7 @@ def test_reg_analysis_correct(pcs_single_prof):
         [cprof_idx, "regression-analysis", "-m", "iterative", "-r", "all", "-s", "4"],
     )
     asserts.predicate_from_cli(result, result.exit_code == 0)
-    asserts.predicate_from_cli(result, result.output.count("too few point") == 5)
+    asserts.predicate_from_cli(result, result.output.count("Too few point") == 5)
     asserts.predicate_from_cli(result, "succeeded" in result.output)
 
     # Test too many steps output
@@ -1162,7 +1162,7 @@ def test_reg_analysis_correct(pcs_single_prof):
         ],
     )
     asserts.predicate_from_cli(result, result.exit_code == 0)
-    asserts.predicate_from_cli(result, result.output.count("too few point") == 7)
+    asserts.predicate_from_cli(result, result.output.count("Too few point") == 7)
     asserts.predicate_from_cli(result, "succeeded" in result.output)
 
     # Test steps value clamping with iterative method
@@ -1199,9 +1199,12 @@ def test_status_correct(pcs_single_prof):
     assert config.lookup_key_recursively("format.sort_profiles_by") == "time"
 
     # Try that the sort order changed
-    short_result = runner.invoke(cli.status, ["--short", "--sort-by", "source"])
+    short_result = runner.invoke(
+        cli.status, ["--short", "--sort-by", "source", "--sort-order", "desc"]
+    )
     asserts.predicate_from_cli(short_result, short_result.exit_code == 0)
     assert pcs_single_prof.local_config().get("format.sort_profiles_by") == "source"
+    assert pcs_single_prof.local_config().get("format.sort_profiles_order") == "desc"
 
     # The sort order is kept the same
     short_result = runner.invoke(cli.status, ["--short"])

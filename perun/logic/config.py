@@ -11,7 +11,7 @@ containing formats and options for one execution of perun command.
 from __future__ import annotations
 
 # Standard Imports
-from typing import Any, Iterable, Optional
+from typing import Any, Iterable, Optional, TypeVar
 import dataclasses
 import os
 import re
@@ -25,6 +25,9 @@ from perun.logic import config_templates
 from perun.utils import decorators, exceptions, log as perun_log, streams
 from perun.utils.common import common_kit
 from perun.utils.exceptions import SuppressedExceptions
+
+
+T = TypeVar("T")
 
 
 def is_valid_key(key: str) -> bool:
@@ -211,6 +214,7 @@ format:
     output_profile_template: "%collector%-%cmd%-%workload%-%date%"
     output_show_template: "%collector%-%cmd%-%workload%-%date%"
     sort_profiles_by: time
+    sort_profiles_order: asc
 
 degradation:
     apply: all
@@ -468,3 +472,38 @@ def gather_key_recursively(key: str) -> list[Any]:
         except exceptions.MissingConfigSectionException:
             continue
     return gathered_values
+
+
+def safely_lookup_key_recursively(key: str, allowed_values: Iterable[T], default: T) -> T:
+    """Safely recursively looks up the key in runtime, local and shared config.
+
+    By safely, we mean that if the function returns a value, that value will be one of the allowed
+    values. If no allowed values are provided, or the default value itself is not one of the allowed
+    values, an AssertionError is raised.
+
+    :param key: the looked up key
+    :param allowed_values: a nonempty set of allowed values
+    :param default: a default value (must be one of allowed value) to use in case of any issues
+    """
+    # A set of allowed values must be provided and the default value must be one of the allowed
+    # values to ensure the resulting value is always valid.
+    assert allowed_values and default in allowed_values
+    error_desc: str = ""
+    value = default
+    try:
+        value = lookup_key_recursively(key)
+        if value not in allowed_values:
+            # If the stored key is invalid, we use the default value instead
+            error_desc = f"invalid value '{value}' of key '{key}' in config. "
+            value = default
+    except exceptions.MissingConfigSectionException:
+        # If there is no value for the looked up key, we use the default value instead
+        error_desc = f"missing config value for key '{key}'. "
+    if error_desc:
+        perun_log.warn(
+            error_desc + f"The default value '{default}' will be used instead.\n\n"
+            f"Please run 'perun config edit' and set '{key}' to one of "
+            f"({', '.join(map(str, allowed_values))}). "
+            f"Consult the documentation (Configuration and Logs) for more information."
+        )
+    return value

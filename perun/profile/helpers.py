@@ -35,10 +35,9 @@ from perun.utils.common import common_kit
 from perun.utils.external import environment
 from perun.utils.exceptions import (
     InvalidParameterException,
-    MissingConfigSectionException,
     TagOutOfRangeException,
 )
-from perun.utils.structs.common_structs import Unit, Executable, Job
+from perun.utils.structs.common_structs import Unit, Executable, Job, SortOrder
 from perun.vcs import vcs_kit
 
 if TYPE_CHECKING:
@@ -106,6 +105,8 @@ def generate_profile_name(profile: profiles.Profile) -> str:
             Command of the job
         `%workload%`:
             Workload of the job
+        `%label%`:
+            A custom string label associated with the profile
         `%type%`:
             Type of the generated profile
         `%kernel%`:
@@ -156,6 +157,10 @@ def generate_profile_name(profile: profiles.Profile) -> str:
                 )
                 + "]",
             ),
+            (
+                r"%label%",
+                lambda scanner, token: lookup_value(profile["header"], "label", "_"),
+            ),
             (r"%kernel%", lambda scanner, token: environment.get_kernel()),
             (
                 r"%type%",
@@ -202,6 +207,7 @@ def load_list_for_minor_version(minor_version: str) -> list["ProfileInfo"]:
                 "type": index_entry.type,
                 "cmd": index_entry.cmd,
                 "workload": index_entry.workload,
+                "label": index_entry.label,
             },
             "collector_info": {"name": index_entry.collector},
             "postprocessors": [{"name": p} for p in index_entry.postprocessors],
@@ -408,47 +414,32 @@ def is_key_aggregatable_by(profile: profiles.Profile, func: str, key: str, keyna
     return True
 
 
-@decorators.singleton
-def get_sort_order():
-    """Helper cachable retrieval of the sort order from the config
-
-    :return: sorting order
-    """
-    sort_order = config.lookup_key_recursively("format.sort_profiles_by")
-    return sort_order
-
-
-def sort_profiles(profile_list: list["ProfileInfo"], reverse_profiles: bool = True) -> None:
-    """Sorts the profiles according to the key set in either configuration.
+def sort_profiles(profile_list: list["ProfileInfo"]) -> None:
+    """Sorts the profiles according to the key and ordering set in configuration.
 
     The key can either be specified in temporary configuration, or in any of the local or global
     configs as the key :ckey:`format.sort_profiles_by` attributes. Be default, profiles are sorted
-    by time. In case of any errors (invalid sort key or missing key) the profiles will be sorted by
-    default key as well.
+    by time of creation, resp. modification. In case of any errors (invalid sort key or missing key)
+    the profiles will be sorted by the default key instead.
+
+    The profiles may further be sorted either in ascending or descending order w.r.t. the sort key.
+    By default, the profiles are sorted in ascending order so the profiles are shown in the
+    order from least recent to most recent (with the default sort key being time). This ensures
+    that, by default, the numeric profile tags do not change when new profiles are created.
+    The sort order can again be specified in the temporary, local or global configs using the key
+    :ckey:`format.sort_profiles_order` attribute.
 
     :param profile_list: list of ProfileInfo object
-    :param reverse_profiles: true if the order of the sorting should be reversed
     """
-    sort_order = DEFAULT_SORT_KEY
-    try:
-        sort_order = get_sort_order()
-        # If the stored key is invalid, we use the default time as well
-        if sort_order not in ProfileInfo.valid_attributes:
-            perun_log.warn(
-                f"invalid sort key '{sort_order}'"
-                + f" Profiles will be sorted by '{sort_order}'\n\n"
-                + f"Please set sort key in config or cli to one of ({', '.join(ProfileInfo.valid_attributes)})"
-            )
-            sort_order = DEFAULT_SORT_KEY
-    except MissingConfigSectionException:
-        perun_log.warn(
-            "missing set option 'format.sort_profiles_by'!"
-            f" Profiles will be sorted by '{sort_order}'\n\n"
-            + "Please run 'perun config edit' and set 'format.sort_profiles_by' to one"
-            f" of ({', '.join(ProfileInfo.valid_attributes)})"
-        )
-
-    profile_list.sort(key=operator.attrgetter(sort_order), reverse=reverse_profiles)
+    sort_key = config.safely_lookup_key_recursively(
+        "format.sort_profiles_by", ProfileInfo.valid_attributes, DEFAULT_SORT_KEY
+    )
+    sort_order = config.safely_lookup_key_recursively(
+        "format.sort_profiles_order", SortOrder.supported(), SortOrder.default()
+    )
+    profile_list.sort(
+        key=operator.attrgetter(sort_key), reverse=SortOrder(sort_order).as_sort_flag()
+    )
 
 
 def merge_resources_of(
@@ -534,6 +525,7 @@ class ProfileInfo:
         "type",
         "cmd",
         "workload",
+        "label",
         "collector",
         "postprocessors",
         "checksum",
@@ -556,7 +548,6 @@ class ProfileInfo:
         :param is_raw_profile: true if the stored profile is raw, i.e. in json and not
             compressed
         """
-
         self._is_raw_profile = is_raw_profile
         self.source = path
         self.realpath = os.path.relpath(real_path, os.getcwd())
@@ -564,6 +555,7 @@ class ProfileInfo:
         self.type = profile_info["header"]["type"]
         self.cmd = profile_info["header"]["cmd"]
         self.workload = profile_info["header"]["workload"]
+        self.label = profile_info["header"].get("label", "")
         self.collector = profile_info["collector_info"]["name"]
         self.postprocessors = [
             postprocessor["name"] for postprocessor in profile_info["postprocessors"]
@@ -609,6 +601,7 @@ class ProfileInfo:
         "time",
         "cmd",
         "workload",
+        "label",
         "collector",
         "checksum",
         "source",
