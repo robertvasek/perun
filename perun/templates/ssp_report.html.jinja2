@@ -1,3 +1,5 @@
+{% import 'ssp_table.html.jinja2' as table_generator %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,6 +30,33 @@
         <h2 class="tag-target division_anchor division_anchor__target">{{ rhs_tag }}</h2>
     </div>
 
+    <div class="side-panel navigation-panel">
+        <a href="#general">
+            <span class="material-icons">home</span>
+            <span class="side-panel__description">General</span>
+        </a>
+        <a href="#profile-vulnerabilities">
+            <span class="material-icons">gpp_maybe</span>
+            <span class="side-panel__description">Vulnerabilities</span>
+        </a>
+        <a href="#profile-stats">
+            <span class="material-icons">equalizer</span>
+            <span class="side-panel__description">Profile Stats</span>
+        </a>
+        <a href="#profile-metadata">
+            <span class="material-icons">account_tree</span>
+            <span class="side-panel__description">Profile Metadata</span>
+        </a>
+        <a href="#flame">
+            <span class="material-icons">local_fire_department</span>
+            <span class="side-panel__description">Flame Graphs</span>
+        </a>
+        <a href="#sankey">
+            <span class="material-icons">timeline</span>
+            <span class="side-panel__description">Sankey Graph</span>
+        </a>
+    </div>
+
     <div class="notes-sidebar">
         <span class="material-icons general-sidebar__icon">push_pin</span>
         <a> <p id="export-notes">Export with notes</p> </a>
@@ -38,47 +67,45 @@
         </div>
     </div>
 
-    <div class="general-sidebar">
-        <span class="material-icons general-sidebar__icon">info</span>
-        <div class="general-sidebar-content">
-
-        {% for prop in general_properties %}
-        <div class="general-property">
-            <h2>
-                {{ prop.title }}
-
-                {% if not offline %}
-                <svg xmlns="http://www.w3.org/2000/svg" class="toggle-arrow" height="24" width="24" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 15.36 16.95 10.4H7.05Z" />
-                </svg>
-                {% else %}
-                <svg class="toggle-arrow" height="24" width="24" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 15.36 16.95 10.4H7.05Z" />
-                </svg>
-                {% endif %}
-
-            </h2>
-            <div class="general-values">
-                {% if prop.values[0].content == prop.values[1].content %}
-                <!-- Render a single value with tag-common -->
-                <div class="general-value">
-                    <span class="tag-element tag-common">Common</span>
-                    <span class="value">{{ prop.values[0].content }}</span>
-                </div>
-                {% else %}
-                <!-- Render two values with tag-baseline and tag-target -->
-                <div class="general-value">
-                    <span class="tag-element tag-baseline">Baseline</span>
-                    <span class="value">{{ prop.values[0].content }}</span>
-                </div>
-                <div class="general-value">
-                    <span class="tag-element tag-target">Target</span>
-                    <span class="value">{{ prop.values[1].content }}</span>
-                </div>
-                {% endif %}
-            </div>
+    <div class="section" id="general">
+        <div class="section-header">
+            <h1>Perun Performance Analysis</h1>
+            <span class="material-icons pin-icon pin-icon__header" data-section="General">push_pin</span>
         </div>
-        {% endfor %}
+        <p>Perun version: v{{ perun_version }}</p
+        <p>Generated on: {{ timestamp }}</p>
+
+        {{ table_generator.general_comparison_container('baseline', 'general', lhs_header) }}
+        {{ table_generator.general_comparison_container('target', 'general', rhs_header) }}
+    </div>
+
+    <div id="profile-vulnerabilities" class="section">
+        <div class="section-header">
+            <h1>Vulnerabilities</h1>
+            <span class="material-icons pin-icon" data-section="Vulnerabilities">push_pin</span>
+        </div>
+
+        <!-- HERE WILL BE VULNERABILITIES SCRIPT -->
+    </div>
+
+    <div id="profile-stats" class="section">
+        <div class="section-header">
+            <h1>Profile Statistics</h1>
+            <span class="material-icons pin-icon" data-section="Profile Statistics">push_pin</span>
+        </div>
+
+        {{ table_generator.general_comparison_container('baseline', 'profile-stats', lhs_stats) }}
+        {{ table_generator.general_comparison_container('target', 'profile-stats', rhs_stats) }}
+    </div>
+
+    <div id="profile-metadata" class="section">
+        <div class="section-header">
+            <h1>Profile Metadata</h1>
+            <span class="material-icons pin-icon" data-section="Profile Metadata">push_pin</span>
+        </div>
+
+        {{ table_generator.general_comparison_container('baseline', 'profile-metadata', lhs_metadata) }}
+        {{ table_generator.general_comparison_container('target', 'profile-metadata', rhs_metadata) }}
     </div>
 
 </body>
