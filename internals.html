@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Perun Internals &#8212; Perun 0.27.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/perun.css?v=25c05b3f" />
+    <script src="_static/documentation_options.js?v=0c8f1ac9"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Changelog" href="changelog.html" />
+    <link rel="prev" title="Customize Logs and Statuses" href="logs.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="perun-internals">
+<span id="internals-overview"></span><h1>Perun Internals<a class="headerlink" href="#perun-internals" title="Link to this heading">¶</a></h1>
+<p>Conceptually one Perun instances serves as a wrapper around the existing version control system
+(e.g. some repository). Perun takes specializes on storing the performance profiles and manages the
+link between minor versions and their corresponding profiles. Currently as a target vcs we support
+only <code class="docutils literal notranslate"><span class="pre">git</span></code>, with a custom lightweigth vcs being in development (called <code class="docutils literal notranslate"><span class="pre">tagit</span></code>). The
+architecture of Perun contains an interface that can be used to register support for new version
+control system as described in <a class="reference internal" href="#internals-vcs-custom"><span class="std std-ref">Creating Support for Custom VCS</span></a>. Internal structure of one instance of
+Perun is inspired by git: performance profiles are similarly stored as objects compressed by zlib
+method and identified by hashes. <a class="reference internal" href="#internals-store"><span class="std std-ref">Perun Storage</span></a> describes the internal model of Perun more
+briefly.</p>
+<a class="reference internal image-reference" href="_images/perun-vs-vcs.svg"><img alt="_images/perun-vs-vcs.svg" class="align-center" src="_images/perun-vs-vcs.svg" style="width: 100%;" />
+</a>
+<p>The diagram above highlights the responsibilities and storage of individual systems. Version
+control systems manage the functionality of the project—its versions and precise code
+changes—but lack proper support for managing performance. On the other hand, performance
+versioning systems manages the performance of project—its individual performance profiles, data
+visualizations of various statistics—but lack the precise functionality changes. This means that
+vcs stores the actual code chungs and version references and pvs stores the actual profiling data.</p>
+<a class="reference internal image-reference" href="_images/perun-flow.svg"><img alt="_images/perun-flow.svg" class="align-center" src="_images/perun-flow.svg" style="width: 100%;" />
+</a>
+<p>This diagram shows one of the proper usages of Perun’s tool suite. Each developer keeps his own
+instance of both versioning and performance systems. In this mode one can share both the code
+changes and performance measurement through the wider range of developers.</p>
+<section id="version-control-systems">
+<span id="internals-vcs"></span><h2>Version Control Systems<a class="headerlink" href="#version-control-systems" title="Link to this heading">¶</a></h2>
+<p>Version Control System manages the history of functionality of one project, i.e. stores the changes
+between different versions (or snapshots) of project. Each code change usually requires
+corresponding the performance profiles in order to detect potential performance degradation early
+in the development. The following subsection <a class="reference internal" href="#internals-vcs-api"><span class="std std-ref">Version Control System API</span></a> describes the layer which
+serves as an interface in Perun which supplies the necessary information between the version
+control and performance versioning systems.</p>
+<section id="module-perun.vcs.abstract_repository">
+<span id="version-control-system-api"></span><span id="internals-vcs-api"></span><h3>Version Control System API<a class="headerlink" href="#module-perun.vcs.abstract_repository" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="perun.vcs.abstract_repository.AbstractRepository">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">perun.vcs.abstract_repository.</span></span><span class="sig-name descname"><span class="pre">AbstractRepository</span></span><a class="reference internal" href="_modules/perun/vcs/abstract_repository.html#AbstractRepository"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#perun.vcs.abstract_repository.AbstractRepository" title="Link to this definition">¶</a></dt>
+<dd><p>Abstract Base Class for all repositories</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="perun.vcs.abstract_repository.AbstractRepository.init">
+<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/perun/vcs/abstract_repository.html#AbstractRepository.init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#perun.vcs.abstract_repository.AbstractRepository.init" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="perun.vcs.abstract_repository.AbstractRepository.walk_minor_versions">
+<span class="sig-name descname"><span class="pre">walk_minor_versions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/perun/vcs/abstract_repository.html#AbstractRepository.walk_minor_versions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#perun.vcs.abstract_repository.AbstractRepository.walk_minor_versions" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="perun.vcs.abstract_repository.AbstractRepository.walk_major_versions">
+<span class="sig-name descname"><span class="pre">walk_major_versions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/perun/vcs/abstract_repository.html#AbstractRepository.walk_major_versions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#perun.vcs.abstract_repository.AbstractRepository.walk_major_versions" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="perun.vcs.abstract_repository.AbstractRepository.get_minor_head">
+<span class="sig-name descname"><span class="pre">get_minor_head</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/perun/vcs/abstract_repository.html#AbstractRepository.get_minor_head"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#perun.vcs.abstract_repository.AbstractRepository.get_minor_head" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="perun.vcs.abstract_repository.AbstractRepository.get_head_major_version">
+<span class="sig-name descname"><span class="pre">get_head_major_version</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/perun/vcs/abstract_repository.html#AbstractRepository.get_head_major_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#perun.vcs.abstract_repository.AbstractRepository.get_head_major_version" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="perun.vcs.abstract_repository.AbstractRepository.get_minor_version_info">
+<span class="sig-name descname"><span class="pre">get_minor_version_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/perun/vcs/abstract_repository.html#AbstractRepository.get_minor_version_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#perun.vcs.abstract_repository.AbstractRepository.get_minor_version_info" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="perun.vcs.abstract_repository.AbstractRepository.check_minor_version_validity">
+<span class="sig-name descname"><span class="pre">check_minor_version_validity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/perun/vcs/abstract_repository.html#AbstractRepository.check_minor_version_validity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#perun.vcs.abstract_repository.AbstractRepository.check_minor_version_validity" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="perun.vcs.abstract_repository.AbstractRepository.massage_parameter">
+<span class="sig-name descname"><span class="pre">massage_parameter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/perun/vcs/abstract_repository.html#AbstractRepository.massage_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#perun.vcs.abstract_repository.AbstractRepository.massage_parameter" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="perun.vcs.abstract_repository.AbstractRepository.is_dirty">
+<span class="sig-name descname"><span class="pre">is_dirty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/perun/vcs/abstract_repository.html#AbstractRepository.is_dirty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#perun.vcs.abstract_repository.AbstractRepository.is_dirty" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="perun.vcs.abstract_repository.AbstractRepository.save_state">
+<span class="sig-name descname"><span class="pre">save_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/perun/vcs/abstract_repository.html#AbstractRepository.save_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#perun.vcs.abstract_repository.AbstractRepository.save_state" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="perun.vcs.abstract_repository.AbstractRepository.restore_state">
+<span class="sig-name descname"><span class="pre">restore_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/perun/vcs/abstract_repository.html#AbstractRepository.restore_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#perun.vcs.abstract_repository.AbstractRepository.restore_state" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="perun.vcs.abstract_repository.AbstractRepository.checkout">
+<span class="sig-name descname"><span class="pre">checkout</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/perun/vcs/abstract_repository.html#AbstractRepository.checkout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#perun.vcs.abstract_repository.AbstractRepository.checkout" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="creating-support-for-custom-vcs">
+<span id="internals-vcs-custom"></span><h3>Creating Support for Custom VCS<a class="headerlink" href="#creating-support-for-custom-vcs" title="Link to this heading">¶</a></h3>
+<p>You can register support for your own version control system as follows:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Create a new module in <code class="docutils literal notranslate"><span class="pre">perun/vcs</span></code> directory implementing functions from
+<a class="reference internal" href="#internals-vcs-api"><span class="std std-ref">Version Control System API</span></a>.</p></li>
+<li><p>Finally register your newly created vcs wrapper in function <code class="docutils literal notranslate"><span class="pre">get_supported_module_names</span></code>
+located in <code class="docutils literal notranslate"><span class="pre">perun.utils.common.cli_kit</span></code>:</p></li>
+</ol>
+<div class="highlight-udiff notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="gd">--- /home/runner/work/perun/perun/docs/_static/templates/supported_module_names.py</span>
+<span class="linenos"> 2</span><span class="gi">+++ /home/runner/work/perun/perun/docs/_static/templates/supported_module_names_collectors.py</span>
+<span class="linenos"> 3</span><span class="gu">@@ -4,7 +4,7 @@</span>
+<span class="linenos"> 4</span><span class="w"> </span>        error(f&quot;trying to call get_supported_module_names with incorrect package &#39;{package}&#39;&quot;)
+<span class="linenos"> 5</span><span class="w"> </span>    return {
+<span class="linenos"> 6</span><span class="w"> </span>        &quot;vcs&quot;: [&quot;git&quot;, &quot;svs&quot;],
+<span class="linenos"> 7</span><span class="gd">-        &quot;collect&quot;: [&quot;trace&quot;, &quot;memory&quot;, &quot;time&quot;],</span>
+<span class="linenos"> 8</span><span class="gi">+        &quot;collect&quot;: [&quot;trace&quot;, &quot;memory&quot;, &quot;time&quot;, &quot;mycollector&quot;],</span>
+<span class="linenos"> 9</span><span class="w"> </span>        &quot;postprocess&quot;: [
+<span class="linenos">10</span><span class="w"> </span>            &quot;moving-average&quot;,
+<span class="linenos">11</span><span class="w"> </span>            &quot;kernel-regression&quot;,
+</pre></div>
+</div>
+<ol class="arabic" start="3">
+<li><p>Optionally implement batch of automatic test cases using (preferably based on <a class="reference external" href="https://docs.pytest.org/en/latest/">pytest</a>) in
+<code class="docutils literal notranslate"><span class="pre">tests</span></code> directory. Verify that registering did not break anything in the Perun, your
+wrapper is correct and optionally reinstall Perun:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">test</span>
+<span class="n">make</span> <span class="n">install</span>
+</pre></div>
+</div>
+</li>
+<li><p>If you think your wrapper could help others, please, consider making <a class="reference external" href="https://github.com/Perfexionists/perun/pull/new/develop">Pull Request</a>.</p></li>
+</ol>
+</div></blockquote>
+</section>
+</section>
+<section id="perun-storage">
+<span id="internals-store"></span><h2>Perun Storage<a class="headerlink" href="#perun-storage" title="Link to this heading">¶</a></h2>
+<p>The current internal representation of Perun storage is based on git internals and is meant for
+easy distribution, flexibility and easier managing. The possible extension of Perun to different
+versions of storages is currently under consideration. Internal objects and files for one local
+instance of Perun are stored in the filesystem in the <code class="docutils literal notranslate"><span class="pre">.perun</span></code> directory consisting of the
+following infrastructure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">.</span><span class="n">perun</span><span class="o">/</span>
+    <span class="o">|--</span> <span class="o">/</span><span class="n">jobs</span>
+    <span class="o">|--</span> <span class="o">/</span><span class="n">logs</span>
+    <span class="o">|--</span> <span class="o">/</span><span class="n">objects</span>
+    <span class="o">|--</span> <span class="n">local</span><span class="o">.</span><span class="n">yml</span>
+</pre></div>
+</div>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">.perun/jobs</span></code>:</dt><dd><p>Contains pending jobs, i.e. those that were generated by collectors, postprocessed by some
+postprocessors, or automatically generated by <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">run</span></code> commands, but are not yet assigned
+to concrete minor versions. These profiles contains the tag <a class="reference internal" href="profile.html#perfreg-origin"><code class="xref std std-preg docutils literal notranslate"><span class="pre">origin</span></code></a> that maps the
+profile to concrete minor version, i.e. the parent of the profile. This key serves as a
+prevention of assigning profiles to incorrect minor versions.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>.perun/jobs
+<span class="w">    </span><span class="p">|</span>--<span class="w"> </span>/baseline.perf
+<span class="w">    </span><span class="p">|</span>--<span class="w"> </span>/sll-comparison.perf
+<span class="w">    </span><span class="p">|</span>--<span class="w"> </span>/skip-lists-medium-height.perf
+<span class="w">    </span><span class="p">|</span>--<span class="w"> </span>/skip-lists-unlimited-height.perf
+</pre></div>
+</div>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">.perun/objects</span></code>:</dt><dd><p>Corresponds to main storage of Perun and contains object primitives. Every object of Perun is
+represented by unique identifier (mostly by sha representation) and corresponds either to an
+object blob (containing compressed profile) or to an index of a corresponding minor version,
+which lists assigned profiles for the given minor version.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>.perun/objects
+<span class="w">    </span><span class="p">|</span>--<span class="w"> </span>/07
+<span class="w">        </span><span class="p">|</span>--<span class="w"> </span>f2b4bfa06f6b1be5713f2bbae7740838456758
+<span class="w">        </span><span class="p">|</span>--<span class="w"> </span>99dc4c5891947bdf7e26341231ca533432a1f1
+<span class="w">    </span><span class="p">|</span>--<span class="w"> </span>/3d
+<span class="w">        </span><span class="p">|</span>--<span class="w"> </span>3859b46db4eea5866a0b2b28997fac25a95430
+<span class="w">    </span><span class="p">|</span>--<span class="w"> </span>/ff
+<span class="w">        </span><span class="p">|</span>--<span class="w"> </span>d35c8962d8d2019d7762a7bc6980c1d0f2fcd7
+<span class="w">        </span><span class="p">|</span>--<span class="w"> </span>d88aabca6e5427c78ea647e955ffa00d1cd615
+</pre></div>
+</div>
+<p>Each object from <code class="docutils literal notranslate"><span class="pre">.perun/objects</span></code> is represented by hash value, where the first two characters
+are used to specify directory and the rest of the hash value a file name, where the index or
+compressed file is stored.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">.perun/logs</span></code>:</dt><dd><p>Contains various logs for various phases. Currently this holds logs for each minor version,
+for which we precollected new profiles during the <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">check</span></code> command. This behaviour
+can be set up by setting <a class="reference internal" href="config.html#confkey-degradation.log_collect"><code class="xref std std-ckey docutils literal notranslate"><span class="pre">degradation.log_collect</span></code></a> to true.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">local.yml</span></code>:</dt><dd><p>Contains local configuration, e.g. the specification of wrapped repository, job matrixes or
+formatting strings corresponding to concrete VCS. See <a class="reference internal" href="config.html"><span class="doc">Perun Configuration files</span></a> for more information about
+configuration of Perun.</p>
+</dd>
+</dl>
+<section id="perun-index-specification">
+<h3>Perun Index Specification<a class="headerlink" href="#perun-index-specification" title="Link to this heading">¶</a></h3>
+<p>Each minor version of vcs, which has any profile assigned, has corresponding index file in the
+<code class="docutils literal notranslate"><span class="pre">.perun/object</span></code> according to its identification. The index file itself is stored in binary format
+with the following specification.</p>
+<a class="reference internal image-reference" href="_images/perun-index-spec.svg"><img alt="_images/perun-index-spec.svg" class="align-center" src="_images/perun-index-spec.svg" style="width: 100%;" />
+</a>
+<dl class="simple">
+<dt><cite>Index signature</cite> [4B]:</dt><dd><p>Signature are the first bytes of the index containing ascii string <cite>pidx</cite>, which serves as an
+quick identification of minor version index.</p>
+</dd>
+<dt><cite>Index version</cite> [4B]:</dt><dd><p>Specification of version of conding of the index. Versioning is introduced for potential future
+backward compatibility with possible different specifications of index.</p>
+</dd>
+<dt><cite>Number of Entries</cite> [4B]:</dt><dd><p>Integer count of the number of entries found in the index. Each entry of the index is of
+variable length and lists the profiles with mapping to their corresponding objects.</p>
+</dd>
+<dt><cite>Entries</cite> [<cite>variable length</cite>]:</dt><dd><p>One entry of the index corresponds to one assigned profile. Each entry is of variable lenght
+and contains the identification of the original profile file, together with timestamp of
+creation and the identification of the compressed object, that contains the actual profiling
+data. Each entry can be broken into following parts:</p>
+<ul class="simple">
+<li><p><cite>Creation time</cite> [4B]: creation time of the profile represented as 4B timestamp.</p></li>
+<li><p><cite>Profile ID</cite> [20B]: unique identification of the profile, i.e. specification of the concrete
+compressed object located in the <code class="docutils literal notranslate"><span class="pre">.perun/objects</span></code>. Profile ID is always in form of SHA-1
+hash, which is obtained from the contents.</p></li>
+<li><p><cite>Origin Path</cite> [<cite>variable length</cite>: Original path to the profile represented as ascii string of
+variable length terminated by null byte.</p></li>
+</ul>
+</dd>
+<dt><cite>Checksum</cite> [20B]:</dt><dd><p>Checksum of the whole index, which serves for error detection.</p>
+</dd>
+</dl>
+</section>
+<section id="perun-object-specification">
+<h3>Perun Object Specification<a class="headerlink" href="#perun-object-specification" title="Link to this heading">¶</a></h3>
+<p>Each non-index object consist of short header ended with zero byte, consisting of header signature
+string, type of the profile and lenght of the content, and raw content of the performance profile
+w.r.t. <a class="reference internal" href="profile.html#profile-spec"><span class="std std-ref">Specification of Profile Format</span></a>. First we compute the checksum for these data, which serves as an
+identification in the minor version indexes and in <code class="docutils literal notranslate"><span class="pre">.perun/objects</span></code> directory. Finally, the
+object is compressed using zlib method and stored in the <code class="docutils literal notranslate"><span class="pre">.perun/objects</span></code> compressed.</p>
+<a class="reference internal image-reference" href="_images/perun-object-spec.svg"><img alt="_images/perun-object-spec.svg" class="align-center" src="_images/perun-object-spec.svg" style="width: 100%;" />
+</a>
+<dl class="simple">
+<dt><cite>Signature</cite> [7B]:</dt><dd><p>Signature is a 7B prefix containing ascii string “profile”. Serves for quick identification of
+profile.</p>
+</dd>
+<dt><cite>Type</cite> [<cite>variable length</cite>]:</dt><dd><p>Ascii specification of the profile type. This serves for quick and easy parsing of profiles.</p>
+</dd>
+<dt><cite>Content Lenght</cite> [4B]:</dt><dd><p>Integer count of the non-header data followed after the zero byte in bytes.</p>
+</dd>
+<dt><cite>Content</cite> [<cite>variable length</cite>]:</dt><dd><p>Contents of the performance profile w.r.t. <a class="reference internal" href="profile.html#profile-spec"><span class="std std-ref">Specification of Profile Format</span></a>.</p>
+</dd>
+</dl>
+</section>
+<section id="the-lifetime-of-profile-internals">
+<h3>The Lifetime of profile: Internals<a class="headerlink" href="#the-lifetime-of-profile-internals" title="Link to this heading">¶</a></h3>
+<p>The following subsections describes in more detail the basics of profile manipulations, namely
+registering, removing and lookuping up profiles.</p>
+<section id="registering-new-profile">
+<h4>Registering new profile<a class="headerlink" href="#registering-new-profile" title="Link to this heading">¶</a></h4>
+<p>Given a profile, w.r.t. <a class="reference internal" href="profile.html#profile-spec"><span class="std std-ref">Specification of Profile Format</span></a>, called <code class="docutils literal notranslate"><span class="pre">sll-vs-skiplist.perf</span></code>, registering this
+profile in <code class="docutils literal notranslate"><span class="pre">HEAD</span></code> minor version index, the following steps are executed:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sll-vs-skiplist.perf</span></code> is loaded and parsed into <a class="reference external" href="https://www.json.org/">JSON</a>. Profile is verified whether it is
+in format specified by <a class="reference internal" href="profile.html#profile-spec"><span class="std std-ref">Specification of Profile Format</span></a>.</p></li>
+<li><p><a class="reference internal" href="profile.html#perfreg-origin"><code class="xref std std-preg docutils literal notranslate"><span class="pre">origin</span></code></a> key is compared with the massaged <code class="docutils literal notranslate"><span class="pre">HEAD</span></code> minor version. In case it
+differes, an error is raised and adding the profiles is canceled, as we are trying to
+register performance profile corresponding to other point of history. Otherwise the
+<a class="reference internal" href="profile.html#perfreg-origin"><code class="xref std std-preg docutils literal notranslate"><span class="pre">origin</span></code></a> is removed from the profile and will not be stored in persistent storage.</p></li>
+<li><p>We construct the header for the profile consisting of <code class="docutils literal notranslate"><span class="pre">profile</span></code> prefix, the type of the
+specified by <a class="reference internal" href="profile.html#perfkey-type"><em class="xref std std-pkey">type</em></a> and length of the unpacked <a class="reference external" href="https://www.json.org/">JSON</a> representation of profile, joined
+by spaces and ended by null byte.</p></li>
+<li><p><a class="reference external" href="https://www.json.org/">JSON</a> contents of performance profile are appended to the header resulting into one <code class="docutils literal notranslate"><span class="pre">object</span></code>.</p></li>
+<li><p>An SHA-1 hash <code class="docutils literal notranslate"><span class="pre">checksum</span></code> is computed out of the <code class="docutils literal notranslate"><span class="pre">object</span></code>. The hash serves both as a check
+that the profile was not damaged during next usage, as well as identification in the
+filesystem.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">object</span></code> is compressed using <cite>zlib</cite> compression method and stored in the
+<code class="docutils literal notranslate"><span class="pre">.perun/objects</span></code> directory. First two characters of <code class="docutils literal notranslate"><span class="pre">checksum</span></code> specifies the target
+directory and the rest specifies the resulting filename.</p></li>
+<li><p>An index corresponding to the <code class="docutils literal notranslate"><span class="pre">HEAD</span></code> minor version is opened (if it does not exist, it is
+newly created first). Minor version index is also represented by its hash, where first two
+characters of hash is used as directory and the rest as filename.</p></li>
+<li><p>An entry for <code class="docutils literal notranslate"><span class="pre">sll-vs-skiplist.perf</span></code> with given modification time is registered within the
+index pointing to the <code class="docutils literal notranslate"><span class="pre">checksum</span></code> object with compressed data. The number of registered
+profiles in index is increased.</p></li>
+<li><p>Unless it is specified otherwise, the <code class="docutils literal notranslate"><span class="pre">sll-vs-skiplist.perf</span></code> is removed from filesystem.</p></li>
+</ol>
+</div></blockquote>
+<a class="reference internal image-reference" href="_images/register-profile.svg"><img alt="_images/register-profile.svg" class="align-center" src="_images/register-profile.svg" style="width: 100%;" />
+</a>
+</section>
+<section id="removing-profile-from-index">
+<h4>Removing profile from index<a class="headerlink" href="#removing-profile-from-index" title="Link to this heading">¶</a></h4>
+<p>Given a profile filename <code class="docutils literal notranslate"><span class="pre">sll-vs-skiplist.perf</span></code>, removing it from the <code class="docutils literal notranslate"><span class="pre">HEAD</span></code> minor version
+index, requires the following steps to be executed:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>An index corresponding to the <code class="docutils literal notranslate"><span class="pre">HEAD</span></code> minor version is opened. Minor version index is
+represented by its hash, where first two characters of hash is used as directory and the
+rest as filename. If the index does not exist, removing ends with an error.</p></li>
+<li><p>An entry for <code class="docutils literal notranslate"><span class="pre">sll-vs-skiplist.perf</span></code> is looked up within within the index. If it is not
+found, the removing ends with an error. Other wise, the entry is removed from the index and
+the number of registered profiles in index is decreased.</p></li>
+<li><p>The original compresed object, which was stored in the entry is kept in the
+<code class="docutils literal notranslate"><span class="pre">.perun/objects</span></code> directory.</p></li>
+</ol>
+</div></blockquote>
+</section>
+<section id="looking-up-profile">
+<h4>Looking up profile<a class="headerlink" href="#looking-up-profile" title="Link to this heading">¶</a></h4>
+<p>Profiles are looked-up during the <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">show</span></code>, <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">add</span></code>, <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">postprocessby</span></code> or <code class="docutils literal notranslate"><span class="pre">perun</span>
+<span class="pre">rm</span></code> and can be found in several places, namely the filesystem, pending storage or registered in
+index. Priorities during the lookup are usually as follows:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>If the specification of profile is in form of <code class="docutils literal notranslate"><span class="pre">i&#64;i</span></code> or <code class="docutils literal notranslate"><span class="pre">i&#64;p</span></code> (i.e. the <cite>index</cite> and
+<cite>pending</cite> tags respectively), then <code class="docutils literal notranslate"><span class="pre">i</span></code> th profile registered in index or stored in
+pending jobs directory (<code class="docutils literal notranslate"><span class="pre">.perun/jobs</span></code>) is used.</p></li>
+<li><p>Index of corresponding minor version is searched.</p></li>
+<li><p>Absolute path in filesystem is checked.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.perun/jobs</span></code> directory is searched for match, i.e. one can specify just partial name of
+the profile during the lookup.</p></li>
+<li><p>Otherwise the whole scope of filesystem is walked. Each successful match asks user for
+confirmation until the profile is found.</p></li>
+</ol>
+</div></blockquote>
+<p>Refer to <a class="reference internal" href="cli.html"><span class="doc">Command Line Interface</span></a> for precise specification of lookups during individual commands.</p>
+</section>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="index.html">
+    <h3>Perun</h3>
+  </a>
+</p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Perun Internals</a><ul>
+<li><a class="reference internal" href="#version-control-systems">Version Control Systems</a><ul>
+<li><a class="reference internal" href="#module-perun.vcs.abstract_repository">Version Control System API</a><ul>
+<li><a class="reference internal" href="#perun.vcs.abstract_repository.AbstractRepository"><code class="docutils literal notranslate"><span class="pre">AbstractRepository</span></code></a><ul>
+<li><a class="reference internal" href="#perun.vcs.abstract_repository.AbstractRepository.init"><code class="docutils literal notranslate"><span class="pre">AbstractRepository.init()</span></code></a></li>
+<li><a class="reference internal" href="#perun.vcs.abstract_repository.AbstractRepository.walk_minor_versions"><code class="docutils literal notranslate"><span class="pre">AbstractRepository.walk_minor_versions()</span></code></a></li>
+<li><a class="reference internal" href="#perun.vcs.abstract_repository.AbstractRepository.walk_major_versions"><code class="docutils literal notranslate"><span class="pre">AbstractRepository.walk_major_versions()</span></code></a></li>
+<li><a class="reference internal" href="#perun.vcs.abstract_repository.AbstractRepository.get_minor_head"><code class="docutils literal notranslate"><span class="pre">AbstractRepository.get_minor_head()</span></code></a></li>
+<li><a class="reference internal" href="#perun.vcs.abstract_repository.AbstractRepository.get_head_major_version"><code class="docutils literal notranslate"><span class="pre">AbstractRepository.get_head_major_version()</span></code></a></li>
+<li><a class="reference internal" href="#perun.vcs.abstract_repository.AbstractRepository.get_minor_version_info"><code class="docutils literal notranslate"><span class="pre">AbstractRepository.get_minor_version_info()</span></code></a></li>
+<li><a class="reference internal" href="#perun.vcs.abstract_repository.AbstractRepository.check_minor_version_validity"><code class="docutils literal notranslate"><span class="pre">AbstractRepository.check_minor_version_validity()</span></code></a></li>
+<li><a class="reference internal" href="#perun.vcs.abstract_repository.AbstractRepository.massage_parameter"><code class="docutils literal notranslate"><span class="pre">AbstractRepository.massage_parameter()</span></code></a></li>
+<li><a class="reference internal" href="#perun.vcs.abstract_repository.AbstractRepository.is_dirty"><code class="docutils literal notranslate"><span class="pre">AbstractRepository.is_dirty()</span></code></a></li>
+<li><a class="reference internal" href="#perun.vcs.abstract_repository.AbstractRepository.save_state"><code class="docutils literal notranslate"><span class="pre">AbstractRepository.save_state()</span></code></a></li>
+<li><a class="reference internal" href="#perun.vcs.abstract_repository.AbstractRepository.restore_state"><code class="docutils literal notranslate"><span class="pre">AbstractRepository.restore_state()</span></code></a></li>
+<li><a class="reference internal" href="#perun.vcs.abstract_repository.AbstractRepository.checkout"><code class="docutils literal notranslate"><span class="pre">AbstractRepository.checkout()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#creating-support-for-custom-vcs">Creating Support for Custom VCS</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#perun-storage">Perun Storage</a><ul>
+<li><a class="reference internal" href="#perun-index-specification">Perun Index Specification</a></li>
+<li><a class="reference internal" href="#perun-object-specification">Perun Object Specification</a></li>
+<li><a class="reference internal" href="#the-lifetime-of-profile-internals">The Lifetime of profile: Internals</a><ul>
+<li><a class="reference internal" href="#registering-new-profile">Registering new profile</a></li>
+<li><a class="reference internal" href="#removing-profile-from-index">Removing profile from index</a></li>
+<li><a class="reference internal" href="#looking-up-profile">Looking up profile</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="logs.html" title="previous chapter">Customize Logs and Statuses</a></li>
+      <li>Next: <a href="changelog.html" title="next chapter">Changelog</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/internals.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2017, Tomas Fiedor, Jiri Pavela, Simon Stupinsky, et al..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/internals.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

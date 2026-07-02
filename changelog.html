@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Changelog &#8212; Perun 0.27.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/perun.css?v=25c05b3f" />
+    <script src="_static/documentation_options.js?v=0c8f1ac9"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Perun Internals" href="internals.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="changelog">
+<h1>Changelog<a class="headerlink" href="#changelog" title="Link to this heading">¶</a></h1>
+<section id="id1">
+<h2>0.27.3 (2026-06-03)<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Perun reports now have a per-function tree map grid complementing the flame graph grid.</p></li>
+<li><p>Fixed flame graph and tree map flickering in Google Chrome.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id2">
+<h2>0.27.2 (2026-05-23)<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>The flamegraphs are now by default generated using native Python scripts.</p></li>
+<li><p>Flamegraphs in reports now have an additional sub-root node that can be zoomed to unscale the graph w.r.t. the compared one.</p></li>
+<li><p>Flamegraphs in reports now support exclusive consumption view.</p></li>
+<li><p>Tabular view in reports now also renders a table with exclusive resource consumption.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id3">
+<h2>0.27.1 (2026-04-22)<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>A new Overview section has been added to the folded report.</p></li>
+<li><p>The top traces detail has been refined. The full traces are now shown in the table.</p></li>
+<li><p>Added support for Python 3.14.</p></li>
+<li><p>Dropped support for EoL Python 3.9.</p></li>
+<li><p>Bumped all dependencies to their latest versions supporting Python 3.10+.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id4">
+<h2>0.27.0 (2026-03-23)<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>The traces table have been completely reworked: we no longer rely on an external library.</p></li>
+<li><p>A first version of traces detail model popup has been added to the traces table.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id5">
+<h2>0.26.1 (2026-01-24)<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>The nested traces table in showdiff report now has correctly styled table headers.</p></li>
+<li><p>All trace table headers now also use the same column names and tooltips.</p></li>
+<li><p>Perun now supports both long and short help options (–help and -h) for CLI commands.</p></li>
+<li><p>The showdiff report, showdiff report native, and showdiff flamegraph help text has been changed to be more user-friendly.</p></li>
+<li><p>The integrated chatbot has been updated to the latest version.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id6">
+<h2>0.26.0 (2026-01-14)<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Showdiff report now supports two variants: native and folded.</p></li>
+<li><p>Showdiff folded report works on external folded profiles (e.g., perf-folded) without the need to import them first.</p></li>
+<li><p>Breaking CLI changes: showdiff CLI has been changed substantially.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id7">
+<h2>0.25.6 (2025-11-05)<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Showdiff report:</p>
+<ul>
+<li><p>Added the ‘Links’ menu of user-defined links to resources into the sidepanel.</p></li>
+<li><p>Updated the chatbot version: it now supports user-defined initial prompt and passing additional context alongside prompts.</p></li>
+<li><p>Added light, dark and monochrome color themes.</p></li>
+</ul>
+</li>
+<li><p>CLI changes:</p>
+<ul>
+<li><p>(optional) <cite>showdiff report</cite>: <cite>–link</cite> (-l) specifies http links to resources.</p></li>
+<li><p>(optional) <cite>showdiff report</cite>: <cite>–default-theme</cite> (-th) specifies the default color theme.</p></li>
+<li><p>(optional) <cite>showdiff report</cite>: <cite>–chatbot-prompt-context</cite> (-p) specifies the initial global context for prompts.</p></li>
+</ul>
+</li>
+<li><p>Fixes:</p>
+<ul>
+<li><p>Fixed psutil cpu_freq failing on macOS due to a different exception type.</p></li>
+<li><p>Fixed CSV parsing in <cite>perun import</cite>: it now supports CSV comments and gracefully handles missing values.</p></li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id8">
+<h2>0.25.5 (2025-07-28)<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Fixed issue with some template libraries missing in the distribution.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id9">
+<h2>0.25.4 (2025-07-23)<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Removed obsolete view diff subcommands: <cite>sankey</cite> and <cite>datatables</cite>.</p></li>
+<li><p>Fixed broken <cite>flamegraph</cite> view diff subcommand. It now adheres to the new visual style of report.</p></li>
+<li><p>View diff report now optionally integrates AI chatbot through a new <cite>-c &lt;API URL&gt;</cite> option.</p></li>
+<li><p>Traces table in the view diff report now contains additional metrics: absolute baseline and target, and total delta.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id10">
+<h2>0.25.3 (2025-05-14)<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Flame Graph:</p>
+<ul>
+<li><p>Search and mouseover highlighting are now separate and no longer influence each other.</p></li>
+<li><p>Large sample counts are now formatted the same way as in the Traces table.</p></li>
+<li><p>The ‘matched’ label is now split into two: search and mouseover.</p></li>
+<li><p>Both ‘matched’ labels now also show the absolute number of samples.</p></li>
+<li><p>The [unknown] frames are now by-default squashed into a single frame to avoid tall [unknown] towers.</p></li>
+</ul>
+</li>
+<li><p>Report stats:</p>
+<ul>
+<li><p>Comparison of different stats aggregations (e.g., SingleValue, StatisticalSummary) with the same type of value
+(e.g., string or numeric) is now permitted.</p></li>
+</ul>
+</li>
+<li><p>Report notes:</p>
+<ul>
+<li><p>Notes are now edited using a popup window that supports editing, saving, or deleting notes.</p></li>
+<li><p>Notes may now be specified as requiring Attention or being Waived.</p></li>
+<li><p>The save button changes colors based on the (un)saved changes.</p></li>
+</ul>
+</li>
+<li><p>Profiles:</p>
+<ul>
+<li><p>Profiles are no longer overwritten by default if an existing profile with identical name exists; instead, the
+profile name is suffixed with a copy number, e.g., custom_profile(N).perf.</p></li>
+<li><p>Profiles may now be sorted w.r.t. multiple keys and orderings.</p></li>
+</ul>
+</li>
+<li><p>CLI changes:</p>
+<ul>
+<li><p>The report CLI now supports a new <cite>–flamegraph-colors</cite> option that is forwarded to the flamegraph script.</p></li>
+<li><p>The report CLI now supports a <cite>–flamegraph-inverted</cite> flag, which creates icicle graphs instead of flame graphs.</p></li>
+<li><p>The report CLI now supports a <cite>–no-squash-unknown</cite> flag that disables squashing of [unknown] frames.</p></li>
+<li><p>The collect and import CLI now define identical options <cite>–profile-name</cite> and <cite>–profile-dir</cite> that determine
+the name and target directory for storage of the profile.</p></li>
+</ul>
+</li>
+<li><p>Configuration changes:</p>
+<ul>
+<li><p>Keys <cite>format.sort_profiles_by</cite> and <cite>format.sort_profiles_order</cite> now support collection of values.</p></li>
+<li><p>A new <cite>profiles.overwrite</cite> key sets the preference for (not) overwriting profiles with conflicting names.</p></li>
+<li><p>New values <cite>stem</cite> and <cite>copy</cite> are now recognized by <cite>format.sort_profiles_by</cite> to match the new naming scheme of profiles.</p></li>
+<li><p>By default, the <cite>format.sort_profiles_by</cite> is now set to a multikey [<cite>time</cite>, <cite>stem</cite>, <cite>copy</cite>] that results in
+a more natural ordering of profiles.</p></li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id11">
+<h2>0.25.2 (2025-03-27)<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Fix help tooltip in trace table and flamegraphs in showdiff report.</p></li>
+<li><p>Fix formatting of profile stats that use the count unit ‘#’ to be more human-friendly.</p></li>
+<li><p>Fix table traces nesting when exporting report with notes.</p></li>
+<li><p>Changed the pin icon to a chat bubble icon.</p></li>
+<li><p>The report layout is now more condensed so that it is faster to navigate through it.</p></li>
+<li><p>Fix the trace details formatting inside the report table.</p></li>
+<li><p>Reorder the report sections for a better user experience and faster analysis.</p></li>
+<li><p>Embedded notes in an exported report now cannot be deleted.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id12">
+<h2>0.25.1 (2025-03-24)<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Fix an issue with sdist build not including ‘add.svg’ asset for showdiff report.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id13">
+<h2>0.25.0 (2025-03-23)<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Perun showdiff report now uses a different visual template that supports annotations.</p></li>
+<li><p>Change flamegraph generation to show the processes bars as well.</p></li>
+<li><p>Perun showdiff report now allows forwarding certain options (all optional) to flamegraph.pl.</p></li>
+<li><p>Perun showdiff report now shows profile labels as well.</p></li>
+<li><p>Enhance index to support profile overwriting.</p></li>
+<li><p>Fix a bug where profile labels were not correctly updating when profiles were overwritten.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id14">
+<h2>0.24.0 (2025-02-06)<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Perun now officially supports macOS machines, albeit with some limitations.</p></li>
+<li><p>Fix a showdiff bug that resulted in diff flamegraphs inverting colors for optimization/degradation.</p></li>
+<li><p>Fix a showdiff bug that caused crashes on perf profiles with float-convertible attributes other than ‘amount’.</p></li>
+<li><p>Delta debugging is now integrated into the Perun fuzzing loop.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id15">
+<h2>0.23.8 (2025-01-05)<a class="headerlink" href="#id15" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Fix a bug in the logging module capitalizing log messages</p></li>
+<li><p>Fix showdiff not deleting a temporary palette.map file</p></li>
+<li><p>Perun import now allows to specify the name of the resulting profile</p></li>
+<li><p>It is now possible to specify the sort order for perun status</p></li>
+<li><p>Perun status now by default sorts profiles in ascending order w.r.t. the time</p></li>
+<li><p>Perun import now allows to specify a user-defined string label to associate with the profile</p></li>
+<li><p>New tag %label% may now be used when specifying formats in config</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id16">
+<h2>0.23.7 (2024-11-04)<a class="headerlink" href="#id16" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Add Flamegraph diffs to the showdiff report</p></li>
+<li><p>Fix Flamegraph height scaling in showdiff report</p></li>
+<li><p>Add CPU vulnerabilities overview to the profile specification in showdiff</p></li>
+<li><p>Perun now supports Python 3.13</p></li>
+<li><p>README file has been updated with more detailed installation instructions</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id17">
+<h2>0.23.6 (2024-10-06)<a class="headerlink" href="#id17" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Fix issue with empty CLI stats headers</p></li>
+<li><p>Implement lazy loading of the most expensive internal packages to speedup Perun and make CLI snappier</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id18">
+<h2>0.23.5 (2024-09-25)<a class="headerlink" href="#id18" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Polish perun import and viewdiff</p></li>
+<li><p>Stats and metadata specification, internal representation and visualization have been unified across different perf and ELK import and viewdiff commands</p></li>
+<li><p>Perf profile stats may now be specified both on CLI and in CSV files</p></li>
+<li><p>Stats may now be aggregated in different ways depending on the type of stats value(s), aggregation key and comparison operator</p></li>
+<li><p>Aggregated stats are now displayed in a nested table in viewdiff</p></li>
+<li><p>Metadata may now be specified directly on CLI using strings or JSON files</p></li>
+<li><p>Collapsing or showing different parts of profile headers in viewdiff now collapses or hides both LHS and RHS</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id19">
+<h2>0.23.4 (2024-08-08)<a class="headerlink" href="#id19" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Extend perun import CLI with import directory option</p></li>
+<li><p>Extend perun import with option to specify custom profile stats</p></li>
+<li><p>Add support for importing profiles using a CSV file</p></li>
+<li><p>Perun import can now import profiles from CSV and CLI specification at the same time</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id20">
+<h2>0.23.3 (2024-07-31)<a class="headerlink" href="#id20" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Add support of aggregations to showdiff visualizations</p></li>
+<li><p>Improve the perun import (allow multiple runs, exit codes, etc.)</p></li>
+<li><p>Unify progressbars</p></li>
+<li><p>Polish showdiff visualizations (update flamegraphs, add statistics, add scaling, etc.)</p></li>
+<li><p>Add delta debugging standalone command</p></li>
+<li><p>Fix minor issues (issue in perun status)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id21">
+<h2>0.23.2 (2024-07-22)<a class="headerlink" href="#id21" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Fix issues in logging (wrong counters, and add auto-generated directories)</p></li>
+<li><p>Add perun import command for importing profiles from perf results</p></li>
+<li><p>Fix issues with jinja and editable install (for developers only)</p></li>
+<li><p>Fix failing build of documentation</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id22">
+<h2>0.23.1 (2024-07-15)<a class="headerlink" href="#id22" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Improve logging with tags and verbosity</p></li>
+<li><p>Improve the code climate (precommit hooks, formatting, etc.)</p></li>
+<li><p>Fix some compatibility issues</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id23">
+<h2>0.23 (2024-07-11)<a class="headerlink" href="#id23" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Add SVS (single version system) as default VCS system (this enables gitless integration)</p></li>
+<li><p>Update readme.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id24">
+<h2>0.22.5 (2024-06-29)<a class="headerlink" href="#id24" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Add logging of subprocessor commands through (<cite>–log</cite> and <cite>–log-dir</cite>)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id25">
+<h2>0.22.4 (2024-06-23)<a class="headerlink" href="#id25" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Hotfix issue with showdiff record</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id26">
+<h2>0.22.3 (2024-06-23)<a class="headerlink" href="#id26" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Softens some of the parameters</p></li>
+<li><p>Fixes minor issues (in flamegraphs)</p></li>
+<li><p>Add <cite>-o</cite> parameter to collect</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id27">
+<h2>0.22.2 (2024-06-21)<a class="headerlink" href="#id27" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Fixes issues with new visualizations (bad sizes)</p></li>
+<li><p>Add option of minimization of reports (hide generics)</p></li>
+<li><p>Hotfix some issues</p></li>
+<li><p>Enhances the visualizations</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id28">
+<h2>0.22 (2024-05-22)<a class="headerlink" href="#id28" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Add support of Python 3.12</p></li>
+<li><p>Fix incompatibilities with some distros (RHEL)</p></li>
+<li><p>Update the machine information collected by collectors</p></li>
+<li><p>Add support for working with traces</p></li>
+<li><p>Add support of differential views (sankey, reports, flamegraphs, tables)</p></li>
+<li><p>Add perf-based collector</p></li>
+<li><p>Add many new helper functions</p></li>
+<li><p>Enhance the output of the Perun</p></li>
+<li><p>Refactor dynamic calls</p></li>
+<li><p>Refactor selection mechanism of Perun</p></li>
+<li><p>Refactor obsolete functions and modules</p></li>
+<li><p>Refactor utils</p></li>
+<li><p>Refactor imports</p></li>
+<li><p>Refactor structures</p></li>
+<li><p>Refactor strings</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id29">
+<h2>0.21.8 (2024-01-12)<a class="headerlink" href="#id29" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Updates README, LICENSE, AUTHORS</p></li>
+<li><p>Fixes minor issues</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id30">
+<h2>0.21.7 (2023-11-08)<a class="headerlink" href="#id30" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Update README, licensing, authors and contributions.</p></li>
+<li><p>Fix minor issues in README, and various parts of Perun.</p></li>
+<li><p>Fix minor issue in helper scripts.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id31">
+<h2>0.21.6 (2023-11-06)<a class="headerlink" href="#id31" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Add typing information to function</p></li>
+<li><p>Add github actions (linting, testing, deploying docs and pypi)</p></li>
+<li><p>Add formatting using <cite>black</cite>.</p></li>
+<li><p>Fix and reduce dependencies</p></li>
+<li><p>Fix various small issues (deprecations, tests, etc.)</p></li>
+<li><p>Remove obsolete information (authorship tags, etc.)</p></li>
+<li><p>Remove <cite>demandimport</cite></p></li>
+<li><p>Speeds up tests</p></li>
+<li><p>Update build process to <cite>pyproject.toml</cite> and <cite>tox</cite></p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id32">
+<h2>0.20.4 (2022-06-28)<a class="headerlink" href="#id32" title="Link to this heading">¶</a></h2>
+<p><strong>Add exclusive time outliers check</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Add new degradation detection method “Exclusive Time Outliers” (ETO).</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id33">
+<h2>0.20.3 (2022-06-28)<a class="headerlink" href="#id33" title="Link to this heading">¶</a></h2>
+<p><strong>Fix issues in Tracer</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Fix some issues in Tracer raw data parsing.</p></li>
+<li><p>Add location information (binary file path) of profiled functions to the profile.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="hotfix2-2022-06-28">
+<h2>0.20.2-hotfix2 (2022-06-28)<a class="headerlink" href="#hotfix2-2022-06-28" title="Link to this heading">¶</a></h2>
+<p><strong>Hotfix failing nondeterministic test</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Fix test_regression_detections_methods having too specific mock results</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="hotfix-2022-06-21">
+<h2>0.20.2-hotfix (2022-06-21)<a class="headerlink" href="#hotfix-2022-06-21" title="Link to this heading">¶</a></h2>
+<p><strong>Enhance the Performance and Code Culture</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Fix an issue with uncompilable documentation</p></li>
+<li><p>Fix an issue with traversing wrongly configured sections</p></li>
+<li><p>Fix an uncaught exception</p></li>
+<li><p>Fix issue in depedencies</p></li>
+<li><p>Fix an issue with dev mode</p></li>
+<li><p>Add continuous integration</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id34">
+<h2>0.20.2 (2021-05-12)<a class="headerlink" href="#id34" title="Link to this heading">¶</a></h2>
+<p><strong>Enhance the Performance and Code Culture</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Add performance tests to Perun</p></li>
+<li><p>Optimize perun at various places</p></li>
+<li><p>Extract selected profile queries directly to Profile</p></li>
+<li><p>Refactor minor issues</p></li>
+<li><p>Refactor complex code and simplified control flows</p></li>
+<li><p>Extract profile list configuration to isolate file</p></li>
+<li><p>Refactor and redocument log and status functions</p></li>
+<li><p>Remove unused cases and exceptions</p></li>
+<li><p>Add more tests</p></li>
+<li><p>Fix security issue with PyYAML</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id35">
+<h2>0.20.1 (2021-05-12)<a class="headerlink" href="#id35" title="Link to this heading">¶</a></h2>
+<p><strong>Update install instructions in readme</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Update README with additional install instructions</p></li>
+<li><p>SystemTap and BCC instructions for Ubuntu and Fedora</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id36">
+<h2>0.20 (2021-03-05)<a class="headerlink" href="#id36" title="Link to this heading">¶</a></h2>
+<p><strong>Add optimizations of collect process</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add engines to the Tracer architecture</p></li>
+<li><p>add eBPF instrumentation support to Tracer (using BCC)</p></li>
+<li><p>add Optimization module to the collection process</p></li>
+<li><p>add several optimization methods to the Optimization module</p></li>
+<li><p>update Tracer for Python 3.8</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id37">
+<h2>0.19 (2021-02-08)<a class="headerlink" href="#id37" title="Link to this heading">¶</a></h2>
+<p><strong>Update Perun to Python 3.8+</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add timeout to running external programs</p></li>
+<li><p>optimize getting of gcov version</p></li>
+<li><p>fix issues in fuzzing tests</p></li>
+<li><p>remove dependencies of clang</p></li>
+<li><p>update Perun to higher versions of gcc (4.9+) and Python (3.8+)</p></li>
+<li><p>fix minor issues and incompatibilities</p></li>
+<li><p>add lazy initialization of mathplotlib</p></li>
+<li><p>remove usage of re.Scanner which seems to segfault on newer versions</p></li>
+<li><p>remove heat map and ncurses (will be reimplemented in near future)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="hotfix2-2020-08-31">
+<h2>0.18.3-hotfix2 (2020-08-31)<a class="headerlink" href="#hotfix2-2020-08-31" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>update the acknowledgements in README</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="hotfix-2020-05-11">
+<h2>0.18.3-hotfix (2020-05-11)<a class="headerlink" href="#hotfix-2020-05-11" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>fix two minor issues in average amount threshold check (fix for profiles without amounts and to soften the dependency on numpy.float64)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id38">
+<h2>0.18.3 (2020-03-20)<a class="headerlink" href="#id38" title="Link to this heading">¶</a></h2>
+<p><strong>Extend the Perun and fix selected issues</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add helper assertions for tests available in <cite>asserts.py</cite> file</p></li>
+<li><p>remove useless fixtures (Helpers), move the helpers functions to isolate package</p></li>
+<li><p>categorize test data to several directories</p></li>
+<li><p>add automatical lookup of (in)dependent variable as default for selected commands (postprocess, etc.)</p></li>
+<li><p>add crash dump in case of unexpected error (can be suppressed by <cite>–dev-mode</cite> option)</p></li>
+<li><p>update the documentation with latest features and fix missing stuff</p></li>
+<li><p>add external generator of the</p></li>
+<li><p>fix the issue with backward incompatible repositories which contained profiles with ‘params’ instead of ‘args’</p></li>
+<li><p>fix the issue with loading certain parts of degradation changes as strings (instead of doubles)</p></li>
+<li><p>fix the issue with loading degradation changes which contained less information than in the new versions (missing the <cite>drate</cite>)</p></li>
+<li><p>fix other minor issues</p></li>
+<li><p>fix minor issues in fuzzing</p></li>
+<li><p>fix issue with clang-3.5 binary missing in systems (add the binary)</p></li>
+<li><p>fix the incorrectly printed trace</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id39">
+<h2>0.18.2 (2020-02-13)<a class="headerlink" href="#id39" title="Link to this heading">¶</a></h2>
+<p><strong>Fix errors in novel check methods</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>fix selected errors in novel check methods</p></li>
+<li><p>automatically remove testing files</p></li>
+<li><p>extend the collection process with specifying custom name</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id40">
+<h2>0.18.1 (2020-02-13)<a class="headerlink" href="#id40" title="Link to this heading">¶</a></h2>
+<p><strong>Refactor trace collector</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>refactor trace collector</p></li>
+<li><p>extend trace collector with watchdog module</p></li>
+<li><p>selected temporary files moved to .perun directory structure</p></li>
+<li><p>add diagnostic mode for trace collector</p></li>
+<li><p>add locking module to perun logic</p></li>
+<li><p>add diagnostic mode to tracer</p></li>
+<li><p>ignore tracer tests in codecoverage</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id41">
+<h2>0.18 (2020-02-11)<a class="headerlink" href="#id41" title="Link to this heading">¶</a></h2>
+<p><strong>Add performance fuzz-testing</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">fuzz</span></code> mode implementing mutation based fuzzer. See <a class="reference internal" href="fuzzing.html#fuzzing-overview"><span class="std std-ref">Performance Fuzz-testing</span></a> for more details.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id42">
+<h2>0.17.4 (2020-01-28)<a class="headerlink" href="#id42" title="Link to this heading">¶</a></h2>
+<p><strong>Add tabular view</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add tableof view module</p></li>
+<li><p>add conversion functions of models to dataframe</p></li>
+<li><p>add headers to tableof view</p></li>
+<li><p>add formats to tableof view</p></li>
+<li><p>add sorting to tableof view</p></li>
+<li><p>add filtering to tableof view</p></li>
+<li><p>add two modes of tableof (resources and models)</p></li>
+<li><p>fix minor bug in bounds collector (unknown collector type)</p></li>
+<li><p>fix templates for generating units</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id43">
+<h2>0.17.3 (2020-01-09)<a class="headerlink" href="#id43" title="Link to this heading">¶</a></h2>
+<p><strong>Add Loopus collector in Perun</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>fix an issue in profiles which contained only persistent properties</p></li>
+<li><p>add bounds collector, wrapper over Loopus tool</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id44">
+<h2>0.17.2 (2019-08-16)<a class="headerlink" href="#id44" title="Link to this heading">¶</a></h2>
+<p><strong>Improve the runner logic</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>extract cmd, args and workload to Executable class</p></li>
+<li><p>remove <code class="docutils literal notranslate"><span class="pre">--remove-all</span></code> argument in <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">rm</span></code></p></li>
+<li><p>add support for removing profiles from pending jobs through perun</p></li>
+<li><p>improve the output of <cite>perun rm</cite> command</p></li>
+<li><p>extract CLI groups to isolate modules</p></li>
+<li><p>add caching to selected vcs commands</p></li>
+<li><p>fix untested bug in degradation check</p></li>
+<li><p>rename warmup parameter in <cite>time</cite> to <code class="docutils literal notranslate"><span class="pre">--warmup</span></code></p></li>
+<li><p>lower the number of warmup and repetitions for time collector during tests</p></li>
+<li><p>remove filter postprocessor (did nothing)</p></li>
+<li><p>add signal handling to runner (authored by Jirka Pavela)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id45">
+<h2>0.17.1 (2019-07-24)<a class="headerlink" href="#id45" title="Link to this heading">¶</a></h2>
+<p><strong>Add new degradation detection methods</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add new detection methods for parametric and non-parametric models</p></li>
+<li><p>add <strong>Integral Comparison</strong> detection method, which computes the integrals under models</p></li>
+<li><p>add <strong>Local Statistics</strong> detection method, which analyses the various statistics in intervals of models</p></li>
+<li><p>refactor various minor issues in postprocessing logic</p></li>
+<li><p>add new strategies for detecting performance changes</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id46">
+<h2>0.17 (2019-07-09)<a class="headerlink" href="#id46" title="Link to this heading">¶</a></h2>
+<p><strong>Optimize profile format</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>make profile format more compact</p></li>
+<li><p>fix minor issue in fast check</p></li>
+<li><p>extract selected functions from query to profile object</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="hotfix-2019-06-18">
+<h2>0.16.9-hotfix (2019-06-18)<a class="headerlink" href="#hotfix-2019-06-18" title="Link to this heading">¶</a></h2>
+<p><strong>Hotfix issue in Makefile</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>hotfix issue in Makefile</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id47">
+<h2>0.16.9 (2019-06-18)<a class="headerlink" href="#id47" title="Link to this heading">¶</a></h2>
+<p><strong>Add CLI for stats manipulation</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>refactor the perun stats module</p></li>
+<li><p>extend the stats module with a CLI</p></li>
+<li><p>add new operations (list, delete, …) to the stats module</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id48">
+<h2>0.16.8 (2019-05-18)<a class="headerlink" href="#id48" title="Link to this heading">¶</a></h2>
+<p><strong>Extend perun instances with temporaries</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add new logic module that allows to store temporary files in separate directory (.perun/tmp)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="hotfix-2019-04-15">
+<h2>0.16.7-hotfix (2019-04-15)<a class="headerlink" href="#hotfix-2019-04-15" title="Link to this heading">¶</a></h2>
+<p><strong>Hotfix Jinja potential vulnerability</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>hotfix Jinja potential vulnerability</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id49">
+<h2>0.16.7 (2019-04-15)<a class="headerlink" href="#id49" title="Link to this heading">¶</a></h2>
+<p><strong>Extend perun instances with stats</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add new logic module that allows to store stats for profiles in separate directory (.perun/stats)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id50">
+<h2>0.16.6 (2019-03-25)<a class="headerlink" href="#id50" title="Link to this heading">¶</a></h2>
+<p><strong>Improve the quality of life of Perun</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>fix minor bug in storing changes</p></li>
+<li><p>extracted index entry specific functions to isolate class (in order to create new versions)</p></li>
+<li><p>implement index v2.0, codename FastSloth</p></li>
+<li><p>switch to working with index v2.0 (index v1.0 is still supported, however, everything is saved as 2.0)</p></li>
+<li><p>minor refactors</p></li>
+<li><p>optimize loading of the profile info for both registered and pending profiles (yields huge performance boost)</p></li>
+<li><p>add <cite>–force</cite> option to <cite>perun add</cite> which will force the add (d’oh)</p></li>
+<li><p>add printing of trace if <cite>perun -vv</cite> is set in cli (i.e. the verbosity is of level 2+)</p></li>
+<li><p>rename ‘params’ in profile to ‘args’ since it complies to other parts of code</p></li>
+<li><p>refactor minor issues, enhance error messages and exception handling</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id51">
+<h2>0.16.5 (2019-03-22)<a class="headerlink" href="#id51" title="Link to this heading">¶</a></h2>
+<p><strong>Revive complexity collector</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>revive the complexity collector</p></li>
+<li><p>increase the test coverage of complexity collector</p></li>
+<li><p>update the complexity collector to comply with latest version of Perun</p></li>
+</ul>
+</div></blockquote>
+<p><strong>Add kernel non-parametric regression</strong></p>
+</section>
+<section id="id52">
+<h2>0.16.4 (2019-03-14)<a class="headerlink" href="#id52" title="Link to this heading">¶</a></h2>
+<p><strong>Add kernel non-parametric regression</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>fix minor issue in memory collector that manifests with gcc-5.5+ and Ubuntu 18.04+</p></li>
+<li><p>add three kernel non-parametrik regression models (see <a class="reference internal" href="postprocessors.html#postprocessors-kernel-regression"><span class="std std-ref">Kernel Regression Methods</span></a>)</p></li>
+<li><p>fix minor issues in moving average and regressogram</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id53">
+<h2>0.16.3 (2019-03-02)<a class="headerlink" href="#id53" title="Link to this heading">¶</a></h2>
+<p><strong>Overhaul the trace collector</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>update to Click version 7.0 (because underscores are replaced by dashes)</p></li>
+<li><p>add automatic pairing of the static probes in trace collector</p></li>
+<li><p>add fault-tolerant system to trace collector (now it does collect some profile even if it contains some corruption)</p></li>
+<li><p>rework the internal format of traces</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id54">
+<h2>0.16.2 (2019-03-02)<a class="headerlink" href="#id54" title="Link to this heading">¶</a></h2>
+<p><strong>Fix and refactor the memory collector</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>fix minor issue in average amount threshold checker, when average is 0</p></li>
+<li><p>refactor memory collector</p></li>
+<li><p>add proper documentation to memory collector</p></li>
+<li><p>fix an ubuntu 18.04 issue, when dlsym() needed some bytes before libmalloc.so is properly loaded resulting into crash</p></li>
+<li><p>add proper locking to memory collector</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id55">
+<h2>0.16.1 (2019-03-01)<a class="headerlink" href="#id55" title="Link to this heading">¶</a></h2>
+<p><strong>Add moving average postprocessor</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add moving average postprocessor, other of the non-parametric analysis</p></li>
+<li><p>minor fixes in regressogram (refactor and documentation)</p></li>
+<li><p>add <cite>perun fuzz</cite> command which does a performance fuzzing</p></li>
+<li><p>remodel runner functions to generators</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id56">
+<h2>0.16 (2019-02-16)<a class="headerlink" href="#id56" title="Link to this heading">¶</a></h2>
+<p><strong>Add regressogram postprocessor</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add –version option to perun cli, so it shows version of perun (d’oh!)</p></li>
+<li><p>extend scatterplot to support step function rendering (for regressogram)</p></li>
+<li><p>add regressogram postprocessor, one of the non-parametric analysis</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id57">
+<h2>0.15.4 (2018-08-13)<a class="headerlink" href="#id57" title="Link to this heading">¶</a></h2>
+<p><strong>Add cleanup procedures to Trace collector</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add cleanup procedures to trace collector (so it properly kills systemtap modules)</p></li>
+<li><p>fix setup.py versions</p></li>
+<li><p>make clusterizer less verbose</p></li>
+<li><p>fix wrong parameter name in trace collector</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="hotfix-2018-08-02">
+<h2>0.15.3-hotfix (2018-08-02)<a class="headerlink" href="#hotfix-2018-08-02" title="Link to this heading">¶</a></h2>
+<p><strong>Hotfix unused workload parameter in trace collector</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>hotfix missing workload parameter in trace collector</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id58">
+<h2>0.15.3 (2018-08-01)<a class="headerlink" href="#id58" title="Link to this heading">¶</a></h2>
+<p><strong>Extract trace configuration automatically</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>rename complexity collector to <strong>trace</strong></p></li>
+<li><p>fix minor issues with trace collector</p></li>
+<li><p>add basic support for parallel programs in trace collector</p></li>
+<li><p>add basic support for non-terminating programs (–timeout) in trace collector</p></li>
+<li><p>fix minor issues in incorrect piping (class with ||)</p></li>
+<li><p>add lookup of profiled functions in trace collector</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id59">
+<h2>0.15.2 (2018-07-20)<a class="headerlink" href="#id59" title="Link to this heading">¶</a></h2>
+<p><strong>Upgrade Trace collector architecture</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>update the cli of the <a class="reference internal" href="collectors.html#collectors-trace"><span class="std std-ref">Trace Collector</span></a> with new options</p></li>
+<li><p>add support for static and dynamic probing of the binaries (hence allow custom user probes)</p></li>
+<li><p>fix minor issues</p></li>
+<li><p>rework the architecture of system-tap collector to work as a daemon</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id60">
+<h2>0.15.1 (2018-07-17)<a class="headerlink" href="#id60" title="Link to this heading">¶</a></h2>
+<p><strong>Rehaul the notion of workloads</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>refactor check modules</p></li>
+<li><p>add <code class="docutils literal notranslate"><span class="pre">pending</span> <span class="pre">tag</span> <span class="pre">range</span></code> to <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">add</span></code> command to add more profiles at once</p></li>
+<li><p>add <code class="docutils literal notranslate"><span class="pre">index</span> <span class="pre">tag</span> <span class="pre">rage</span></code> to <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">rm</span></code> command to remove more profiles at once</p></li>
+<li><p>fix the issue with wrong sort order and tags (now <a class="reference internal" href="config.html#confkey-format.sort_profiles_by"><code class="xref std std-ckey docutils literal notranslate"><span class="pre">format.sort_profiles_by</span></code></a> sets the option in local)</p></li>
+<li><p>add support for workload generators</p></li>
+<li><p>implement integer workload generator that generates workload from the integer interval</p></li>
+<li><p>implement singleton workload generator that generates single workload</p></li>
+<li><p>implement string workload generator that generates random strings</p></li>
+<li><p>implement file workload generator that generates random text files</p></li>
+<li><p>add <a class="reference internal" href="config.html#confkey-generators.workload"><code class="xref std std-ckey docutils literal notranslate"><span class="pre">generators.workload</span></code></a> for specification of workload generators in config</p></li>
+<li><p>remodel the notion of workloads to accept the workload generators to allow other style of workloads</p></li>
+<li><p>add two modes of workload generation (one that merges the profiles into one; and one which gradually generates profiles)</p></li>
+<li><p>add default workload generators to shared configuration</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id61">
+<h2>0.15 (2018-06-20)<a class="headerlink" href="#id61" title="Link to this heading">¶</a></h2>
+<p><strong>Extend the suite of change detection methods</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add fast check degradation check method (<a class="reference internal" href="degradation.html#degradation-fast-check"><span class="std std-ref">Fast Check</span></a>)</p></li>
+<li><p>add linear regression based degradation check method (<a class="reference internal" href="degradation.html#degradation-lreg"><span class="std std-ref">Linear Regression</span></a>)</p></li>
+<li><p>add polynomial regression based degradation check method (<a class="reference internal" href="degradation.html#degradation-preg"><span class="std std-ref">Polynomial Regression</span></a>)</p></li>
+<li><p>rename regression models to full names</p></li>
+<li><p>fix divisions by zero in several places in regression analysis</p></li>
+<li><p>rename the api of several regression functions</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id62">
+<h2>0.14.4 (2018-06-17)<a class="headerlink" href="#id62" title="Link to this heading">¶</a></h2>
+<p><strong>Refactor the code</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>fix various linting issues (e.g. too long lines)</p></li>
+<li><p>remove unused code and function (e.g. in memory)</p></li>
+<li><p>fix minor issues</p></li>
+<li><p>extend the test suite with several more tests</p></li>
+<li><p>flatten the test hierarchy</p></li>
+<li><p>remove alloclist view (query+convert imported in python is more powerful)</p></li>
+<li><p>renew the rest of the old documentation format</p></li>
+<li><p>extract path and type function parameters from vcs api</p></li>
+<li><p>refactor pcs module and remove pcs as argument from all of the functions</p></li>
+<li><p>fix various codacy issues</p></li>
+<li><p>refactor cli module by moving callbacks, renaming functions and removing redundant functions</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id63">
+<h2>0.14.3 (2018-06-12)<a class="headerlink" href="#id63" title="Link to this heading">¶</a></h2>
+<p><strong>Extend utils module</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>print timing of various collection phases</p></li>
+<li><p>add <a class="reference internal" href="config.html#confkey-degradation.log_collect"><code class="xref std std-ckey docutils literal notranslate"><span class="pre">degradation.log_collect</span></code></a> to store the output of precollect phase in isolated logs</p></li>
+<li><p>add working <code class="docutils literal notranslate"><span class="pre">--compute-missing</span></code> parameter to check group, which temporarily sets the precollection</p></li>
+<li><p>add repetition of the time collector</p></li>
+<li><p>add predefined configuration templates</p></li>
+<li><p>add automatic lookup of candidate executable and workloads for user configuration (see <a class="reference internal" href="config.html#config-templates"><span class="std std-ref">Predefined Configuration Templates</span></a>)</p></li>
+<li><p>add <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">config</span> <span class="pre">reset</span></code> command to allow resetting of configuration to different states</p></li>
+<li><p>extend the utils module with ELF helper functions</p></li>
+<li><p>extend the utils with non-blocking subprocess calls</p></li>
+<li><p>extend the utils with binary files lookup</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id64">
+<h2>0.14.2 (2018-05-15)<a class="headerlink" href="#id64" title="Link to this heading">¶</a></h2>
+<p><strong>Rehaul the command line output</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>fix issue with pending tags not being sorted ;)</p></li>
+<li><p>fix the issue with incorrectly flattened values in query</p></li>
+<li><p>extend the memory collector to include the allocation order as resource</p></li>
+<li><p>add loading and storing of performance change records</p></li>
+<li><p>add short printed results for found degradations</p></li>
+<li><p>update the default generated config</p></li>
+<li><p>remake the output of time collector</p></li>
+<li><p>fix issue with integer workloads</p></li>
+<li><p>fix issue with non-sorted index profiles</p></li>
+<li><p>fix issue with memory collector not removing the unreachable allocations</p></li>
+<li><p>add vcs history tree to log (prints the context of the vcs tree)</p></li>
+<li><p>remodel the output of the degradation checks</p></li>
+<li><p>switch the colour of optimizations to green (instead of blue)</p></li>
+<li><p>colour tainted (containing degradation) and fixed (containing optimization) branches in vcs history</p></li>
+<li><p>add short summary of degradations to each minor version in graph</p></li>
+<li><p>add semantic ordering of uids (used in outputs)</p></li>
+<li><p>add vcs history to output of perun run matrix</p></li>
+<li><p>make perun check precollect phase silent (until we figure out the better way?)</p></li>
+<li><p>add streaming to the history (so it is not output when everything is done)</p></li>
+<li><p>make two versions of run_jobs (one with history and one without)</p></li>
+<li><p>refactor some modules to remove unnecessary dependencies</p></li>
+<li><p>add information about degradations to perun status and log</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id65">
+<h2>0.14.1 (2018-04-19)<a class="headerlink" href="#id65" title="Link to this heading">¶</a></h2>
+<p><strong>Extend the automation</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add two new options to regression analysis module (see <a class="reference internal" href="postprocessors.html#postprocessors-regression-analysis"><span class="std std-ref">Regression Analysis</span></a> for more details)</p></li>
+<li><p>fix minor issues in regression analysis and scatter plot module</p></li>
+<li><p>fix issue with non-deterministic ordering in flattening the values by convert</p></li>
+<li><p>add different ordering to perun status profiles (now they are ordered by time)</p></li>
+<li><p>add more boxes to the output of the perun status profiles (bundled per five profiles)</p></li>
+<li><p>add <a class="reference internal" href="config.html#confkey-format.sort_profiles_by"><code class="xref std std-ckey docutils literal notranslate"><span class="pre">format.sort_profiles_by</span></code></a> configuration key to allow sorting of profiles in <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">status</span></code> by different keys</p></li>
+<li><p>add <code class="docutils literal notranslate"><span class="pre">--sort-by</span></code> option to <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">status</span></code> to allow sorting of profiles in <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">status</span></code></p></li>
+<li><p>fix minor things in documentation</p></li>
+<li><p>add few helper function for CLI and profiles</p></li>
+<li><p>rename origin in ProfileInfo to source (class of names)</p></li>
+<li><p>fix typos in documentation</p></li>
+<li><p>remake walk major version to return MajorVersion object, with head and major version name</p></li>
+<li><p>add helper function for loading the profile out of profile info</p></li>
+<li><p>extend the api of the vcs (with storing/restoring the state, checkout and dirty-testing)</p></li>
+<li><p>add <a class="reference internal" href="config.html#confkey-profiles.register_after_run"><code class="xref std std-ckey docutils literal notranslate"><span class="pre">profiles.register_after_run</span></code></a> configuration key to automatically register profiles after collection</p></li>
+<li><p>add <a class="reference internal" href="config.html#confkey-execute.pre_run"><code class="xref std std-ckey docutils literal notranslate"><span class="pre">execute.pre_run</span></code></a> config key for running commands before execution of matrix</p></li>
+<li><p>add helper function for safely getting config key</p></li>
+<li><p>add <code class="docutils literal notranslate"><span class="pre">--minor-version</span></code> parameter to <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">collect</span></code> and <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">run</span></code> to run the collection over different minor version</p></li>
+<li><p>add <code class="docutils literal notranslate"><span class="pre">--crawl-parents</span></code> parameter to allow <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">collect</span></code> and <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">run</span></code> to collect the data for both minor version and its predecessors</p></li>
+<li><p>add checking out of the minor version, and saving the state, to collection of profiles</p></li>
+<li><p>add <a class="reference internal" href="config.html#confkey-degradation.collect_before_check"><code class="xref std std-ckey docutils literal notranslate"><span class="pre">degradation.collect_before_check</span></code></a> configuration key for automatically collect profiles before running degradation check</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id66">
+<h2>0.14 (2018-03-27)<a class="headerlink" href="#id66" title="Link to this heading">¶</a></h2>
+<p><strong>Add clusterization postprocessor</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add clusterizer postprocessor</p></li>
+<li><p>add helper function for flattening single resources</p></li>
+<li><p>fixed profiles generated by time in tests</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id67">
+<h2>0.13 (2018-03-27)<a class="headerlink" href="#id67" title="Link to this heading">¶</a></h2>
+<p><strong>Add SystemTap based complexity collector</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add SystemTap based complexity collector (see <a class="reference internal" href="collectors.html#collectors-trace"><span class="std std-ref">Trace Collector</span></a> for more details)</p></li>
+<li><p>add <code class="docutils literal notranslate"><span class="pre">perun</span> <span class="pre">utils</span> <span class="pre">create</span></code> command (see <a class="reference internal" href="cli.html#cli-utils-ref"><span class="std std-ref">Utility Commands</span></a> for more details) for creating new modules according to stored templates</p></li>
+<li><p>fix issue with getting config hierarchy, when outside of any perun scope</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id68">
+<h2>0.12.1 (2018-03-08)<a class="headerlink" href="#id68" title="Link to this heading">¶</a></h2>
+<p><strong>Update project readme</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>update the project readme</p></li>
+<li><p>add compiled documentation</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id69">
+<h2>0.12 (2018-03-05)<a class="headerlink" href="#id69" title="Link to this heading">¶</a></h2>
+<p><strong>Add basic testing of performance changes between profiles</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add command for checking performance changes between two isolate profiles</p></li>
+<li><p>add command for checking performance changes in given minor version</p></li>
+<li><p>add command for checking performance changes within the project history</p></li>
+<li><p>add two basic methods of checking performance changes</p></li>
+<li><p>add two options to config (see <a class="reference internal" href="config.html#confkey-degradation.strategies"><code class="xref std std-ckey docutils literal notranslate"><span class="pre">degradation.strategies</span></code></a> and <a class="reference internal" href="config.html#confkey-degradation.apply"><code class="xref std std-ckey docutils literal notranslate"><span class="pre">degradation.apply</span></code></a>)
+to customize performance checking</p></li>
+<li><p>add caching to recursive config lookup</p></li>
+<li><p>add recursive gathering of options from config</p></li>
+<li><p>fix nondeterministic tests</p></li>
+<li><p>define structure for representing the result of performance change</p></li>
+<li><p>add basic implementation of performance change detectors</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id70">
+<h2>0.11.1 (2018-02-28)<a class="headerlink" href="#id70" title="Link to this heading">¶</a></h2>
+<p><strong>Enhance the regression model suite</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>fix issues when reading configuration with error</p></li>
+<li><p>enhance the regression model suite by improving quadratic and constant models</p></li>
+<li><p>rename the tags to different format (%tag%)</p></li>
+<li><p>add support for shortlog formatting string</p></li>
+<li><p>fix issue with postprocessing information being lost</p></li>
+<li><p>add options for changing filename template</p></li>
+<li><p>remodel automatic generation of profile names (now templatable; see <a class="reference internal" href="config.html#confkey-format.output_profile_template"><code class="xref std std-ckey docutils literal notranslate"><span class="pre">format.output_profile_template</span></code></a>)</p></li>
+<li><p>add runtime config</p></li>
+<li><p>break config command to three (get, set, edit)</p></li>
+<li><p>rename some configuration options</p></li>
+<li><p>fix issue with missing header parts in profiles</p></li>
+<li><p>fix issue with incorrect parameter</p></li>
+<li><p>add global.paging option (see <a class="reference internal" href="config.html#confkey-general.paging"><code class="xref std std-ckey docutils literal notranslate"><span class="pre">general.paging</span></code></a>)</p></li>
+<li><p>improve bokeh outputs (with click policy, and better lines)</p></li>
+<li><p>other various fixes</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id71">
+<h2>0.11 (2017-11-27)<a class="headerlink" href="#id71" title="Link to this heading">¶</a></h2>
+<p><strong>Adding proper documentation</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add HTML and latex documentation</p></li>
+<li><p>refactor the documentation of publicly visible modules</p></li>
+<li><p>add additional figures and examples of outputs and profiles</p></li>
+<li><p>switch order of initialization of Perun instances and vcs</p></li>
+<li><p>break vcs-params to vcs-flags and vcs-param</p></li>
+<li><p>fix the issue with missing index</p></li>
+<li><p>enhance the performance of Perun (guarding, rewriting to table lookup, or lazy inits)</p></li>
+<li><p>add loading of yaml parameters from CLI</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id72">
+<h2>0.10.1 (2017-10-24)<a class="headerlink" href="#id72" title="Link to this heading">¶</a></h2>
+<p><strong>Remodeling of the  regression analysis interface</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>refactor the interface of regression analysis</p></li>
+<li><p>update the regression analysis error computation</p></li>
+<li><p>add new parameters for plotting models</p></li>
+<li><p>reduce number of specific computation functions</p></li>
+<li><p>update the architecture (namely the interface)</p></li>
+<li><p>update the documentation of regression analysis and parameters for cli</p></li>
+<li><p>update the regressions analysis error computation</p></li>
+<li><p>add constant model</p></li>
+<li><p>add paging for perun log and status</p></li>
+<li><p>rename converters and transformations modules</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id73">
+<h2>0.10 (2017-10-10)<a class="headerlink" href="#id73" title="Link to this heading">¶</a></h2>
+<p><strong>Add Scatter plot visualization module</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add scatter plot as new visualisation module (basic version with some temporary workarounds)</p></li>
+<li><p>fix bisection method not producing model for some intervals</p></li>
+<li><p>add examples of scatter plot graphs</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id74">
+<h2>0.9.2 (2017-09-28)<a class="headerlink" href="#id74" title="Link to this heading">¶</a></h2>
+<p><strong>Extend the regression analysis module</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add transformation of models to plotable data points</p></li>
+<li><p>add helper functions for plotting models</p></li>
+<li><p>add support of regression analysis extensions</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id75">
+<h2>0.9.1 (2017-09-24)<a class="headerlink" href="#id75" title="Link to this heading">¶</a></h2>
+<p><strong>Extend the query module</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add proper testing to query module</p></li>
+<li><p>polish the messy conftest.py</p></li>
+<li><p>add support generators and fixtures for query profiles</p></li>
+<li><p>extend the profile query module with key values and models queries</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id76">
+<h2>0.9 (2017-08-31)<a class="headerlink" href="#id76" title="Link to this heading">¶</a></h2>
+<p><strong>Add regression analysis postprocessing module</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add regression analysis postprocessor module</p></li>
+<li><p>add example resulting profiles</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id77">
+<h2>0.8.3 (2017-08-31)<a class="headerlink" href="#id77" title="Link to this heading">¶</a></h2>
+<p><strong>Update and fix complexity collector</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>fix several minor issues with complexity collector</p></li>
+<li><p>polish the standard of the generated profile</p></li>
+<li><p>add proper testinr for cli</p></li>
+<li><p>refactor according to the pylint</p></li>
+<li><p>fix bug where vector would not be cleared after printing to file</p></li>
+<li><p>remove code duplication in loop specification</p></li>
+<li><p>fix different sampling data structure for job and complexity cli</p></li>
+<li><p>fix some minor details with cli usage and info output</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id78">
+<h2>0.8.2 (2017-07-31)<a class="headerlink" href="#id78" title="Link to this heading">¶</a></h2>
+<p><strong>Update the command line interface of complexity collector</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add new options to complexity collector interface</p></li>
+<li><p>add thorough documentation</p></li>
+<li><p>refactor the implementation</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id79">
+<h2>0.8.1 (2017-07-30)<a class="headerlink" href="#id79" title="Link to this heading">¶</a></h2>
+<p><strong>Update the performance of command line interface</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add on demand import of big libraries</p></li>
+<li><p>optimize the memory collector by minimizing subprocess calls</p></li>
+<li><p>fix issue with regex in memory collector</p></li>
+<li><p>add caching of memory collector syscalls</p></li>
+<li><p>extend cli of add and remove to support multiple args</p></li>
+<li><p>extend the massaging of parameters for cli</p></li>
+<li><p>remodel the config command</p></li>
+<li><p>add support for tags in command line</p></li>
+<li><p>enhance the status output of the profile list</p></li>
+<li><p>enhance the default formatting of config</p></li>
+<li><p>add thorough validity checking of bars/flow params</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id80">
+<h2>0.8 (2017-07-03)<a class="headerlink" href="#id80" title="Link to this heading">¶</a></h2>
+<p><strong>Add flame graph visualization</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add flame graph visualization module</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id81">
+<h2>0.7.2 (2017-07-03)<a class="headerlink" href="#id81" title="Link to this heading">¶</a></h2>
+<p><strong>Refactor flow graph to a more generic form</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>refactor flow to more generic format</p></li>
+<li><p>work with flattened pandas.DataFrame format</p></li>
+<li><p>use set of generators and queries for manipulation with profiles</p></li>
+<li><p>make the cli API generic</p></li>
+<li><p>polish the visual apeal of flow graphs</p></li>
+<li><p>simplify output to bokeh.charts.Area</p></li>
+<li><p>add basic testing of bokeh flow graphs</p></li>
+<li><p>fix the issue with additional layer in memory profs</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id82">
+<h2>0.7.1 (2017-06-30)<a class="headerlink" href="#id82" title="Link to this heading">¶</a></h2>
+<p><strong>Refactor bar graph to a more generic form</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>refactor bars to more generic format</p></li>
+<li><p>work with flattened pandas.DataFrame format</p></li>
+<li><p>make the cli API generic</p></li>
+<li><p>polish the visual apeal of bars graph</p></li>
+<li><p>add unique colour palette to bokeh graphs</p></li>
+<li><p>fix minor issue with matrix in config</p></li>
+<li><p>add massaging of params for show and postprocess</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id83">
+<h2>0.7 (2017-06-26)<a class="headerlink" href="#id83" title="Link to this heading">¶</a></h2>
+<p><strong>Add bar graph visualization</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>integrate bar graph visualization</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id84">
+<h2>0.6 (2017-06-26)<a class="headerlink" href="#id84" title="Link to this heading">¶</a></h2>
+<p><strong>Add Flow graph visualization</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>integrate flow graph visualization</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id85">
+<h2>0.5.1 (2016-06-22)<a class="headerlink" href="#id85" title="Link to this heading">¶</a></h2>
+<p><strong>Fix issues in memory collector</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>extend the CLI for memory collect</p></li>
+<li><p>annotate phases of memory collect with basic informations</p></li>
+<li><p>add checks for presence of debugging symbols</p></li>
+<li><p>fix in various things in memory collector</p></li>
+<li><p>extend the testing of memory collector</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id86">
+<h2>0.5 (2016-06-21)<a class="headerlink" href="#id86" title="Link to this heading">¶</a></h2>
+<p><strong>Add Heap map visualization</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>integrate Heap map visualization</p></li>
+<li><p>add thorough testing of heap and heat map</p></li>
+<li><p>refactor profile converting</p></li>
+<li><p>refactor duplicate blobs of code</p></li>
+<li><p>add animation feature</p></li>
+<li><p>add origin to profile so it can be compared before adding profile</p></li>
+<li><p>add more smart lookup of the profile for add</p></li>
+<li><p>add choices for collector/vcs/postprocessor parameters in cli</p></li>
+<li><p>simplify adding parameters to collectors/postprocessors</p></li>
+<li><p>add support for formatting strings for profile list</p></li>
+<li><p>refactor log and status function</p></li>
+<li><p>add basic testing for the command line interface</p></li>
+<li><p>switch interactive configuration to using editor</p></li>
+<li><p>implement wrappers for collect and postprocessby</p></li>
+<li><p>rename ‘bin’ keyword to ‘cmd’ in stored profiles</p></li>
+<li><p>add basic testing of the collectors and commands</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id87">
+<h2>0.4.2 (2017-05-31)<a class="headerlink" href="#id87" title="Link to this heading">¶</a></h2>
+<p><strong>Collective fixes mostly for Memory collector</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>fix a collector issue with zero value addresses</p></li>
+<li><p>add checking validity of the looked up minor version</p></li>
+<li><p>fix issue with incorrect parameter of the NotPerunRepositoryException</p></li>
+<li><p>raise exception when the profile is in incorrect json syntax</p></li>
+<li><p>catch error when minor head could not be found</p></li>
+<li><p>add exception for errors in wrapped VCS</p></li>
+<li><p>add exception for incorrect profile format</p></li>
+<li><p>raise NotPerunRepository, when Perun is not located on path</p></li>
+<li><p>fix message when git was reinitialized</p></li>
+<li><p>catch exceptions for init</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id88">
+<h2>0.4.1 (2017-05-15)<a class="headerlink" href="#id88" title="Link to this heading">¶</a></h2>
+<p><strong>Collective fixes mosty for Complexity collector</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>fixed size data container growth if functions were sampled</p></li>
+<li><p>enhance the perun status with info about untracked profiles</p></li>
+<li><p>add colours to printing of profile list (red for untracked)</p></li>
+<li><p>add output of untracked profiles to perun status</p></li>
+<li><p>fix issue with postprocessor parameter rewritten by local variable</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id89">
+<h2>0.4 (2017-03-17)<a class="headerlink" href="#id89" title="Link to this heading">¶</a></h2>
+<p><strong>Add Complexity collector</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add complexity collector module</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id90">
+<h2>0.3 (2017-03-14)<a class="headerlink" href="#id90" title="Link to this heading">¶</a></h2>
+<p><strong>Adding Memory Collector</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add memory collector module</p></li>
+<li><p>fix the issue with detached head state and perun status</p></li>
+<li><p>add simple, but interactive, initialization of the local config</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id91">
+<h2>0.2 (2017-03-07)<a class="headerlink" href="#id91" title="Link to this heading">¶</a></h2>
+<p><strong>Add basic job units</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add the normalizer postprocessor</p></li>
+<li><p>add the time collector</p></li>
+<li><p>refactor the git module to use the python package</p></li>
+<li><p>add loadinng of config from local yml</p></li>
+<li><p>refactor construction of job matrix</p></li>
+<li><p>remove cmd from job tuple and rename params to args</p></li>
+<li><p>break perun run to run matrix (from config) and run job (from stdout)</p></li>
+<li><p>fix issue of assuming different structure of profile</p></li>
+<li><p>add functionality of creating and storing profiles</p></li>
+<li><p>add generation of the profile name for given job</p></li>
+<li><p>add storing of the profile at given path</p></li>
+<li><p>add generation of profile out of collected data</p></li>
+<li><p>update the params between the phases</p></li>
+<li><p>polish the perun –short header</p></li>
+<li><p>various minor tweaks for outputs</p></li>
+<li><p>change init-vcs-* options to just vcs-*</p></li>
+<li><p>fix an issue with incorrectly outputed comma if no profile type was present</p></li>
+<li><p>fix an issue with loading profile having two modes (compressed and uncompressed)</p></li>
+<li><p>implement base logic for calling collectors and postprocessors</p></li>
+<li><p>enhance output of profile numbers in perun log and status with colours and types</p></li>
+<li><p>add header for short info</p></li>
+<li><p>add colours to the header</p></li>
+<li><p>add base implementation of perun show</p></li>
+<li><p>fix loading of compressed file</p></li>
+<li><p>polish output of perun log and status by adding indent, colours and padding</p></li>
+<li><p>fix an issue with adding non-existent profile</p></li>
+<li><p>fix multiple adding of the same entry</p></li>
+<li><p>fix an issue when the added entry should go to end of index</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id92">
+<h2>0.1 (2017-02-22)<a class="headerlink" href="#id92" title="Link to this heading">¶</a></h2>
+<p><strong>First partially working implementation</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>add short printing of minor version info (–short-minors | -s option)</p></li>
+<li><p>fix reverse output of log (oldest was displayed first)</p></li>
+<li><p>implement simplistic perun log outputing minor version history and profile numbers</p></li>
+<li><p>fix an incorrect warning about already tracked profiles</p></li>
+<li><p>add removal of the entry from the index</p></li>
+<li><p>add registering of  files to the minor version index</p></li>
+<li><p>refactor according to pylint</p></li>
+<li><p>add base implementation of perun log</p></li>
+<li><p>add base implementation of perun status</p></li>
+<li><p>add base implementation of perun add</p></li>
+<li><p>add base implementation of perun rm</p></li>
+<li><p>add base implementation of perun init</p></li>
+<li><p>add base implementation of perun config</p></li>
+<li><p>add base commandline interface through click</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id93">
+<h2>0.0 (2016-12-10)<a class="headerlink" href="#id93" title="Link to this heading">¶</a></h2>
+<p><strong>Initial minimalistic repository</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>empty root</p></li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="index.html">
+    <h3>Perun</h3>
+  </a>
+</p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changelog</a><ul>
+<li><a class="reference internal" href="#id1">0.27.3 (2026-06-03)</a></li>
+<li><a class="reference internal" href="#id2">0.27.2 (2026-05-23)</a></li>
+<li><a class="reference internal" href="#id3">0.27.1 (2026-04-22)</a></li>
+<li><a class="reference internal" href="#id4">0.27.0 (2026-03-23)</a></li>
+<li><a class="reference internal" href="#id5">0.26.1 (2026-01-24)</a></li>
+<li><a class="reference internal" href="#id6">0.26.0 (2026-01-14)</a></li>
+<li><a class="reference internal" href="#id7">0.25.6 (2025-11-05)</a></li>
+<li><a class="reference internal" href="#id8">0.25.5 (2025-07-28)</a></li>
+<li><a class="reference internal" href="#id9">0.25.4 (2025-07-23)</a></li>
+<li><a class="reference internal" href="#id10">0.25.3 (2025-05-14)</a></li>
+<li><a class="reference internal" href="#id11">0.25.2 (2025-03-27)</a></li>
+<li><a class="reference internal" href="#id12">0.25.1 (2025-03-24)</a></li>
+<li><a class="reference internal" href="#id13">0.25.0 (2025-03-23)</a></li>
+<li><a class="reference internal" href="#id14">0.24.0 (2025-02-06)</a></li>
+<li><a class="reference internal" href="#id15">0.23.8 (2025-01-05)</a></li>
+<li><a class="reference internal" href="#id16">0.23.7 (2024-11-04)</a></li>
+<li><a class="reference internal" href="#id17">0.23.6 (2024-10-06)</a></li>
+<li><a class="reference internal" href="#id18">0.23.5 (2024-09-25)</a></li>
+<li><a class="reference internal" href="#id19">0.23.4 (2024-08-08)</a></li>
+<li><a class="reference internal" href="#id20">0.23.3 (2024-07-31)</a></li>
+<li><a class="reference internal" href="#id21">0.23.2 (2024-07-22)</a></li>
+<li><a class="reference internal" href="#id22">0.23.1 (2024-07-15)</a></li>
+<li><a class="reference internal" href="#id23">0.23 (2024-07-11)</a></li>
+<li><a class="reference internal" href="#id24">0.22.5 (2024-06-29)</a></li>
+<li><a class="reference internal" href="#id25">0.22.4 (2024-06-23)</a></li>
+<li><a class="reference internal" href="#id26">0.22.3 (2024-06-23)</a></li>
+<li><a class="reference internal" href="#id27">0.22.2 (2024-06-21)</a></li>
+<li><a class="reference internal" href="#id28">0.22 (2024-05-22)</a></li>
+<li><a class="reference internal" href="#id29">0.21.8 (2024-01-12)</a></li>
+<li><a class="reference internal" href="#id30">0.21.7 (2023-11-08)</a></li>
+<li><a class="reference internal" href="#id31">0.21.6 (2023-11-06)</a></li>
+<li><a class="reference internal" href="#id32">0.20.4 (2022-06-28)</a></li>
+<li><a class="reference internal" href="#id33">0.20.3 (2022-06-28)</a></li>
+<li><a class="reference internal" href="#hotfix2-2022-06-28">0.20.2-hotfix2 (2022-06-28)</a></li>
+<li><a class="reference internal" href="#hotfix-2022-06-21">0.20.2-hotfix (2022-06-21)</a></li>
+<li><a class="reference internal" href="#id34">0.20.2 (2021-05-12)</a></li>
+<li><a class="reference internal" href="#id35">0.20.1 (2021-05-12)</a></li>
+<li><a class="reference internal" href="#id36">0.20 (2021-03-05)</a></li>
+<li><a class="reference internal" href="#id37">0.19 (2021-02-08)</a></li>
+<li><a class="reference internal" href="#hotfix2-2020-08-31">0.18.3-hotfix2 (2020-08-31)</a></li>
+<li><a class="reference internal" href="#hotfix-2020-05-11">0.18.3-hotfix (2020-05-11)</a></li>
+<li><a class="reference internal" href="#id38">0.18.3 (2020-03-20)</a></li>
+<li><a class="reference internal" href="#id39">0.18.2 (2020-02-13)</a></li>
+<li><a class="reference internal" href="#id40">0.18.1 (2020-02-13)</a></li>
+<li><a class="reference internal" href="#id41">0.18 (2020-02-11)</a></li>
+<li><a class="reference internal" href="#id42">0.17.4 (2020-01-28)</a></li>
+<li><a class="reference internal" href="#id43">0.17.3 (2020-01-09)</a></li>
+<li><a class="reference internal" href="#id44">0.17.2 (2019-08-16)</a></li>
+<li><a class="reference internal" href="#id45">0.17.1 (2019-07-24)</a></li>
+<li><a class="reference internal" href="#id46">0.17 (2019-07-09)</a></li>
+<li><a class="reference internal" href="#hotfix-2019-06-18">0.16.9-hotfix (2019-06-18)</a></li>
+<li><a class="reference internal" href="#id47">0.16.9 (2019-06-18)</a></li>
+<li><a class="reference internal" href="#id48">0.16.8 (2019-05-18)</a></li>
+<li><a class="reference internal" href="#hotfix-2019-04-15">0.16.7-hotfix (2019-04-15)</a></li>
+<li><a class="reference internal" href="#id49">0.16.7 (2019-04-15)</a></li>
+<li><a class="reference internal" href="#id50">0.16.6 (2019-03-25)</a></li>
+<li><a class="reference internal" href="#id51">0.16.5 (2019-03-22)</a></li>
+<li><a class="reference internal" href="#id52">0.16.4 (2019-03-14)</a></li>
+<li><a class="reference internal" href="#id53">0.16.3 (2019-03-02)</a></li>
+<li><a class="reference internal" href="#id54">0.16.2 (2019-03-02)</a></li>
+<li><a class="reference internal" href="#id55">0.16.1 (2019-03-01)</a></li>
+<li><a class="reference internal" href="#id56">0.16 (2019-02-16)</a></li>
+<li><a class="reference internal" href="#id57">0.15.4 (2018-08-13)</a></li>
+<li><a class="reference internal" href="#hotfix-2018-08-02">0.15.3-hotfix (2018-08-02)</a></li>
+<li><a class="reference internal" href="#id58">0.15.3 (2018-08-01)</a></li>
+<li><a class="reference internal" href="#id59">0.15.2 (2018-07-20)</a></li>
+<li><a class="reference internal" href="#id60">0.15.1 (2018-07-17)</a></li>
+<li><a class="reference internal" href="#id61">0.15 (2018-06-20)</a></li>
+<li><a class="reference internal" href="#id62">0.14.4 (2018-06-17)</a></li>
+<li><a class="reference internal" href="#id63">0.14.3 (2018-06-12)</a></li>
+<li><a class="reference internal" href="#id64">0.14.2 (2018-05-15)</a></li>
+<li><a class="reference internal" href="#id65">0.14.1 (2018-04-19)</a></li>
+<li><a class="reference internal" href="#id66">0.14 (2018-03-27)</a></li>
+<li><a class="reference internal" href="#id67">0.13 (2018-03-27)</a></li>
+<li><a class="reference internal" href="#id68">0.12.1 (2018-03-08)</a></li>
+<li><a class="reference internal" href="#id69">0.12 (2018-03-05)</a></li>
+<li><a class="reference internal" href="#id70">0.11.1 (2018-02-28)</a></li>
+<li><a class="reference internal" href="#id71">0.11 (2017-11-27)</a></li>
+<li><a class="reference internal" href="#id72">0.10.1 (2017-10-24)</a></li>
+<li><a class="reference internal" href="#id73">0.10 (2017-10-10)</a></li>
+<li><a class="reference internal" href="#id74">0.9.2 (2017-09-28)</a></li>
+<li><a class="reference internal" href="#id75">0.9.1 (2017-09-24)</a></li>
+<li><a class="reference internal" href="#id76">0.9 (2017-08-31)</a></li>
+<li><a class="reference internal" href="#id77">0.8.3 (2017-08-31)</a></li>
+<li><a class="reference internal" href="#id78">0.8.2 (2017-07-31)</a></li>
+<li><a class="reference internal" href="#id79">0.8.1 (2017-07-30)</a></li>
+<li><a class="reference internal" href="#id80">0.8 (2017-07-03)</a></li>
+<li><a class="reference internal" href="#id81">0.7.2 (2017-07-03)</a></li>
+<li><a class="reference internal" href="#id82">0.7.1 (2017-06-30)</a></li>
+<li><a class="reference internal" href="#id83">0.7 (2017-06-26)</a></li>
+<li><a class="reference internal" href="#id84">0.6 (2017-06-26)</a></li>
+<li><a class="reference internal" href="#id85">0.5.1 (2016-06-22)</a></li>
+<li><a class="reference internal" href="#id86">0.5 (2016-06-21)</a></li>
+<li><a class="reference internal" href="#id87">0.4.2 (2017-05-31)</a></li>
+<li><a class="reference internal" href="#id88">0.4.1 (2017-05-15)</a></li>
+<li><a class="reference internal" href="#id89">0.4 (2017-03-17)</a></li>
+<li><a class="reference internal" href="#id90">0.3 (2017-03-14)</a></li>
+<li><a class="reference internal" href="#id91">0.2 (2017-03-07)</a></li>
+<li><a class="reference internal" href="#id92">0.1 (2017-02-22)</a></li>
+<li><a class="reference internal" href="#id93">0.0 (2016-12-10)</a></li>
+</ul>
+</li>
+</ul>
+
+  </div><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="internals.html" title="previous chapter">Perun Internals</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/changelog.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2017, Tomas Fiedor, Jiri Pavela, Simon Stupinsky, et al..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/changelog.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
