@@ -18,8 +18,8 @@
 function findTraceDataBySymbol(symbol) {
     if (!window.tracesData) return null;
     const symbolStr = symbol.toString();
-    // For trace strings: "root;...;leaf" — take the last (rightmost) segment as the leaf ID.
-    const leafId = symbolStr.includes(';') ? symbolStr.split(';').at(-1) : symbolStr;
+    const ids = symbolStr.split(';');
+    const leafId = ids.length > 1 ? ids[ids.length - 1] : symbolStr;
     return window.tracesData.find(r => r.index === leafId) || null;
 }
 

@@ -224,11 +224,11 @@ body.mono-theme .top-traces-column:hover {
 
 /* ── Segmented Inclusive / Exclusive Pill Toggle ─────────────────────────────── */
 
-.top-funcs-header {
+.top-diff-header {
     margin-top: 40px;
 }
 
-.top-funcs-title {
+.top-diff-title {
     font-size: 1.5em;
     font-weight: bold;
     color: var(--color-primary);
