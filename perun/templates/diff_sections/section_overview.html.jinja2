@@ -85,14 +85,7 @@
 
     </div>
 
-{#
-    {{ m_title.display_subtitle("Top Traces", "top-traces") }}
-    <div class="comparison_container">
-        {{ traces_selection.empty_table('Baseline-Only', 'traces-baseline') }}
-        {{ traces_selection.empty_table_switchable('Common', 'traces-common') }}
-        {{ traces_selection.empty_table('Target-Only', 'traces-target') }}
-    </div>
-#}
+
 
     <div class="section_header top-funcs-header">
         <span class="top-funcs-title">Top Functions</span>
@@ -109,6 +102,23 @@
         {{ traces_selection.empty_table('Baseline-Only', 'top-funcs-baseline') }}
         {{ traces_selection.empty_table_switchable('Common', 'top-funcs-common') }}
         {{ traces_selection.empty_table('Target-Only', 'top-funcs-target') }}
+    </div>
+
+    <div class="section_header top-funcs-header">
+        <span class="top-funcs-title">Top Traces</span>
+        <div class="segmented-toggle" title="Switch between inclusive (cumulative) and exclusive (self-only) samples">
+            <input type="checkbox" id="top-traces-incl-excl-toggle" onchange="onTracesInclExclToggle()">
+            <label for="top-traces-incl-excl-toggle" class="segmented-toggle-label">
+                <span class="segmented-slider"></span>
+                <span class="segmented-option seg-incl">Inclusive</span>
+                <span class="segmented-option seg-excl">Exclusive</span>
+            </label>
+        </div>
+    </div>
+    <div class="comparison_container">
+        {{ traces_selection.empty_table('Baseline-Only', 'top-traces-baseline') }}
+        {{ traces_selection.empty_table_switchable('Common', 'top-traces-common') }}
+        {{ traces_selection.empty_table('Target-Only', 'top-traces-target') }}
     </div>
 
 </div>
@@ -185,7 +195,7 @@
             keyDiv.textContent = functionName;
             keyDiv.onclick = () => {
                 if (window.tracesData) {
-                    const rowData = window.tracesData.find(r => r.index === row[0].toString());
+                    const rowData = findTraceDataBySymbol(row[0]);
                     if (rowData && window.openTracePopup) {
                         const isExcl = getInclExclIndex() === 1;
                         const navContext = {
@@ -241,6 +251,96 @@
         updateTables();
     }
 
+    function renderTopTracesTable(containerId, dataArray) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        if (!dataArray || dataArray.length === 0) {
+            container.innerHTML = '<div style="font-style: italic; color: #888; padding: 10px;">No data</div>';
+            return;
+        }
+        dataArray.forEach((row, index) => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'data-row';
+
+            const keyWrapper = document.createElement('div');
+            keyWrapper.className = 'data-key-wrapper';
+
+            const idxSpan = document.createElement('span');
+            idxSpan.className = 'data-idx';
+            idxSpan.textContent = `${index + 1}.`;
+
+            const keyDiv = document.createElement('div');
+            keyDiv.className = 'data-key';
+
+            const traceStr = row[0];
+            const ids = traceStr.split(';');
+            // Folded format is root;...;leaf — the rightmost ID is the leaf (top of call stack).
+            const leafId = ids[ids.length - 1];
+            const leafName = nodes[parseInt(leafId)] || leafId;
+            // Tooltip shows the call chain from leaf down to root, matching the modal's call stack panel.
+            const fullChain = [...ids].reverse().map(id => nodes[parseInt(id)] || id).join(' ← ');
+
+            keyDiv.title = fullChain;
+            keyDiv.textContent = leafName;
+            keyDiv.onclick = () => {
+                if (window.tracesData) {
+                    // findTraceDataBySymbol handles both plain function IDs and trace strings.
+                    const rowData = findTraceDataBySymbol(traceStr);
+                    if (rowData && window.openTracePopup) {
+                        const isExcl = getTracesInclExclIndex() === 1;
+                        const navContext = {
+                            items: dataArray,
+                            currentIndex: index,
+                            isExclusive: isExcl,
+                            preSelectTrace: traceStr,
+                        };
+                        window.openTracePopup(rowData, isExcl, navContext);
+                    }
+                }
+            };
+
+            keyWrapper.appendChild(idxSpan);
+            keyWrapper.appendChild(keyDiv);
+
+            const valDiv = document.createElement('div');
+            valDiv.className = 'data-value';
+
+            const value = row[1];
+            const percentage = value.toFixed(2);
+            const sign = value > 0 ? '+' : '';
+            const colorClass = value >= 0 ? 'diff-minus' : 'diff-plus';
+
+            valDiv.innerHTML = `<span class="${colorClass}" style="margin-left: 8px; font-weight: bold;">${sign}${percentage}%</span>`;
+
+            rowDiv.appendChild(keyWrapper);
+            rowDiv.appendChild(valDiv);
+            container.appendChild(rowDiv);
+        });
+    }
+
+    function getTracesInclExclIndex() {
+        const toggle = document.getElementById('top-traces-incl-excl-toggle');
+        return toggle && toggle.checked ? 1 : 0;
+    }
+
+    function updateTopTracesTables() {
+        const idx = getTracesInclExclIndex();
+
+        renderTopTracesTable('top-traces-baseline', topTraceDiffs[idx][0]);
+        renderTopTracesTable('top-traces-target', topTraceDiffs[idx][1]);
+
+        const tracesToggle = document.getElementById('top-traces-common-sort-toggle');
+        if (tracesToggle) {
+            const isDescending = tracesToggle.getAttribute('data-sort') === 'desc';
+            const tracesCommonData = isDescending ? topTraceDiffs[idx][2] : topTraceDiffs[idx][3];
+            renderTopTracesTable('top-traces-common', tracesCommonData);
+        }
+    }
+
+    function onTracesInclExclToggle() {
+        updateTopTracesTables();
+    }
+
     function toggleTable(id) {
         const toggle = document.getElementById(id + '-sort-toggle');
         if (!toggle) return;
@@ -253,13 +353,16 @@
         document.getElementById(id + '-sort-arrow').textContent = newSort === 'desc' ? '▼' : '▲';
 
         updateTables();
+        updateTopTracesTables();
     }
 
     // Execute immediately after DOM is loaded or script runs
     document.addEventListener("DOMContentLoaded", () => {
         updateTables();
+        updateTopTracesTables();
     });
     if (document.readyState === "complete" || document.readyState === "interactive") {
         updateTables();
+        updateTopTracesTables();
     }
 </script>
